@@ -60,11 +60,11 @@ typedef struct {
  * Driver class for Andor CCD. This inherits from ADDriver class in areaDetector.
  *
  */
-class fCCD : public ADDriver {
+class AndorCCD : public ADDriver {
  public:
-  fCCD(const char *portName, int maxBuffers, size_t maxMemory, 
+  AndorCCD(const char *portName, int maxBuffers, size_t maxMemory, 
            const char *installPath, int priority, int stackSize);
-  virtual ~fCCD();
+  virtual ~AndorCCD();
 
   /* These are the methods that we override from ADDriver */
   virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
@@ -155,6 +155,7 @@ class fCCD : public ADDriver {
   double mPollingPeriod;
   double mFastPollingPeriod;
   unsigned int mAcquiringData;
+  unsigned int m_bRequestStop;
   char *mInstallPath;
   
   /**

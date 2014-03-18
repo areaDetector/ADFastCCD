@@ -6,7 +6,7 @@
  * Ver
  * 0.1 YF 1/20/14
  * 0.2 YF 3/3/14
- *
+ * 0.3 YF 3/13/14
  */
 
 #include <stdio.h>
@@ -21,6 +21,12 @@
 #include <iocsh.h>
 #include <epicsExport.h>
 #include <epicsExit.h>
+
+#ifdef _WIN32
+#include "ATMCD32D.h"
+#else
+#include "atmcdLXd.h"
+#endif
 
 #include "andorCCD.h"
 
@@ -38,10 +44,23 @@ int CIN_set_cycle_time(float c_time);
 int CIN_set_trigger_mode(int val);
 int CIN_trigger_start();
 int CIN_trigger_stop();
+
+
 }
 
 
+enum 
+{
+   modeInProcess,
+   modeStart,
+   modeFinished
+} flagAcquireMode  = modeInProcess;
+
+
+
 static const char *driverName = "andorCCD";
+static int flagAcquireDone = 0;
+static int m_bFirstTimeThrough = 0;
 
 //Definitions of static class data members
 
@@ -272,8 +291,8 @@ AndorCCD::AndorCCD(const char *portName, int maxBuffers, size_t maxMemory,
 #endif
 
   /* Set some default values for parameters */
-  status =  setStringParam(ADManufacturer, "LBNL");
-  status |= setStringParam(ADModel, "fCCD"); 
+  status =  setStringParam(ADManufacturer, "FCCD");
+  status |= setStringParam(ADModel, ""); // Model ?
   status |= setIntegerParam(ADSizeX, sizeX);
   status |= setIntegerParam(ADSizeY, sizeY);
   status |= setIntegerParam(ADBinX, 1);
@@ -329,6 +348,7 @@ AndorCCD::AndorCCD(const char *portName, int maxBuffers, size_t maxMemory,
   mFastPollingPeriod = 0.05; //seconds
 
   mAcquiringData = 0;
+  m_bRequestStop = 0;
   
   if (stackSize == 0) stackSize = epicsThreadGetStackSize(epicsThreadStackMedium);
 
@@ -553,49 +573,24 @@ asynStatus AndorCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
     
       if (value)  // User clicked 'Start' button
       {
+         mAcquiringData = 1;  // Must set this flag first
+         flagAcquireMode = modeStart;
+
+         m_bFirstTimeThrough = 1; 
+         m_bRequestStop = 0;
          // Send the hardware a start trigger command
-         CIN_trigger_start();
-          mAcquiringData = 1;
+         CIN_trigger_start(); // Then tell hardware to trigger
+         //adstatus = ADStatusAcquire; 
       }
       else     // User clicked 'Stop' Button
       {
          // Send the hardware a stop trigger command
          CIN_trigger_stop();
+         m_bRequestStop = 1;
+         
+         // mAcquiringData = 0;
+         // adstatus = ADStatusIdle; 
       }
-      //getIntegerParam(ADStatus, &adstatus);
-//      if (value && (adstatus == ADStatusIdle)) {
-//        try {
-//          mAcquiringData = 1;
-//          //We send an event at the bottom of this function.
-//        } catch (const std::string &e) {
-//          asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-//            "%s:%s: %s\n",
-//            driverName, functionName, e.c_str());
-//          status = asynError;
-//        }
-//      }
-//      if (!value && (adstatus != ADStatusIdle)) {
-//        try {
-//          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-//            "%s:%s:, AbortAcquisition()\n", 
-//            driverName, functionName);
-//          // YF TODO  checkStatus(AbortAcquisition());
-//          mAcquiringData = 0;
-//          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-//            "%s:%s:, FreeInternalMemory()\n", 
-//            driverName, functionName);
-//          // YF TODO  checkStatus(FreeInternalMemory());
-//          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-//            "%s:%s:, CancelWait()\n", 
-//            driverName, functionName);
-//          // YF TODO  checkStatus(CancelWait());
-//       } catch (const std::string &e) {
-//          asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-//            "%s:%s: %s\n",
-//            driverName, functionName, e.c_str());
-//          status = asynError;
-//        } 
-//    }
     }
     
     
@@ -615,12 +610,12 @@ asynStatus AndorCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
           asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
             "%s:%s:, CoolerOFF()\n", 
             driverName, functionName);
-          // YF TODO  checkStatus(CoolerOFF());
+
         } else if (value == 1) {
           asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
             "%s:%s:, CoolerON()\n", 
             driverName, functionName);
-          // YF TODO  checkStatus(CoolerON());
+
         }
       } catch (const std::string &e) {
         asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -647,8 +642,20 @@ asynStatus AndorCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
          int gts;
          CIN_set_trigger(value);
          
+         // Hardware requires setting to Single Image Mode when setting to
+         //  external trigger mode
+         if (value > 0) // 1,2,3 is external
+         {
+            // Exter1, Exter2 or Exter 1| 2
+            checkStatus(CIN_set_trigger_mode( 1 ) ); 
+            setIntegerParam(ADImageMode, ADImageSingle); 
+         }
+         
          gts =  CIN_get_trigger_status();
-         setIntegerParam(ADTriggerMode, gts);
+         if (gts >=0 && gts <= 3)
+         {
+            setIntegerParam(ADTriggerMode, gts);
+         }
          // callParamCallbacks();
     }
     
@@ -720,7 +727,7 @@ asynStatus AndorCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
         asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
           "%s:%s:, SetPreAmpGain(%d)\n", 
           driverName, functionName, (int)value);
-        // YF TODO  checkStatus(SetPreAmpGain((int)value));
+
       } catch (const std::string &e) {
         asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
           "%s:%s: %s\n",
@@ -740,12 +747,12 @@ asynStatus AndorCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
         asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
           "%s:%s:, CCD Min Temp: %d, Max Temp %d\n", 
           driverName, functionName, minTemp, maxTemp);
-        // YF TODO  checkStatus(GetTemperatureRange(&minTemp, &maxTemp));
+
         if ((static_cast<int>(value) > minTemp) & (static_cast<int>(value) < maxTemp)) {
           asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
             "%s:%s:, SetTemperature(%d)\n", 
             driverName, functionName, static_cast<int>(value));
-          // YF TODO  checkStatus(SetTemperature(static_cast<int>(value)));
+
         } else {
           setStringParam(AndorMessage, "Temperature is out of range.");
           callParamCallbacks();
@@ -883,7 +890,23 @@ void AndorCCD::statusTask(void)
     }
 
     this->lock();
+    
+    if (flagAcquireMode == modeStart) 
+    {
+       setIntegerParam(ADStatus, ADStatusAcquire);
+       flagAcquireMode = modeInProcess;
+    }
+    else if (flagAcquireMode == modeFinished) 
+    {
+       setIntegerParam(ADStatus, ADStatusIdle);
+       setIntegerParam(ADAcquire, 0);
+       flagAcquireMode = modeInProcess;
+    }
 
+ 
+// YF Nice to have:
+//  Could update a status PV with FIFO level status here. 
+    
 #if 0
     try {
       //Only read these if we are not acquiring data
@@ -1276,6 +1299,27 @@ void AndorCCD::dataTask(void)
          this->unlock();
             status = FCCD_GetImage(); 
          this->lock();
+
+         
+         
+         if (m_bFirstTimeThrough)
+         {
+            //Read some parameters
+            getIntegerParam(NDDataType, &itemp); dataType = (NDDataType_t)itemp;
+            getIntegerParam(NDAutoSave, &autoSave);
+            getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
+            getIntegerParam(NDArraySizeX, &sizeX);
+            getIntegerParam(NDArraySizeY, &sizeY);
+            getIntegerParam(ADNumImages, &numImages);
+            // Reset the counters
+            setIntegerParam(ADNumImagesCounter, 0);
+            setIntegerParam(ADNumExposuresCounter, 0);
+            getIntegerParam(ADImageMode, &imageMode);
+            // setIntegerParam(ADStatus, 1 /*"Acquire", def in ADBase.template */); 
+
+            callParamCallbacks();
+            m_bFirstTimeThrough = 0;
+      }
          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
           "%s:%s:, Got an image.\n", driverName, functionName);
          getIntegerParam(ADNumExposuresCounter, &numExposuresCounter);
@@ -1348,16 +1392,27 @@ void AndorCCD::dataTask(void)
        // Never exit the acquire loop.
        // Instead rely on hardware to switch from single trigger to continuous mode
       /* See if acquisition is done */
-//      if ((imageMode == ADImageSingle) ||
-//         ((imageMode == ADImageMultiple) &&
-//          (numImagesCounter >= numImages))) {
-//          
-//            acquiring = 0;
-//      }
+      if ((imageMode == ADImageSingle) ||
+         ((imageMode == ADImageMultiple) &&
+          (numImagesCounter >= numImages))) {
+            //acquiring = 0;
+            flagAcquireMode = modeFinished;
+      }
+      
+      if (m_bRequestStop == 1)
+      {
+         // This variable gets set when user presses Stop button.
+         // Status will be updated in statusTask, and this loop will
+         // run until FIFO is empty.
+         // Known issue: The status may change to IDLE before the FIFO is empty.
+         flagAcquireMode = modeFinished;
+         m_bRequestStop = 0;
+      }
     } // while acquiring
       
     //Now clear main thread flag
     mAcquiringData = 0;
+    m_bRequestStop = 0;
     setIntegerParam(ADAcquire, 0);
     setIntegerParam(ADStatus, 0); 
 
