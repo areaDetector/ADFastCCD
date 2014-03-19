@@ -1459,7 +1459,7 @@ static void configAndorCCDCallFunc(const iocshArgBuf *args)
                    args[4].ival, args[5].ival);
 }
 
-static void andorCCDRegister(void)
+static void fCCDRegister(void)
 {
 
     iocshRegister(&configAndorCCD, configAndorCCDCallFunc);
@@ -1496,7 +1496,7 @@ static void cin_power_downRegister(void)
     iocshRegister(&cin_power_downFuncDef, cin_power_downCallFunc);
 }
 
-epicsExportRegistrar(andorCCDRegister);
+epicsExportRegistrar(fCCDRegister);
 epicsExportRegistrar(cin_power_upRegister);
 epicsExportRegistrar(cin_power_downRegister);
 
