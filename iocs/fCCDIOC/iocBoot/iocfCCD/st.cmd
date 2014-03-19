@@ -1,11 +1,13 @@
-#!../../bin/linux-x86_64/andorCCDApp
+#!../../../../bin/linux-x86_64/fCCDApp
 < envPaths
+
+epicsEnvSet("ADCORE", "$(AREA_DETECTOR)/ADCore")
+
 errlogInit(20000)
-#YF possibly required for imageJ plugin
 epicsEnvSet(EPICS_CA_MAX_ARRAY_BYTES,4432896)
 
-dbLoadDatabase("$(AREA_DETECTOR)/dbd/andorCCDApp.dbd")
-andorCCDApp_registerRecordDeviceDriver(pdbbase) 
+dbLoadDatabase("$(ADFCCD)/dbd/fCCDApp.dbd")
+fCCDApp_registerRecordDeviceDriver(pdbbase) 
 
 epicsEnvSet("PREFIX", "13ANDOR1:")
 epicsEnvSet("PORT",   "ANDOR")
@@ -20,8 +22,6 @@ epicsEnvSet("FPGA_CONFIGFILE", "top_frame_fpga-v1019j.bit")
 epicsEnvSet("CIN_WAVEFORM", "2013_Nov_30-200MHz_CCD_timing.txt")
 epicsEnvSet("CIN_FCRIC", "2013_Nov_25-200MHz_fCRIC_timing.txt")
 epicsEnvSet("CIN_BIAS", "2013_Nov_05_Bias_Settings.txt")
-
-
 
 # andorCCDConfig(const char *portName, int maxBuffers, size_t maxMemory, 
 #                const char *installPath, int priority, int stackSize)
@@ -38,21 +38,21 @@ andorCCDConfig("$(PORT)", 0, 0, "/usr/local/etc/andor/", 0, 100000)
 #
 #FCCD_cin_power_down("param1")
 #
-dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/ADBase.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
-dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDFile.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
-dbLoadRecords("andorCCD.template",   "P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
+dbLoadRecords("$(ADCORE)/Db/ADBase.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
+dbLoadRecords("$(ADCORE)/Db/NDFile.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
+dbLoadRecords("$(TOP)/db/fCCD.template",   "P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 
 # Create a standard arrays plugin
 NDStdArraysConfigure("Image1", 5, 0, "$(PORT)", 0, 0)
-dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDPluginBase.template","P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),NDARRAY_ADDR=0")
+dbLoadRecords("$(ADCORE)/db/NDPluginBase.template","P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),NDARRAY_ADDR=0")
 # Make NELEMENTS in the following be a little bigger than 2048*2048
 # Use the following command for 32-bit images.  This is needed for 32-bit detectors or for 16-bit detectors in acccumulate mode if it would overflow 16 bits
-#dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,TYPE=Int32,FTVL=LONG,NELEMENTS=4200000")
+#dbLoadRecords("$(ADCORE)/db/NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,TYPE=Int32,FTVL=LONG,NELEMENTS=4200000")
 # Use the following command for 16-bit images.  This can be used for 16-bit detector as long as accumulate mode would not result in 16-bit overflow
-dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,TYPE=Int16,FTVL=SHORT,NELEMENTS=4200000")
+dbLoadRecords("$(ADCORE)/db/NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,TYPE=Int16,FTVL=SHORT,NELEMENTS=4200000")
 
 # Load all other plugins using commonPlugins.cmd
-< ../commonPlugins.cmd
+< $(ADCORE)/iocBoot/commonPlugins.cmd
 
 #asynSetTraceMask("$(PORT)",0,3)
 #asynSetTraceIOMask("$(PORT)",0,4)
