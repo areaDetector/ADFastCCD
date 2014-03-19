@@ -22,7 +22,7 @@
 #include <epicsExport.h>
 #include <epicsExit.h>
 
-#include "andorCCD.h"
+#include "fCCD.h"
 
 // Function prototypes for cin_power.c
 extern "C" {
@@ -38,6 +38,8 @@ int CIN_set_cycle_time(float c_time);
 int CIN_set_trigger_mode(int val);
 int CIN_trigger_start();
 int CIN_trigger_stop();
+
+
 }
 
 
@@ -57,6 +59,7 @@ const epicsUInt32 AndorCCD::ATExternal1 = 1;
 const epicsUInt32 AndorCCD::ATExternal2 = 2;
 const epicsUInt32 AndorCCD::ATExternal1or2 = 3;
 
+/*
 const epicsUInt32 AndorCCD::ASIdle = DRV_IDLE;
 const epicsUInt32 AndorCCD::ASTempCycle = DRV_TEMPCYCLE;
 const epicsUInt32 AndorCCD::ASAcquiring = DRV_ACQUIRING;
@@ -65,6 +68,7 @@ const epicsUInt32 AndorCCD::ASKineticTimeNotMet = DRV_KINETIC_TIME_NOT_MET;
 const epicsUInt32 AndorCCD::ASErrorAck = DRV_ERROR_ACK;
 const epicsUInt32 AndorCCD::ASAcqBuffer = DRV_ACQ_BUFFER;
 const epicsUInt32 AndorCCD::ASSpoolError = DRV_SPOOLERROR;
+*/
 
 const epicsInt32 AndorCCD::ARFullVerticalBinning = 0;
 const epicsInt32 AndorCCD::ARMultiTrack = 1;
@@ -272,8 +276,8 @@ AndorCCD::AndorCCD(const char *portName, int maxBuffers, size_t maxMemory,
 #endif
 
   /* Set some default values for parameters */
-  status =  setStringParam(ADManufacturer, "LBNL");
-  status |= setStringParam(ADModel, "fCCD"); 
+  status =  setStringParam(ADManufacturer, "FCCD");
+  status |= setStringParam(ADModel, ""); // Model ?
   status |= setIntegerParam(ADSizeX, sizeX);
   status |= setIntegerParam(ADSizeY, sizeY);
   status |= setIntegerParam(ADBinX, 1);
