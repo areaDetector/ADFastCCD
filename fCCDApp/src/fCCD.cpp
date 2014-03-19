@@ -106,7 +106,7 @@ int AndorCCD::FCCD_Init()
 #ifdef YF_LOCAL_EDITS
   if(cin_init_data_port(&m_port, "192.168.11.112", 49201, "192.168.11.112", 49203, 1000))
 #else
-  if(cin_init_data_port(&m_port, NULL, 0, NULL, 0, 1000))
+  if(cin_init_data_port(&m_port, NULL, 0, "10.23.5.127", 0, 1000))
 #endif
    {
       printf("cin_init_data_port returned error \n");
