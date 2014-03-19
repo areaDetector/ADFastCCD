@@ -6,7 +6,7 @@ DIRS := $(DIRS) fCCDApp
 #fCCDApp_DEPEND_DIRS += fCCDSupport
 ifeq ($(BUILD_IOCS), YES)
 DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard iocs))
-iocs_DEPEND_DIRS += andorApp
+iocs_DEPEND_DIRS += fCCDApp
 endif
 include $(TOP)/configure/RULES_TOP
 
