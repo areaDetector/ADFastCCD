@@ -365,77 +365,50 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       if (value) // User clicked 'Start' button
       {
          // Send the hardware a start trigger command
-         CIN_trigger_start();
-         mAcquiringData = 1;
-         setIntegerParam(ADStatus, ADStatusAcquire);
+         int n_images, t_mode;
+         getIntegerParam(ADTriggerMode, &t_mode);
+         getIntegerParam(ADNumImages, &n_images);
+         if(!cin_ctl_trigger_start(cin_ctl_port, n_images, t_mode)){
+           mAcquiringData = 1;
+           setIntegerParam(ADStatus, ADStatusAcquire);
+         }
       }
       else // User clicked 'Stop' Button
       {
          // Send the hardware a stop trigger command
-         CIN_trigger_stop();
-         setIntegerParam(ADStatus, ADStatusIdle);
-         //mAcquiringData = 0;
+         if(!cin_ctl_trigger_stop(cin_ctl_port)){
+           setIntegerParam(ADStatus, ADStatusIdle);
+         }
       }
       //getIntegerParam(ADStatus, &adstatus);
     }
-    else if ((function == ADNumExposures) || (function == ADNumImages) ||
-             (function == ADImageMode)                                 ||
-             (function == ADBinX)         || (function == ADBinY)      ||
-             (function == ADMinX)         || (function == ADMinY)      ||
+    else if ((function == ADNumExposures) || (function == ADNumImages)   ||
+             (function == ADImageMode)    || (function == ADTriggerMode) ||
+             (function == ADBinX)         || (function == ADBinY)        ||
+             (function == ADMinX)         || (function == ADMinY)        ||
              (function == ADSizeX)        || (function == ADSizeY)  )
              {
       status = setupAcquisition();
 
       if (status != asynSuccess) setIntegerParam(function, oldValue);
     } 
-//    else if (function == AndorCoolerParam) {
-//      try {
-//        if (value == 0) {
-//          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-//            "%s:%s:, CoolerOFF()\n", 
-//            driverName, functionName);
-//          // YF TODO  checkStatus(CoolerOFF());
-//        } else if (value == 1) {
-//          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-//            "%s:%s:, CoolerON()\n", 
-//            driverName, functionName);
-//          // YF TODO  checkStatus(CoolerON());
-//        }
-//      } catch (const std::string &e) {
-//        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-//          "%s:%s: %s\n",
-//          driverName, functionName, e.c_str());
-//        status = asynError;
-//      }
-//    }
-//    else if (function == ADShutterControl) {
-//      status = setupShutter(value);
-//    }
-//    else if (function == AndorShutterMode) {
-//      status = setupShutter(-1);
-//    }
-//    
-    else if (function == FCCDSetBias) {
-         CIN_set_bias(value);
-    }
-    else if (function == FCCDSetClocks) {
-         CIN_set_clocks(value);
-    }
-    else if (function == ADTriggerMode) {
-         // After set value, read back value
-         int gts;
-         CIN_set_trigger(value);
-         
-         gts =  CIN_get_trigger_status();
-         setIntegerParam(ADTriggerMode, gts);
-         // callParamCallbacks();
-    }
+    // else if (function == FCCDSetBias) {
+    //      cin_ctl_set_bias(cin_ctl_port, value);
+    // }
+    // else if (function == FCCDSetClocks) {
+    //      cin_ctl_set_clocks(cin_ctl_port, value);
+    // }
+    // else if (function == ADTriggerMode) {
+    //      // Cache this as it is needed by
+    //      // the start triggers
+    //      mTriggerMode = value;
+    //      asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
+    //                "%s:%s:, trigger mode set to %d\n", 
+    //                driverName, functionName, value);
+    // }
     else {
       status = ADDriver::writeInt32(pasynUser, value);
     }
-
-    //For a successful write, clear the error message.
-    setStringParam(ADStatusMessage, " ");
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
@@ -482,14 +455,13 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 
     if (function == ADAcquireTime) {
       mAcquireTime = (float)value; 
-
-      CIN_set_exposure_time(mAcquireTime);
+      cin_set_exposure_time(cin_ctl_port, mAcquireTime);
       status = asynSuccess;
       // status = setupAcquisition();
     }
     else if (function == ADAcquirePeriod) {
       mAcquirePeriod = (float)value;  
-      CIN_set_cycle_time(mAcquirePeriod);
+      cin_set_cycle_time(cin_ctl_port, mAcquirePeriod);
       status = asynSuccess;
     }
     // else if (function == ADGain) {
@@ -540,19 +512,14 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
       float fVal = (float)value;
       CIN_set_trigger_delay(fVal);
     }
-    //else if (function == ADShutterCloseDelay) {             
-    //  status = setupShutter(-1);
-    //}
     else {
       status = ADDriver::writeFloat64(pasynUser, value);
     }
 
-    //For a successful write, clear the error message.
-    setStringParam(ADStatusMessage, " ");
-
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
-    if (status)
+
+    if(status)
         asynPrint(pasynUser, ASYN_TRACE_ERROR,
               "%s:%s: error, status=%d function=%d, value=%f\n",
               driverName, functionName, status, function, value);

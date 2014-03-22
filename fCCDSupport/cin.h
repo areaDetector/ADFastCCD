@@ -50,11 +50,11 @@ extern "C" {
 #define CIN_DATA_CCD_COLS_PER_CHAN      10
 #define CIN_DATA_PIPELINE_FLUSH         1344 // 7 converts * 2 * 96 cols
 
-/* -------------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  *
  * Definitions for CIN DATA config
  *
- * -------------------------------------------------------------------------------
+ * -----------------------------------------------------------------------------
  */
 
 #define CIN_DATA_MODE_PUSH_PULL         0x01
@@ -205,7 +205,7 @@ typedef struct {
  * UDP Socket
  *------------------------*/
 
-int cin_ctl_init__port(struct cin_port* cp, char* ipaddr, uint16_t port);
+int cin_ctl_init_port(struct cin_port* cp, char* ipaddr, uint16_t port);
 int cin_ctl_close_port(struct cin_port* cp);
 
 /*------------------------
