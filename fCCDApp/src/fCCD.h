@@ -22,7 +22,7 @@
 
 //#define FCCDCoolerParamString             "ANDOR_COOLER"
 //#define FCCDTempStatusMessageString       "ANDOR_TEMP_STAT"
-//#define FCCDMessageString                 "ANDOR_MESSAGE"
+#define FCCDMessageString                 "FCCD_MESSAGE"
 //#define FCCDShutterModeString             "ANDOR_SHUTTER_MODE"
 //#define FCCDShutterExTTLString            "ANDOR_SHUTTER_EXTTL"
 //#define FCCDPalFileNameString             "ANDOR_PAL_FILE_PATH"
@@ -80,7 +80,7 @@ class FastCCD : public ADDriver {
   //int FCCDShutterMode;
   //int FCCDShutterExTTL;
   //int FCCDPalFileName;
-  int FCCDAccumulatePeriod;
+  //int FCCDAccumulatePeriod;
   //int FCCDPreAmpGain;
   //int FCCDAdcSpeed;
   int FCCDSetBias;
