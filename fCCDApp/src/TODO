@@ -1,0 +1,4 @@
+TODO File for modifications to fCCD areaDetector
+
+1) In class constructor add config and setting of buffers
+2) Add information to the driver report function
