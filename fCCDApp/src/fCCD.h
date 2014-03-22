@@ -1,5 +1,5 @@
 /**
- * Area Detector driver for the Andor CCD.
+ * Area Detector driver for the FCCD CCD.
  *
  * @author Matthew Pearson
  * @date June 2009
@@ -9,16 +9,10 @@
  * Major updates to get callbacks working, etc. by Mark Rivers Feb. 2011
  */
 
-#ifndef ANDORCCD_H
-#define ANDORCCD_H
+#ifndef FCCD_H
+#define FCCD_H
 
-// YF
-#define USE_LIBCIN 1
-// YF: All added code will be in #ifdef USE_LIBCIN block
-#ifdef USE_LIBCIN
 #include "cin.h"
-#endif
-
 
 #include "ADDriver.h"
 
@@ -26,20 +20,20 @@
 #define MAX_ADC_SPEEDS 16
 #define MAX_PREAMP_GAINS 16
 
-#define AndorCoolerParamString             "ANDOR_COOLER"
-#define AndorTempStatusMessageString       "ANDOR_TEMP_STAT"
-#define AndorMessageString                 "ANDOR_MESSAGE"
-#define AndorShutterModeString             "ANDOR_SHUTTER_MODE"
-#define AndorShutterExTTLString            "ANDOR_SHUTTER_EXTTL"
-#define AndorPalFileNameString             "ANDOR_PAL_FILE_PATH"
-#define AndorAccumulatePeriodString        "ANDOR_ACCUMULATE_PERIOD"
-#define AndorPreAmpGainString              "ANDOR_PREAMP_GAIN"
-#define AndorAdcSpeedString                "ANDOR_ADC_SPEED"
+//#define FCCDCoolerParamString             "ANDOR_COOLER"
+//#define FCCDTempStatusMessageString       "ANDOR_TEMP_STAT"
+//#define FCCDMessageString                 "ANDOR_MESSAGE"
+//#define FCCDShutterModeString             "ANDOR_SHUTTER_MODE"
+//#define FCCDShutterExTTLString            "ANDOR_SHUTTER_EXTTL"
+//#define FCCDPalFileNameString             "ANDOR_PAL_FILE_PATH"
+//#define FCCDAccumulatePeriodString        "ANDOR_ACCUMULATE_PERIOD"
+//#define FCCDPreAmpGainString              "ANDOR_PREAMP_GAIN"
+//#define FCCDAdcSpeedString                "ANDOR_ADC_SPEED"
 
 #define FCCDSetBiasString                  "FCCD_SETBIAS"
 #define FCCDSetClocksString                "FCCD_SETCLOCKS"
 
-
+/*
 typedef struct {
   int ADCIndex;
   int AmpIndex;
@@ -48,23 +42,24 @@ typedef struct {
   int BitDepth;
   char *EnumString;
   int EnumValue;
-} AndorADCSpeed_t;
+} FCCDADCSpeed_t;
 
 typedef struct {
   float Gain;
   char *EnumString;
   int EnumValue;
-} AndorPreAmpGain_t;
+} FCCDPreAmpGain_t;
+*/
 
 /**
- * Driver class for Andor CCD. This inherits from ADDriver class in areaDetector.
+ * Driver class for FCCD CCD. This inherits from ADDriver class in areaDetector.
  *
  */
-class AndorCCD : public ADDriver {
+class FastCCD : public ADDriver {
  public:
-  AndorCCD(const char *portName, int maxBuffers, size_t maxMemory, 
+  FastCCD(const char *portName, int maxBuffers, size_t maxMemory, 
            const char *installPath, int priority, int stackSize);
-  virtual ~AndorCCD();
+  virtual ~FastCCD();
 
   /* These are the methods that we override from ADDriver */
   virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
@@ -78,16 +73,16 @@ class AndorCCD : public ADDriver {
   void dataTask(void);
 
  protected:
-  int AndorCoolerParam;
-  #define FIRST_ANDOR_PARAM AndorCoolerParam
-  int AndorTempStatusMessage;
-  int AndorMessage;
-  int AndorShutterMode;
-  int AndorShutterExTTL;
-  int AndorPalFileName;
-  int AndorAccumulatePeriod;
-  int AndorPreAmpGain;
-  int AndorAdcSpeed;
+  //int FCCDCoolerParam;
+  //int FCCDTempStatusMessage;
+  int FCCDMessage;
+  #define FIRST_ANDOR_PARAM FCCDMessage
+  //int FCCDShutterMode;
+  //int FCCDShutterExTTL;
+  //int FCCDPalFileName;
+  int FCCDAccumulatePeriod;
+  //int FCCDPreAmpGain;
+  //int FCCDAdcSpeed;
   int FCCDSetBias;
   int FCCDSetClocks;
   #define LAST_ANDOR_PARAM FCCDSetClocks
@@ -96,14 +91,14 @@ class AndorCCD : public ADDriver {
 
   unsigned int checkStatus(unsigned int returnStatus);
   asynStatus setupAcquisition();
-  asynStatus setupShutter(int command);
-  void saveDataFrame(int frameNumber);
-  void setupADCSpeeds();
-  void setupPreAmpGains();
+  //asynStatus setupShutter(int command);
+  //void saveDataFrame(int frameNumber);
+  //void setupADCSpeeds();
+  //void setupPreAmpGains();
   /**
    * Additional image mode to those in ADImageMode_t
    */
-   static const epicsInt32 AImageFastKinetics;
+  // static const epicsInt32 AImageFastKinetics;
 
   /**
    * List of acquisiton modes.
@@ -125,22 +120,22 @@ class AndorCCD : public ADDriver {
    * List of detector status states
    */
   static const epicsUInt32 ASIdle;
-  static const epicsUInt32 ASTempCycle;
+  //static const epicsUInt32 ASTempCycle;
   static const epicsUInt32 ASAcquiring;
-  static const epicsUInt32 ASAccumTimeNotMet;
-  static const epicsUInt32 ASKineticTimeNotMet;
-  static const epicsUInt32 ASErrorAck;
-  static const epicsUInt32 ASAcqBuffer;
-  static const epicsUInt32 ASSpoolError;
+  //static const epicsUInt32 ASAccumTimeNotMet;
+  //static const epicsUInt32 ASKineticTimeNotMet;
+  //static const epicsUInt32 ASErrorAck;
+  //static const epicsUInt32 ASAcqBuffer;
+  //static const epicsUInt32 ASSpoolError;
 
   /**
    * List of detector readout modes.
    */
-  static const epicsInt32 ARFullVerticalBinning;
-  static const epicsInt32 ARMultiTrack;
-  static const epicsInt32 ARRandomTrack;
-  static const epicsInt32 ARSingleTrack;
-  static const epicsInt32 ARImage;
+  //static const epicsInt32 ARFullVerticalBinning;
+  //static const epicsInt32 ARMultiTrack;
+  //static const epicsInt32 ARRandomTrack;
+  //static const epicsInt32 ARSingleTrack;
+  //static const epicsInt32 ARImage;
 
   /**
    * List of shutter modes
@@ -161,20 +156,18 @@ class AndorCCD : public ADDriver {
   /**
    * ADC speed parameters
    */
-  int mNumAmps;
-  int mNumADCs;
-  int mNumADCSpeeds;
-  AndorADCSpeed_t mADCSpeeds[MAX_ADC_SPEEDS];
-  int mTotalPreAmpGains;
-  int mNumPreAmpGains;
-  AndorPreAmpGain_t mPreAmpGains[MAX_PREAMP_GAINS];
+  //int mNumAmps;
+  //int mNumADCs;
+  //int mNumADCSpeeds;
+  //FCCDADCSpeed_t mADCSpeeds[MAX_ADC_SPEEDS];
+  //int mTotalPreAmpGains;
+  //int mNumPreAmpGains;
+  //FCCDPreAmpGain_t mPreAmpGains[MAX_PREAMP_GAINS];
 
-  //Shutter control parameters
   float mAcquireTime;
   float mAcquirePeriod;
   float mAccumulatePeriod;
   
-#ifdef USE_LIBCIN 
 protected:
    struct cin_port m_port;
    NDArray *m_pArray;
@@ -184,11 +177,9 @@ private:
    int FCCD_GetImage(); 
    void int_handler(int dummy);
    
-#endif    
-
 };
 
 #define NUM_ANDOR_DET_PARAMS ((int)(&LAST_ANDOR_PARAM - &FIRST_ANDOR_PARAM + 1))
 
-#endif //ANDORCCD_H
+#endif //FCCD_H
 
