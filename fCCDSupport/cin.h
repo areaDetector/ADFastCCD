@@ -35,10 +35,20 @@ extern "C" {
 #define CIN_DATA_DATA_MASK                 0x1FFF
 #define CIN_DATA_PACKET_LEN                8184
 #define CIN_DATA_MAX_PACKETS               542
-//#define CIN_DATA_FRAME_HEIGHT              1924
-#define CIN_DATA_FRAME_HEIGHT              1950
-#define CIN_DATA_FRAME_WIDTH               1152
 #define CIN_DATA_RCVBUF                    100  // Mb 
+
+// The maximum size of the CCD chip is 960 columns by
+// 2 x 960 (1920) rows. In frame store you only read out 960 x 960
+//
+// If we overscan the columns, then you get 960 x 1.2 columns
+// which is 1152 columns. 
+// 
+#define CIN_DATA_FRAME_HEIGHT              1920
+#define CIN_DATA_FRAME_WIDTH               960
+#define CIN_DATA_MAX_STREAM                2300000
+#define CIN_DATA_CCD_COLS               96
+#define CIN_DATA_CCD_COLS_PER_CHAN      10
+#define CIN_DATA_PIPELINE_FLUSH         1344 // 7 converts * 2 * 96 cols
 
 /* -------------------------------------------------------------------------------
  *
@@ -74,6 +84,11 @@ extern "C" {
   #define DEBUG_COMMENT(...) do {}while(0)
 #endif
 
+#define ERROR_COMMENT(fmt)\
+  if(1) { fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, __LINE__, __func__); }
+#define ERROR_PRINT(fmt, ...) \
+  if(1) { fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, __LINE__, __func__, __VA_ARGS__); }
+
 /* ---------------------------------------------------------------------
  *
  * Global datastructures
@@ -99,6 +114,8 @@ typedef struct cin_data_frame {
   uint16_t *data;
   uint16_t number;
   struct timeval timestamp;
+  int size_x;
+  int size_y;
 } cin_data_frame_t;
 
 typedef struct cin_data_stats {
@@ -132,117 +149,123 @@ typedef struct cin_data_stats {
  * ---------------------------------------------------------------------
  */
 
+#define CIN_CTL_DCM_LOCKED          0x0001
+#define CIN_CTL_DCM_PSDONE          0x0002
+#define CIN_CTL_DCM_STATUS0         0x0004
+#define CIN_CTL_DCM_STATUS1         0x0008
+#define CIN_CTL_DCM_STATUS2         0x0010
+#define CIN_CTL_DCM_TX1_READY       0x0020
+#define CIN_CTL_DCM_TX2_READY       0x0040
+#define CIN_CTL_DCM_ATCA_ALARM      0x0080
+
+#define CIN_CTL_TRIG_INTERNAL       0
+#define CIN_CTL_TRIG_EXTERNAL_1     1
+#define CIN_CTL_TRIG_EXTERNAL_2     2
+#define CIN_CTL_TRIG_EXTERNAL_BOTH  3
+
+#define CIN_CTL_FOCUS_BIT           0x0002
+
+#define CIN_CTL_FCLK_125            0
+#define CIN_CTL_FCLK_200            1
+#define CIN_CTL_FCLK_250            2
+
+/* 
+ * Datastructures for status readouts 
+ */
+
+
+typedef struct cin_ctl_fpga_status {
+  uint16_t board_id;
+  uint16_t serial_no;
+  uint16_t fpga_ver;
+  uint16_t fpga_status;
+} cin_ctl_fpga_status_t;
+
+typedef struct cin_ctl_pwr_val {
+  double i;
+  double v;
+} cin_ctl_pwr_val_t;
+
+typedef struct {
+  cin_ctl_pwr_val_t bus_12v0;
+  cin_ctl_pwr_val_t mgmt_3v3;
+  cin_ctl_pwr_val_t mgmt_2v5;
+  cin_ctl_pwr_val_t mgmt_1v2;
+  cin_ctl_pwr_val_t enet_1v0;
+  cin_ctl_pwr_val_t s3e_3v3; 
+  cin_ctl_pwr_val_t gen_3v3;
+  cin_ctl_pwr_val_t gen_2v5;
+  cin_ctl_pwr_val_t v6_0v9;
+  cin_ctl_pwr_val_t v6_1v0;
+  cin_ctl_pwr_val_t v6_2v5;
+  cin_ctl_pwr_val_t fp;
+} cin_ctl_pwr_mon_t;
+
 /*------------------------
  * UDP Socket
  *------------------------*/
-int cin_init_ctl_port(struct cin_port* cp, char* ipaddr, uint16_t port);
 
-int cin_close_ctl_port(struct cin_port* cp);
+int cin_ctl_init__port(struct cin_port* cp, char* ipaddr, uint16_t port);
+int cin_ctl_close_port(struct cin_port* cp);
 
 /*------------------------
  * CIN Read-Write
  *------------------------*/
-uint16_t cin_ctl_read(struct cin_port* cp, uint16_t reg);
 
+int cin_ctl_read(struct cin_port* cp, uint16_t reg, uint16_t *val);
 int cin_ctl_write(struct cin_port* cp, uint16_t reg, uint16_t val);
-	//TODO - implement write verification procedure */
-
-int cin_stream_write(struct cin_port* cp, char* val,int size);
-	//TODO - implement write verification procedure
+int cin_ctl_stream_write(struct cin_port* cp, char* val,int size);
 
 /*------------------------
  * CIN PowerUP-PowerDown
  *------------------------*/
-int cin_on(struct cin_port* cp);
 
+int cin_pwr(struct cin_port *cp, int pwr);
+int cin_on(struct cin_port* cp);
 int cin_off(struct cin_port* cp);
 
+int cin_fp_pwr(struct cin_port* cp, int pwr);
 int cin_fp_on(struct cin_port* cp);
-
 int cin_fp_off(struct cin_port* cp);
+
 /*------------------------
  * CIN Configuration-Status
  *------------------------*/
-int cin_load_config(struct cin_port* cp,char *filename);
 
-int cin_load_firmware(struct cin_port* cp,struct cin_port* dcp, char *filename);
+int cin_ctl_load_config(struct cin_port* cp,char *filename);
+int cin_ctl_load_firmware(struct cin_port* cp,struct cin_port* dcp, char *filename);
+int cin_ctl_set_fclk(struct cin_port* cp, int clkfreq);
+int cin_ctl_get_fclk(struct cin_port* cp, int *clkfreq);
+int cin_ctl_get_cfg_fpga_status(struct cin_port* cp,
+                                cin_ctl_fpga_status_t *_val);
+int cin_ctl_get_dcm_status(struct cin_port* cp, uint16_t *_val);
 
-int cin_set_fclk(struct cin_port* cp,uint16_t clkfreq);
-/*
- * Input:clkfreq={125, 200, 250}(MHz)
- */
+/* Power status */
 
-int cin_get_fclk_status(struct cin_port* cp);
-/*
- * Return:{0-FCLK Configured, (-1)-FCLK not configured}
- */
 
-int cin_get_cfg_fpga_status(struct cin_port* cp);
-/*
- *Return:{0-FPGA Configured, (-1)-FPGA not configured}
- */
-
-int cin_get_power_status(struct cin_port* cp);
+double cin_ctl_current_calc(uint16_t val);
+int cin_ctl_get_power_status(struct cin_port* cp, int *pwr, cin_ctl_pwr_mon_t *values);
+void cin_ctl_display_pwr(FILE *out, cin_ctl_pwr_mon_t *values);
+void cin_ctl_display_pwr_line(FILE *out,const char* msg, cin_ctl_pwr_val_t val);
+int cin_ctl_calc_vi_status(struct cin_port* cp, 
+                           uint16_t vreg, uint16_t ireg, double vfact,
+                           cin_ctl_pwr_val_t *vi);
 
 /*------------------------
  * CIN Control
  *------------------------*/
-int cin_set_bias(struct cin_port* cp,int val);
-/*
- * Input:val={0-OFF,1-ON}
- */
-int cin_set_clocks(struct cin_port* cp,int val);
-/*
- * Input:val={0-OFF,1-ON}
- */
 
-int cin_set_trigger(struct cin_port* cp,int val);
-/*
- * Input:val={0-Internal, 1-External1, 2-External2, 3-External 1 or 2}
- */
-
-uint16_t cin_get_trigger_status (struct cin_port* cp);
-/*
- * Return:{0-Internal, 1-External1, 2-External2, 3-External 1 or 2}
- */
-
-int cin_set_trigger_mode(struct cin_port* cp,int val);
-/*
- * Input:val={0-Single, 1-Continuous, 2-Multiple}
- */
-
-int cin_set_exposure_time(struct cin_port* cp,float e_time);
-/*
- * Input:e_time (s)
- */	
-
-int cin_set_trigger_delay(struct cin_port* cp,float t_time);
-/*
- * Input:t_time (us)
- */
-
-int cin_set_cycle_time(struct cin_port* cp,float c_time);
-/*
- * Input:c_time (s)
- */    
-
-int cin_trigger_start(struct cin_port* cp);
-/*
- * Start triggers.   Looks at current mode (single, continuous
- * or multiple) to determine which registers to set
- */
-
-int cin_trigger_stop(struct cin_port* cp);
-/*
- * Stops triggers
- */
-
-int cin_set_frame_count_reset(struct cin_port* cp);
-
-/*------------------------
- * Testing
- *------------------------*/
-int cin_test_cfg_leds(struct cin_port* cp); //Flash configuration LEDs 	
+int cin_ctl_set_bias(struct cin_port* cp,int val);
+int cin_ctl_set_clocks(struct cin_port* cp,int val);
+int cin_ctl_set_trigger(struct cin_port* cp,int val);
+int cin_ctl_get_trigger(struct cin_port* cp, int *val);
+int cin_ctl_set_focus(struct cin_port* cp, int val);
+int cin_clt_trigger_start(struct cin_port* cp, int nimages, int trigger_mode);
+int cin_ctl_trigger_stop(struct cin_port* cp);
+int cin_ctl_set_exposure_time(struct cin_port* cp,float e_time);
+int cin_ctl_set_trigger_delay(struct cin_port* cp,float t_time);
+int cin_ctl_set_cycle_time(struct cin_port* cp,float ftime);
+int cin_ctl_set_frame_count_reset(struct cin_port* cp);
 
 /* ---------------------------------------------------------------------
  *
