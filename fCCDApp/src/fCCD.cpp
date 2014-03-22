@@ -33,8 +33,6 @@ int CIN_set_cycle_time(float c_time);
 int CIN_set_trigger_mode(int val);
 int CIN_trigger_start();
 int CIN_trigger_stop();
-
-
 }
 
 
@@ -77,7 +75,7 @@ int FastCCD::FCCD_Init()
    return (0);   
 }
 
-int FastCCD::FCCD_GetImage() 
+int FastCCD::GetImage() 
 {
    size_t dims[2];
    int nDims = 2;
@@ -89,20 +87,16 @@ int FastCCD::FCCD_GetImage()
    dataType = NDUInt16; 
    
    m_pArray = this->pNDArrayPool->alloc(nDims, dims, dataType, 
-      0, NULL);
+                                        0, NULL);
       
-   if (m_pArray)
+   if(m_pArray)
    {
       // Load the buffer. Pass in memory allocated in NDArrayPool
       cin_data_load_frame((uint16_t *)m_pArray->pData, &frame_number);
-      printf("cin_data_load_frame. frame->number %u\n", frame_number);
       return (0);
    }
-   else
-   {
-      printf("********** cin_data_load_frame error ****************\r\n");
-      return (-1); // error
-   }
+
+   return (-1); // error
 }
 
 /** Constructor for FCCD driver; most parameters are simply passed to ADDriver::ADDriver.
@@ -129,14 +123,14 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
 
   int status = asynSuccess;
   int i;
-  int binX=1, binY=1, minX=0, minY=0, sizeX, sizeY;
+  int sizeX, sizeY;
   
   static const char *functionName = "FastCCD";
 
   /* Create an EPICS exit handler */
   epicsAtExit(exitHandler, this);
 
-  createParam(ADStatusMessageString,                 asynParamOctet, &ADStatusMessage);
+  //createParam(ADStatusMessageString,                 asynParamOctet, &ADStatusMessage);
   createParam(FCCDSetBiasString,                  asynParamInt32, &FCCDSetBias);
   createParam(FCCDSetClocksString,                asynParamInt32, &FCCDSetClocks);
 
@@ -176,22 +170,6 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
     return;
   }
 
-  /* SBW
-
-  // Initialize ADC enums
-  for (i=0; i<MAX_ADC_SPEEDS; i++) {
-    mADCSpeeds[i].EnumValue = i;
-    mADCSpeeds[i].EnumString = (char *)calloc(MAX_ENUM_STRING_SIZE, sizeof(char));
-  } 
-
-  // Initialize Pre-Amp enums
-  for (i=0; i<MAX_PREAMP_GAINS; i++) {
-    mPreAmpGains[i].EnumValue = i;
-    mPreAmpGains[i].EnumString = (char *)calloc(MAX_ENUM_STRING_SIZE, sizeof(char));
-  } 
-  
-  */
-
   /* Set some default values for parameters */
   status =  setStringParam(ADManufacturer, "LB National Lab.");
   status |= setStringParam(ADModel, "1k x 2k FastCCD"); // Model ?
@@ -215,35 +193,19 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setIntegerParam(NDArraySizeY, sizeY);
   status |= setIntegerParam(NDDataType, NDUInt16);
   status |= setIntegerParam(NDArraySize, sizeX*sizeY*sizeof(epicsUInt16)); 
-  //mAccumulatePeriod = 2.0;
-  //status |= setDoubleParam(AndorAccumulatePeriod, mAccumulatePeriod); 
-  //status |= setIntegerParam(AndorAdcSpeed, 0);
-  //status |= setIntegerParam(AndorShutterExTTL, 1);
-  //status |= setIntegerParam(AndorShutterMode, AShutterAuto);
   status |= setDoubleParam(ADShutterOpenDelay, 0.);
   status |= setDoubleParam(ADShutterCloseDelay, 0.);
-  
-  // YF Set Default Bias off.
   status |= setIntegerParam(FCCDSetBias, 0);
   
 
-  /// setupADCSpeeds();
-  /// setupPreAmpGains();
-  //status |= setupShutter(-1);
-
   // YF Set default trigger mode 1 = Single
-  checkStatus(CIN_set_trigger_mode( 1 ));
+  //checkStatus(CIN_set_trigger_mode( 1 ));
 
   setStringParam(ADStatusMessage, "Defaults Set.");
   callParamCallbacks();
 
   /* Send a signal to the poller task which will make it do a poll, and switch to the fast poll rate */
   epicsEventSignal(statusEvent);
-
-//  if (status) {
-//    printf("%s:%s: unable to set camera parameters\n", driverName, functionName);
-//    return;
-//  }
 
   //Define the polling periods for the status thread.
   mPollingPeriod = 0.2; //seconds
@@ -259,13 +221,12 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
                               stackSize,
                               (EPICSTHREADFUNC)FCCDStatusTaskC,
                               this) == NULL);
-  if (status) {
+  if(status) {
     printf("%s:%s: epicsThreadCreate failure for status task\n",
            driverName, functionName);
     return;
   }
 
-  
   /* Create the thread that does data readout */
   status = (epicsThreadCreate("FCCDDataTask",
                               epicsThreadPriorityMedium,
@@ -280,7 +241,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
 }
 
 /**
- * Destructor.  Free resources and closes the Andor library
+ * Destructor.  Free resources and closes the FCCD library
  */
 FastCCD::~FastCCD() 
 {
@@ -314,8 +275,8 @@ static void exitHandler(void *drvPvt)
 }
 
 
-asynStatus FastCCD::readEnum(asynUser *pasynUser, char *strings[], int values[], int severities[], 
-                              size_t nElements, size_t *nIn)
+asynStatus FastCCD::readEnum(asynUser *pasynUser, char *strings[], int values[], 
+                             int severities[], size_t nElements, size_t *nIn)
 {
   int function = pasynUser->reason;
   int i;
@@ -352,7 +313,6 @@ asynStatus FastCCD::readEnum(asynUser *pasynUser, char *strings[], int values[],
 }
 
 
-
 /** Report status of the driver.
   * Prints details about the detector in us if details>0.
   * It then calls the ADDriver::report() method.
@@ -360,73 +320,16 @@ asynStatus FastCCD::readEnum(asynUser *pasynUser, char *strings[], int values[],
   * \param[in] details Controls the level of detail in the report. */
 void FastCCD::report(FILE *fp, int details)
 {
-  int param1;
-  float fParam1;
   int xsize, ysize;
-  int i;
-  char sParam[256];
-  unsigned int uIntParam1;
-  unsigned int uIntParam2;
-  unsigned int uIntParam3;
-  unsigned int uIntParam4;
-  unsigned int uIntParam5;
-  unsigned int uIntParam6;
-  ///AndorADCSpeed_t *pSpeed;
   static const char *functionName = "report";
 
-  fprintf(fp, "FastCCD CCD port=%s\n", this->portName);
+  fprintf(fp, "FastCCD CCD port = %s\n", this->portName);
   if (details > 0) {
     try {
-      //checkStatus(GetHeadModel(sParam));
-      //fprintf(fp, "  Model: %s\n", sParam);
-      //checkStatus(GetCameraSerialNumber(&param1));
-      //fprintf(fp, "  Serial number: %d\n", param1); 
-      //checkStatus(GetHardwareVersion(&uIntParam1, &uIntParam2, &uIntParam3, 
-      //                               &uIntParam4, &uIntParam5, &uIntParam6));
-      //fprintf(fp, "  PCB version: %d\n", uIntParam1);
-      //fprintf(fp, "  Flex file version: %d\n", uIntParam2);
-      //fprintf(fp, "  Firmware version: %d\n", uIntParam5);
-      //fprintf(fp, "  Firmware build: %d\n", uIntParam6);
-      //checkStatus(GetVersionInfo(AT_SDKVersion, sParam, sizeof(sParam)));
-      //fprintf(fp, "  SDK version: %s\n", sParam);
-      //checkStatus(GetVersionInfo(AT_DeviceDriverVersion, sParam, sizeof(sParam)));
-      //fprintf(fp, "  Device driver version: %s\n", sParam);
       getIntegerParam(ADMaxSizeX, &xsize);
       getIntegerParam(ADMaxSizeY, &ysize);
       fprintf(fp, "  X pixels: %d\n", xsize);
       fprintf(fp, "  Y pixels: %d\n", ysize);
-      //fprintf(fp, "  Number of amplifier channels: %d\n", mNumAmps);
-      //fprintf(fp, "  Number of ADC channels: %d\n", mNumADCs);
-      //fprintf(fp, "  Number of pre-amp gains (total): %d\n", mTotalPreAmpGains);
-      //for (i=0; i<mTotalPreAmpGains; i++) {
-      //  checkStatus(GetPreAmpGain(i, &fParam1));
-      //  fprintf(fp, "    Gain[%d]: %f\n", i, fParam1);
-      //}
-      //fprintf(fp, "  Total ADC speeds: %d\n", mNumADCSpeeds);
-      //for (i=0; i<mNumADCSpeeds; i++) {
-      //  pSpeed = &mADCSpeeds[i];
-      //  fprintf(fp, "    Amp=%d, ADC=%d, bitDepth=%d, HSSpeedIndex=%d, HSSpeed=%f\n",
-      //          pSpeed->AmpIndex, pSpeed->ADCIndex, pSpeed->BitDepth, pSpeed->HSSpeedIndex, //pSpeed->HSSpeed);
-      //}
-      //fprintf(fp, "  Pre-amp gains available: %d\n", mNumPreAmpGains);
-      //for (i=0; i<mNumPreAmpGains; i++) {
-      //  fprintf(fp, "    Index=%d, Gain=%f\n",
-      //          mPreAmpGains[i].EnumValue, mPreAmpGains[i].Gain);
-      //}
-      //capabilities.ulSize = sizeof(capabilities);
-      //checkStatus(GetCapabilities(&capabilities));
-      //fprintf(fp, "  Capabilities\n");
-      //fprintf(fp, "        AcqModes=0x%X\n", (int)capabilities.ulAcqModes);
-      //fprintf(fp, "       ReadModes=0x%X\n", (int)capabilities.ulReadModes);
-      //fprintf(fp, "     FTReadModes=0x%X\n", (int)capabilities.ulFTReadModes);
-      //fprintf(fp, "    TriggerModes=0x%X\n", (int)capabilities.ulTriggerModes);
-      //fprintf(fp, "      CameraType=%d\n",   (int)capabilities.ulCameraType);
-      //fprintf(fp, "      PixelModes=0x%X\n", (int)capabilities.ulPixelMode);
-      //fprintf(fp, "    SetFunctions=0x%X\n", (int)capabilities.ulSetFunctions);
-      //fprintf(fp, "    GetFunctions=0x%X\n", (int)capabilities.ulGetFunctions);
-      //fprintf(fp, "        Features=0x%X\n", (int)capabilities.ulFeatures);
-      //fprintf(fp, "         PCI MHz=%d\n",   (int)capabilities.ulPCICard);
-      //fprintf(fp, "          EMGain=0x%X\n", (int)capabilities.ulEMGainCapability);
 
     } catch (const std::string &e) {
       asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -459,56 +362,22 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
     if (function == ADAcquire) 
     {
-    
-      if (value)  // User clicked 'Start' button
+      if (value) // User clicked 'Start' button
       {
          // Send the hardware a start trigger command
          CIN_trigger_start();
          mAcquiringData = 1;
+         setIntegerParam(ADStatus, ADStatusAcquire);
       }
-      else     // User clicked 'Stop' Button
+      else // User clicked 'Stop' Button
       {
          // Send the hardware a stop trigger command
          CIN_trigger_stop();
-         mAcquiringData = 0;
+         setIntegerParam(ADStatus, ADStatusIdle);
+         //mAcquiringData = 0;
       }
       //getIntegerParam(ADStatus, &adstatus);
-//      if (value && (adstatus == ADStatusIdle)) {
-//        try {
-//          mAcquiringData = 1;
-//          //We send an event at the bottom of this function.
-//        } catch (const std::string &e) {
-//          asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-//            "%s:%s: %s\n",
-//            driverName, functionName, e.c_str());
-//          status = asynError;
-//        }
-//      }
-//      if (!value && (adstatus != ADStatusIdle)) {
-//        try {
-//          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-//            "%s:%s:, AbortAcquisition()\n", 
-//            driverName, functionName);
-//          // YF TODO  checkStatus(AbortAcquisition());
-//          mAcquiringData = 0;
-//          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-//            "%s:%s:, FreeInternalMemory()\n", 
-//            driverName, functionName);
-//          // YF TODO  checkStatus(FreeInternalMemory());
-//          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-//            "%s:%s:, CancelWait()\n", 
-//            driverName, functionName);
-//          // YF TODO  checkStatus(CancelWait());
-//       } catch (const std::string &e) {
-//          asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-//            "%s:%s: %s\n",
-//            driverName, functionName, e.c_str());
-//          status = asynError;
-//        } 
-//    }
     }
-    
-    
     else if ((function == ADNumExposures) || (function == ADNumImages) ||
              (function == ADImageMode)                                 ||
              (function == ADBinX)         || (function == ADBinY)      ||
@@ -852,23 +721,18 @@ asynStatus FastCCD::setupAcquisition()
    int numExposures;
    int numImages;
    int imageMode;
-   ///int adcSpeed;
    int triggerMode;
    int binX, binY, minX, minY, sizeX, sizeY, maxSizeX, maxSizeY;
-   //float acquireTimeAct, acquirePeriodAct, accumulatePeriodAct;
-   // int FKmode = 4;
-   //int FKOffset;
-   // AndorADCSpeed_t *pSpeed;
    static const char *functionName = "setupAcquisition";
 
    getIntegerParam(ADImageMode, &imageMode);
    getIntegerParam(ADNumExposures, &numExposures);
-   if (numExposures <= 0) {
+   if(numExposures <= 0) {
     numExposures = 1;
     setIntegerParam(ADNumExposures, numExposures);
    }
    getIntegerParam(ADNumImages, &numImages);
-   if (numImages <= 0) {
+   if(numImages <= 0) {
     numImages = 1;
     setIntegerParam(ADNumImages, numImages);
    }
@@ -905,20 +769,11 @@ asynStatus FastCCD::setupAcquisition()
     setIntegerParam(ADSizeY, sizeY);
    }
   
-   // Note: we do triggerMode and adcChannel in this function because they change
-   // the computed actual AcquirePeriod and AccumulatePeriod
    getIntegerParam(ADTriggerMode, &triggerMode);
-   ///getIntegerParam(AndorAdcSpeed, &adcSpeed);
-   ///pSpeed = &mADCSpeeds[adcSpeed];
 
-   // Unfortunately there does not seem to be a way to query the Andor SDK 
-   // for the actual size of the image, so we must compute it.
    setIntegerParam(NDArraySizeX, sizeX/binX);
    setIntegerParam(NDArraySizeY, sizeY/binY);
   
-   //
-   // YF New code to support setting the trigger mode
-   //
    try
    {
       switch (imageMode) 
@@ -928,23 +783,21 @@ asynStatus FastCCD::setupAcquisition()
                "%s:%s:, CIN_set_trigger_mode(1)\n", driverName, functionName);
              // Set Hardware to single trigger mode.
              // This also sets number of exposures = 1
-            checkStatus(CIN_set_trigger_mode( 1 ) ); // Single Image mode
+            checkStatus(CIN_set_trigger_mode(1)); // Single Image mode
             break;
 
          case ADImageMultiple:
             asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
                "%s:%s:, CIN_set_trigger_mode(n)\n", 
                driverName, functionName);
-            // YF Assume mode should be continuous mode - not sure.
-            checkStatus(CIN_set_trigger_mode( numImages ) );  // Multiple Image Mode
-            
+            checkStatus(CIN_set_trigger_mode(numImages) );  // Multiple Image Mode
             break;
 
          case ADImageContinuous:
             asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
                "%s:%s:, CIN_set_trigger_mode(0)\n", 
                driverName, functionName);
-            checkStatus(CIN_set_trigger_mode( 0 ) );  // Continuous mode    
+            checkStatus(CIN_set_trigger_mode(0) );  // Continuous mode    
             break;
 
       } // switch
@@ -955,138 +808,6 @@ asynStatus FastCCD::setupAcquisition()
          driverName, functionName, e.c_str());
       return asynError;
    }
-    
-#if 0 // Andor specfic stuff  
-  try {
-    asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-      "%s:%s:, SetTriggerMode(%d)\n", 
-      driverName, functionName, triggerMode);
-    checkStatus(SetTriggerMode(triggerMode));
-
-    asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-      "%s:%s:, SetADChannel(%d)\n", 
-      driverName, functionName, pSpeed->ADCIndex);
-    checkStatus(SetADChannel(pSpeed->ADCIndex));
-
-    asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-      "%s:%s:, SetOutputAmplifier(%d)\n", 
-      driverName, functionName, pSpeed->AmpIndex);
-    checkStatus(SetOutputAmplifier(pSpeed->AmpIndex));
-
-    asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-      "%s:%s:, SetHSSpeed(%d, %d)\n", 
-      driverName, functionName, pSpeed->AmpIndex, pSpeed->HSSpeedIndex);
-    checkStatus(SetHSSpeed(pSpeed->AmpIndex, pSpeed->HSSpeedIndex));
-
-    asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-      "%s:%s:, SetImage(%d,%d,%d,%d,%d,%d)\n", 
-      driverName, functionName, binX, binY, minX+1, minX+sizeX, minY+1, minY+sizeY);
-    checkStatus(SetImage(binX, binY, minX+1, minX+sizeX, minY+1, minY+sizeY));
-
-
-    asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-      "%s:%s:, SetExposureTime(%f)\n", 
-      driverName, functionName, mAcquireTime);
-    checkStatus(SetExposureTime(mAcquireTime));
-    
-
-   switch (imageMode) {
-      case ADImageSingle:
-        if (numExposures == 1) {
-          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-            "%s:%s:, SetAcquisitionMode(AASingle)\n", 
-            driverName, functionName);
-          checkStatus(SetAcquisitionMode(AASingle));
-        } else {
-          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-            "%s:%s:, SetAcquisitionMode(AAAccumulate)\n", 
-            driverName, functionName);
-          checkStatus(SetAcquisitionMode(AAAccumulate));
-          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-            "%s:%s:, SetNumberAccumulations(%d)\n", 
-            driverName, functionName, numExposures);
-          checkStatus(SetNumberAccumulations(numExposures));
-          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-            "%s:%s:, SetAccumulationCycleTime(%f)\n", 
-            driverName, functionName, mAccumulatePeriod);
-          checkStatus(SetAccumulationCycleTime(mAccumulatePeriod));
-        }
-        break;
-
-      case ADImageMultiple:
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-          "%s:%s:, SetAcquisitionMode(AAKinetics)\n", 
-          driverName, functionName);
-        checkStatus(SetAcquisitionMode(AAKinetics));
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-          "%s:%s:, SetNumberAccumulations(%d)\n", 
-          driverName, functionName, numExposures);
-        checkStatus(SetNumberAccumulations(numExposures));
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-          "%s:%s:, SetAccumulationCycleTime(%f)\n", 
-          driverName, functionName, mAccumulatePeriod);
-        checkStatus(SetAccumulationCycleTime(mAccumulatePeriod));
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-          "%s:%s:, SetNumberKinetics(%d)\n", 
-          driverName, functionName, numImages);
-        checkStatus(SetNumberKinetics(numImages));
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-          "%s:%s:, SetKineticCycleTime(%f)\n", 
-          driverName, functionName, mAcquirePeriod);
-        checkStatus(SetKineticCycleTime(mAcquirePeriod));
-        break;
-
-      case ADImageContinuous:
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-          "%s:%s:, SetAcquisitionMode(AARunTillAbort)\n", 
-          driverName, functionName);
-        checkStatus(SetAcquisitionMode(AARunTillAbort));
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-          "%s:%s:, SetKineticCycleTime(%f)\n", 
-          driverName, functionName, mAcquirePeriod);
-        checkStatus(SetKineticCycleTime(mAcquirePeriod));
-        break;
-
-      case AImageFastKinetics:
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-          "%s:%s:, SetAcquisitionMode(AAFastKinetics)\n", 
-          driverName, functionName);
-        checkStatus(SetAcquisitionMode(AAFastKinetics));
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-          "%s:%s:, SetImage(%d,%d,%d,%d,%d,%d)\n", 
-          driverName, functionName, binX, binY, 1, maxSizeX, 1, maxSizeY);
-        checkStatus(SetImage(binX, binY, 1, maxSizeX, 1, maxSizeY));
-        FKOffset = maxSizeY - sizeY - minY;
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-          "%s:%s:, SetFastKineticsEx(%d,%d,%f,%d,%d,%d,%d)\n", 
-          driverName, functionName, sizeY, numImages, mAcquireTime, FKmode, binX, binY, FKOffset);
-        checkStatus(SetFastKineticsEx(sizeY, numImages, mAcquireTime, FKmode, binX, binY, FKOffset));
-        setIntegerParam(NDArraySizeX, maxSizeX/binX);
-        setIntegerParam(NDArraySizeY, sizeY/binY);
-        break;
-    }
-    // Read the actual times
-    if (imageMode == AImageFastKinetics) {
-      checkStatus(GetFKExposureTime(&acquireTimeAct));
-    } else {
-      checkStatus(GetAcquisitionTimings(&acquireTimeAct, &accumulatePeriodAct, &acquirePeriodAct));
-      asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
-        "%s:%s:, GetAcquisitionTimings(exposure=%f, accumulate=%f, kinetic=%f)\n",
-        driverName, functionName, acquireTimeAct, accumulatePeriodAct, acquirePeriodAct);
-    }
-    setDoubleParam(ADAcquireTime, acquireTimeAct);
-    setDoubleParam(ADAcquirePeriod, acquirePeriodAct);
-    setDoubleParam(AndorAccumulatePeriod, accumulatePeriodAct);
-
-  
-  } catch (const std::string &e) {
-    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-      "%s:%s: %s\n",
-      driverName, functionName, e.c_str());
-    return asynError;
-  }
-  
- #endif
   
    return asynSuccess;
 }
@@ -1110,11 +831,6 @@ void FastCCD::dataTask(void)
   epicsInt32 sizeX, sizeY;
   NDDataType_t dataType;
   int itemp;
-  //at_32 firstImage, lastImage;
-  //at_32 validFirst, validLast;
-  //size_t dims[2];
-  //int nDims = 2;
-  // int i;
   epicsTimeStamp startTime;
   
   int autoSave;
@@ -1177,17 +893,20 @@ void FastCCD::dataTask(void)
     while (acquiring && mAcquiringData) 
     {
       try {
-         
+         // Get the image, unlocking the mutex as we block here.
          this->unlock();
-            status = FCCD_GetImage(); 
+         status = GetImage(); 
          this->lock();
          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-          "%s:%s:, Got an image.\n", driverName, functionName);
+                   "%s:%s:, Got an image.\n", driverName, functionName);
+         
+         // Increment the number of exposures counter
          getIntegerParam(ADNumExposuresCounter, &numExposuresCounter);
          numExposuresCounter++;
          setIntegerParam(ADNumExposuresCounter, numExposuresCounter);
          callParamCallbacks();
 
+         // Increment the array counter
          getIntegerParam(NDArrayCounter, &imageCounter);
          imageCounter++;
          setIntegerParam(NDArrayCounter, imageCounter);;
@@ -1207,8 +926,9 @@ void FastCCD::dataTask(void)
                setIntegerParam(NDArraySize, sizeX * sizeY * sizeof(uint16_t));
          
                /* Put the frame number and time stamp into the buffer */
-               m_pArray->uniqueId = imageCounter;
+               m_pArray->uniqueId = imageCounter; // SBW: Should this come from the CIN?
                m_pArray->timeStamp = startTime.secPastEpoch + startTime.nsec / 1.e9;
+
                /* Get any attributes that have been defined for this driver */        
                this->getAttributes(m_pArray->pAttributeList);
                /* Call the NDArray callback */
@@ -1219,23 +939,15 @@ void FastCCD::dataTask(void)
                     "%s:%s:, calling array callbacks\n", 
                     driverName, functionName);
                     
-               // printf("***3***\n"); // DEBUG
-                 
-                 
                doCallbacksGenericPointer(m_pArray, NDArrayData, 0);
                this->lock();
                m_pArray->release();
-               // Calling release does not free any memory, but allows
-               // NDPoolArray to reuse object
-               // 
-            
             }
             else
             {
-               // allocate error!
                printf("Out of memory in data task!\n");
             }
-          } // if (arrayCallbacks) {
+          } 
 
           callParamCallbacks();
 
@@ -1248,17 +960,14 @@ void FastCCD::dataTask(void)
       }
       
       
-      // printf("***5***\n"); // DEBUG
-       
-       // Never exit the acquire loop.
-       // Instead rely on hardware to switch from single trigger to continuous mode
+      // Never exit the acquire loop.
+      // See here if the acquisition is done 
       /* See if acquisition is done */
-//      if ((imageMode == ADImageSingle) ||
-//         ((imageMode == ADImageMultiple) &&
-//          (numImagesCounter >= numImages))) {
-//          
-//            acquiring = 0;
-//      }
+      if ((imageMode == ADImageSingle) ||
+         ((imageMode == ADImageMultiple) &&
+          (numImagesCounter >= numImages))) {
+            acquiring = 0;
+      }
     } // while acquiring
       
     //Now clear main thread flag

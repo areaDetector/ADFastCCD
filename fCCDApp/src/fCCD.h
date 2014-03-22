@@ -88,7 +88,7 @@ class FastCCD : public ADDriver {
   float mAccumulatePeriod;
   
   int FCCD_Init();
-  int FCCD_GetImage(); 
+  int GetImage(); 
   void int_handler(int dummy);
    
 protected:
