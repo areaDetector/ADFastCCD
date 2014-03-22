@@ -33,7 +33,7 @@ FCCD_ConfigDirs($(FCCD_CONFIG_DIR), $(FPGA_CONFIGFILE), $(CIN_WAVEFORM), $(CIN_F
 
 
 FCCD_cin_power_up("param1")
-andorCCDConfig("$(PORT)", 0, 0, "/usr/local/etc/andor/", 0, 100000)
+FCCDConfig("$(PORT)", 0, 0, "/usr/local/etc/andor/", 0, 100000)
 
 #
 #FCCD_cin_power_down("param1")
