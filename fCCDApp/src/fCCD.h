@@ -19,7 +19,6 @@
 #define MAX_ADC_SPEEDS 16
 #define MAX_PREAMP_GAINS 16
 
-#define FCCDMessageString                 "FCCD_MESSAGE"
 #define FCCDSetBiasString                  "FCCD_SETBIAS"
 #define FCCDSetClocksString                "FCCD_SETCLOCKS"
 
@@ -46,9 +45,8 @@ class FastCCD : public ADDriver {
   void dataTask(void);
 
  protected:
-  int FCCDMessage;
-  #define FIRST_ANDOR_PARAM FCCDMessage
   int FCCDSetBias;
+  #define FIRST_ANDOR_PARAM FCCDSetBias
   int FCCDSetClocks;
   #define LAST_ANDOR_PARAM FCCDSetClocks
 
@@ -84,7 +82,6 @@ class FastCCD : public ADDriver {
   double mFastPollingPeriod;
   unsigned int mAcquiringData;
   unsigned int m_bRequestStop;
-  char *mInstallPath;
   
   float mAcquireTime;
   float mAcquirePeriod;

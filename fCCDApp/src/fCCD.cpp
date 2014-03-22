@@ -1,11 +1,6 @@
 /**
- * FastCCD.cpp
- * derived from andorCCD.cpp
- * Area Detector driver for the Andor CCD.
- *
- * Ver
- * 0.1 YF 1/20/14
- * 0.2 YF 3/3/14
+ * Area Detector driver for the LBNL FastCCD
+ * Modifed by S. Wilkins
  *
  */
 
@@ -47,36 +42,10 @@ static const char *driverName = "fCCD";
 
 //Definitions of static class data members
 
-//const epicsInt32 FastCCD::AImageFastKinetics = ADImageContinuous+1;
-
-//const epicsUInt32 FastCCD::AASingle = 1;
-//const epicsUInt32 FastCCD::AAAccumulate = 2;
-//const epicsUInt32 FastCCD::AARunTillAbort = 5;
-//const epicsUInt32 FastCCD::AATimeDelayedInt = 9;
-
 const epicsUInt32 FastCCD::ATInternal = 0;
 const epicsUInt32 FastCCD::ATExternal1 = 1;
 const epicsUInt32 FastCCD::ATExternal2 = 2;
 const epicsUInt32 FastCCD::ATExternal1or2 = 3;
-
-/*
-const epicsUInt32 FastCCD::ASIdle = DRV_IDLE;
-const epicsUInt32 FastCCD::ASTempCycle = DRV_TEMPCYCLE;
-const epicsUInt32 FastCCD::ASAcquiring = DRV_ACQUIRING;
-const epicsUInt32 FastCCD::ASAccumTimeNotMet = DRV_ACCUM_TIME_NOT_MET;
-const epicsUInt32 FastCCD::ASKineticTimeNotMet = DRV_KINETIC_TIME_NOT_MET;
-const epicsUInt32 FastCCD::ASErrorAck = DRV_ERROR_ACK;
-const epicsUInt32 FastCCD::ASAcqBuffer = DRV_ACQ_BUFFER;
-const epicsUInt32 FastCCD::ASSpoolError = DRV_SPOOLERROR;
-*/
-
-/*
-const epicsInt32 FastCCD::ARFullVerticalBinning = 0;
-const epicsInt32 FastCCD::ARMultiTrack = 1;
-const epicsInt32 FastCCD::ARRandomTrack = 2;
-const epicsInt32 FastCCD::ARSingleTrack = 3;
-const epicsInt32 FastCCD::ARImage = 4;
-*/
 
 const epicsInt32 FastCCD::AShutterAuto = 0;
 const epicsInt32 FastCCD::AShutterOpen = 1;
@@ -84,7 +53,6 @@ const epicsInt32 FastCCD::AShutterClose = 2;
 
 
 //C Function prototypes to tie in with EPICS
-// SBW : TODO Change these
 static void FCCDStatusTaskC(void *drvPvt);
 static void FCCDDataTaskC(void *drvPvt);
 static void exitHandler(void *drvPvt);
@@ -118,7 +86,7 @@ int FastCCD::FCCD_GetImage()
    
    dims[0] = CIN_DATA_FRAME_WIDTH;
    dims[1] = CIN_DATA_FRAME_HEIGHT;
-   dataType = NDUInt16; // kick it.
+   dataType = NDUInt16; 
    
    m_pArray = this->pNDArrayPool->alloc(nDims, dims, dataType, 
       0, NULL);
@@ -137,7 +105,7 @@ int FastCCD::FCCD_GetImage()
    }
 }
 
-/** Constructor for Andor driver; most parameters are simply passed to ADDriver::ADDriver.
+/** Constructor for FCCD driver; most parameters are simply passed to ADDriver::ADDriver.
   * After calling the base class constructor this method creates a thread to collect the detector data, 
   * and sets reasonable default values the parameters defined in this class, asynNDArrayDriver, and ADDriver.
   * \param[in] portName The name of the asyn port driver to be created.
@@ -154,7 +122,7 @@ int FastCCD::FCCD_GetImage()
 FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory, 
                    const char *installPath, int priority, int stackSize)
 
-  : ADDriver(portName, 1, NUM_ANDOR_DET_PARAMS, maxBuffers, maxMemory, 
+  : ADDriver(portName, 1, NUM_FCCD_DET_PARAMS, maxBuffers, maxMemory, 
              asynEnumMask, asynEnumMask,
              ASYN_CANBLOCK, 1, priority, stackSize)
 {
@@ -165,25 +133,10 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   
   static const char *functionName = "FastCCD";
 
-  if (installPath == NULL)
-    strcpy(mInstallPath, "");
-  else 
-    mInstallPath = epicsStrDup(installPath);
-
   /* Create an EPICS exit handler */
   epicsAtExit(exitHandler, this);
 
-  //createParam(AndorCoolerParamString,             asynParamInt32, &AndorCoolerParam);
-  //createParam(AndorTempStatusMessageString,       asynParamOctet, &AndorTempStatusMessage);
-  createParam(FCCDMessageString,                 asynParamOctet, &FCCDMessage);
-  //createParam(AndorShutterModeString,             asynParamInt32, &AndorShutterMode);
-  //createParam(AndorShutterExTTLString,            asynParamInt32, &AndorShutterExTTL);
-  //createParam(AndorPalFileNameString,             asynParamOctet, &AndorPalFileName);
-  //createParam(AndorAccumulatePeriodString,      asynParamFloat64, &AndorAccumulatePeriod);
-  //createParam(AndorPreAmpGainString,              asynParamInt32, &AndorPreAmpGain);
-  //createParam(AndorAdcSpeedString,                asynParamInt32, &AndorAdcSpeed);
-
-  // YF Custom PV Records
+  createParam(ADStatusMessageString,                 asynParamOctet, &ADStatusMessage);
   createParam(FCCDSetBiasString,                  asynParamInt32, &FCCDSetBias);
   createParam(FCCDSetClocksString,                asynParamInt32, &FCCDSetClocks);
 
@@ -211,14 +164,9 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
     printf("%s:%s: initializing camera\n",
       driverName, functionName);
 
-    setStringParam(FCCDMessage, "Camera successfully initialized.");
-    // YF  checkStatus(GetDetector(&sizeX, &sizeY));
-    // YF checkStatus(GetHeadModel(model));
-    // YF checkStatus(SetReadMode(ARImage));
-    // YF checkStatus(SetImage(binX, binY, minX+1, minX+sizeX, minY+1, minY+sizeY));
+    setStringParam(ADStatusMessage, "Camera successfully initialized.");
     sizeX = CIN_DATA_FRAME_WIDTH;
     sizeY = CIN_DATA_FRAME_HEIGHT;
-    
    
     callParamCallbacks();
   } catch (const std::string &e) {
@@ -286,7 +234,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   // YF Set default trigger mode 1 = Single
   checkStatus(CIN_set_trigger_mode( 1 ));
 
-  setStringParam(FCCDMessage, "Defaults Set.");
+  setStringParam(ADStatusMessage, "Defaults Set.");
   callParamCallbacks();
 
   /* Send a signal to the poller task which will make it do a poll, and switch to the fast poll rate */
@@ -618,7 +566,7 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
     }
 
     //For a successful write, clear the error message.
-    setStringParam(FCCDMessage, " ");
+    setStringParam(ADStatusMessage, " ");
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
@@ -706,7 +654,7 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     //         driverName, functionName, static_cast<int>(value));
     //       // YF TODO  checkStatus(SetTemperature(static_cast<int>(value)));
     //     } else {
-    //       setStringParam(FCCDMessage, "Temperature is out of range.");
+    //       setStringParam(ADStatusMessage, "Temperature is out of range.");
     //       callParamCallbacks();
     //       status = asynError;
     //     }
@@ -731,7 +679,7 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     }
 
     //For a successful write, clear the error message.
-    setStringParam(FCCDMessage, " ");
+    setStringParam(ADStatusMessage, " ");
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
@@ -886,7 +834,7 @@ void FastCCD::statusTask(void)
       asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
         "%s:%s: %s\n",
         driverName, functionName, e.c_str());
-      setStringParam(FCCDMessage, e.c_str());
+      setStringParam(ADStatusMessage, e.c_str());
     }
 #endif    
 
@@ -1296,7 +1244,7 @@ void FastCCD::dataTask(void)
           "%s:%s: %s\n",
           driverName, functionName, e.c_str());
         errorString = const_cast<char *>(e.c_str());
-        setStringParam(FCCDMessage, errorString);
+        setStringParam(ADStatusMessage, errorString);
       }
       
       
