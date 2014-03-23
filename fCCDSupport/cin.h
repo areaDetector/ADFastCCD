@@ -44,17 +44,17 @@ extern "C" {
 // which is 1152 columns. 
 // 
 #define CIN_DATA_FRAME_HEIGHT              1920
-#define CIN_DATA_FRAME_WIDTH               960
+#define CIN_DATA_FRAME_WIDTH               1152
 #define CIN_DATA_MAX_STREAM                2300000
 #define CIN_DATA_CCD_COLS               96
 #define CIN_DATA_CCD_COLS_PER_CHAN      10
 #define CIN_DATA_PIPELINE_FLUSH         1344 // 7 converts * 2 * 96 cols
 
-/* -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------------
  *
  * Definitions for CIN DATA config
  *
- * -----------------------------------------------------------------------------
+ * -------------------------------------------------------------------------------
  */
 
 #define CIN_DATA_MODE_PUSH_PULL         0x01
@@ -260,8 +260,10 @@ int cin_ctl_set_clocks(struct cin_port* cp,int val);
 int cin_ctl_set_trigger(struct cin_port* cp,int val);
 int cin_ctl_get_trigger(struct cin_port* cp, int *val);
 int cin_ctl_set_focus(struct cin_port* cp, int val);
-int cin_clt_trigger_start(struct cin_port* cp, int nimages, int trigger_mode);
-int cin_ctl_trigger_stop(struct cin_port* cp);
+int cin_ctl_int_trigger_start(struct cin_port* cp, int nimages);
+int cin_ctl_int_trigger_stop(struct cin_port* cp);
+int cin_ctl_ext_trigger_start(struct cin_port* cp, int trigger_mode);
+int cin_ctl_ext_trigger_stop(struct cin_port* cp);
 int cin_ctl_set_exposure_time(struct cin_port* cp,float e_time);
 int cin_ctl_set_trigger_delay(struct cin_port* cp,float t_time);
 int cin_ctl_set_cycle_time(struct cin_port* cp,float ftime);

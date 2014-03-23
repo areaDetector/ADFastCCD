@@ -16,8 +16,6 @@
 #include "ADDriver.h"
 
 #define MAX_ENUM_STRING_SIZE 26
-#define MAX_ADC_SPEEDS 16
-#define MAX_PREAMP_GAINS 16
 
 #define FCCDSetBiasString                  "FCCD_SETBIAS"
 #define FCCDSetClocksString                "FCCD_SETCLOCKS"
@@ -31,6 +29,11 @@ class FastCCD : public ADDriver {
   FastCCD(const char *portName, int maxBuffers, size_t maxMemory, 
            const char *installPath, int priority, int stackSize);
   virtual ~FastCCD();
+
+  /* Overload the connect and disconnect routines */
+
+  asynStatus connect(asynUser *pasynUser);
+  asynStatus disconnect(asynUser *pasynUser);
 
   /* These are the methods that we override from ADDriver */
   virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
@@ -51,6 +54,11 @@ class FastCCD : public ADDriver {
   #define LAST_ANDOR_PARAM FCCDSetClocks
 
  private:
+
+  // Connect / Disconnect
+
+  asynStatus disconnectCamera();
+  asynStatus connectCamera();
 
   unsigned int checkStatus(unsigned int returnStatus);
   asynStatus setupAcquisition();
@@ -92,7 +100,9 @@ class FastCCD : public ADDriver {
   void int_handler(int dummy);
    
 protected:
-  struct cin_port m_port;
+  struct cin_port cin_data_port;
+  struct cin_port cin_ctl_port;
+  struct cin_port cin_ctl_port_stream;
   NDArray *m_pArray;
 };
 
