@@ -6,17 +6,17 @@ include $(TOP)/configure/CONFIG
 # Note: we must built the application without GraphicsMagick.
 USE_GRAPHICSMAGICK=NO
 
-PROD_NAME = fCCDApp
+PROD_NAME = FastCCDApp
 PROD_IOC_Linux  += $(PROD_NAME)
 
 # <name>.dbd will be created from <name>Include.dbd
 DBD += $(PROD_NAME).dbd
-$(PROD_NAME)_DBD += fCCDSupport.dbd
+$(PROD_NAME)_DBD += FastCCDSupport.dbd
 
 PROD_SRCS += $(PROD_NAME)_registerRecordDeviceDriver.cpp $(PROD_NAME)Main.cpp
 
 # Add locally compiled object code
-PROD_LIBS += fCCD
+PROD_LIBS += FastCCD
 USE_GRAPHICSMAGICK=NO
 PROD_LIBS += cin
 
