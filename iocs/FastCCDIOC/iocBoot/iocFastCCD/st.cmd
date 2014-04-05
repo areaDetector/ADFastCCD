@@ -1,4 +1,4 @@
-#!../../../../bin/linux-x86_64/fCCDApp
+#!../../../../bin/linux-x86_64/FastCCDApp
 < envPaths
 
 epicsEnvSet("ADCORE", "$(AREA_DETECTOR)/ADCore")
