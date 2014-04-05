@@ -3,11 +3,15 @@ TOP = .
 include $(TOP)/configure/CONFIG
 DIRS := $(DIRS) configure
 DIRS := $(DIRS) FastCCDApp
-#FastCCDApp_DEPEND_DIRS += FastCCDSupport
+DIRS := $(DIRS) FastCCDSupport
+
+FastCCDApp_DEPEND_DIRS += FastCCDSupport
+
 ifeq ($(BUILD_IOCS), YES)
 DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard iocs))
 iocs_DEPEND_DIRS += FastCCDApp
 endif
+
 include $(TOP)/configure/RULES_TOP
 
 uninstall: uninstall_iocs
