@@ -47,6 +47,8 @@ asynStatus FastCCD::connectCamera(){
 
   int ret= 0;
 
+  fprintf(stderr, "Connect\n");
+
   if(cin_data_init_port(&cin_data_port, NULL, 0, "10.23.5.127", 0, 1000))
     return asynError;
 
@@ -55,7 +57,7 @@ asynStatus FastCCD::connectCamera(){
   if(cin_ctl_init_port(&cin_ctl_port_stream, NULL, 49202, 50202))
     return asynError;
    
-  if( (ret = cin_data_init(CIN_DATA_MODE_PUSH_PULL, cinPacketBuffer, cinImageBuffer)))
+  if(cin_data_init(CIN_DATA_MODE_PUSH_PULL, cinPacketBuffer, cinImageBuffer))
     return asynError;
  
   return asynSuccess;
