@@ -6,8 +6,8 @@ epicsEnvSet("ADCORE", "$(AREA_DETECTOR)/ADCore")
 errlogInit(20000)
 epicsEnvSet(EPICS_CA_MAX_ARRAY_BYTES,4432896)
 
-dbLoadDatabase("$(ADFCCD)/dbd/fCCDApp.dbd")
-fCCDApp_registerRecordDeviceDriver(pdbbase) 
+dbLoadDatabase("$(ADFASTCCD)/dbd/FastCCDApp.dbd")
+FastCCDApp_registerRecordDeviceDriver(pdbbase) 
 
 epicsEnvSet("PREFIX", "13ANDOR1:")
 epicsEnvSet("PORT",   "ANDOR")
@@ -40,7 +40,7 @@ FCCDConfig("$(PORT)", 0, 0, "/usr/local/etc/andor/", 0, 100000)
 #
 dbLoadRecords("$(ADCORE)/db/ADBase.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 dbLoadRecords("$(ADCORE)/db/NDFile.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
-dbLoadRecords("$(TOP)/db/fCCD.template",   "P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
+dbLoadRecords("$(TOP)/db/FastCCD.template",   "P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 
 # Create a standard arrays plugin
 NDStdArraysConfigure("Image1", 5, 0, "$(PORT)", 0, 0)
