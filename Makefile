@@ -2,11 +2,11 @@
 TOP = .
 include $(TOP)/configure/CONFIG
 DIRS := $(DIRS) configure
-DIRS := $(DIRS) fCCDApp
-#fCCDApp_DEPEND_DIRS += fCCDSupport
+DIRS := $(DIRS) FastCCDApp
+#FastCCDApp_DEPEND_DIRS += FastCCDSupport
 ifeq ($(BUILD_IOCS), YES)
 DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard iocs))
-iocs_DEPEND_DIRS += fCCDApp
+iocs_DEPEND_DIRS += FastCCDApp
 endif
 include $(TOP)/configure/RULES_TOP
 
