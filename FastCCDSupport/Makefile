@@ -10,7 +10,6 @@ include $(TOP)/configure/CONFIG
 # The extension on ATMCD32D.h was changed from .H to .h because the EPICS build system does
 # not recognize .H
 INC += cin.h
-INC += cin_register_map.h
 
 LIB_INSTALLS_Linux += ../os/linux-x86_64/libcin.a
 

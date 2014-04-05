@@ -25,6 +25,71 @@ extern "C" {
 #define CIN_CTL_CLI_PORT                   50200
 #define CIN_CTL_SVR_FRMW_PORT              49202
 #define CIN_CTL_CLI_FRMW_PORT              50202
+
+#define CIN_CTL_MAX_READ_TRIES             10
+#define CIN_CTL_MAX_WRITE_TRIES            5
+
+#define CIN_CTL_DCM_LOCKED                 0x0001
+#define CIN_CTL_DCM_PSDONE                 0x0002
+#define CIN_CTL_DCM_STATUS0                0x0004
+#define CIN_CTL_DCM_STATUS1                0x0008
+#define CIN_CTL_DCM_STATUS2                0x0010
+#define CIN_CTL_DCM_TX1_READY              0x0020
+#define CIN_CTL_DCM_TX2_READY              0x0040
+#define CIN_CTL_DCM_ATCA_ALARM             0x0080
+
+#define CIN_CTL_TRIG_INTERNAL              0x0000
+#define CIN_CTL_TRIG_EXTERNAL_1            0x0001
+#define CIN_CTL_TRIG_EXTERNAL_2            0x0002
+#define CIN_CTL_TRIG_EXTERNAL_BOTH         0x0003
+
+#define CIN_CTL_FOCUS_BIT                  0x0002
+
+#define CIN_CTL_FCLK_125                   0x0000
+#define CIN_CTL_FCLK_200                   0x0001
+#define CIN_CTL_FCLK_250                   0x0002
+
+#define CIN_CTL_FPGA_STS_CFG               0x8000
+#define CIN_CTL_FPGA_STS_FP_PWR            0x0008
+
+#define CIN_CTL_DCM_STS_ATCA               0x0080
+#define CIN_CTL_DCM_STS_LOCKED             0x0001
+#define CIN_CTL_DCM_STS_OVERIDE            0x0800
+
+#define CIN_CTL_MUX1_VCLK1                 0x0001
+#define CIN_CTL_MUX1_VCLK2                 0x0002
+#define CIN_CTL_MUX1_VCLK3                 0x0003
+#define CIN_CTL_MUX1_ATG                   0x0004
+#define CIN_CTL_MUX1_VFSCLK1               0x0005
+#define CIN_CTL_MUX1_VFSCLK2               0x0006
+#define CIN_CTL_MUX1_VFSCLK3               0x0007
+#define CIN_CTL_MUX1_HCLK1                 0x0008
+#define CIN_CTL_MUX1_HCLK2                 0x0009
+#define CIN_CTL_MUX1_OSW                   0x000A
+#define CIN_CTL_MUX1_RST                   0x000B
+#define CIN_CTL_MUX1_CONVERT               0x000C
+#define CIN_CTL_MUX1_SHUTTER               0x000D
+#define CIN_CTL_MUX1_SWTRIGGER             0x000E
+#define CIN_CTL_MUX1_TRIGMON               0x000F
+#define CIN_CTL_MUX1_EXPOSE                0x0000
+
+#define CIN_CTL_MUX2_VCLK1                 0x0010
+#define CIN_CTL_MUX2_VCLK2                 0x0020
+#define CIN_CTL_MUX2_VCLK3                 0x0030
+#define CIN_CTL_MUX2_ATG                   0x0040
+#define CIN_CTL_MUX2_VFSCLK1               0x0050
+#define CIN_CTL_MUX2_VFSCLK2               0x0060
+#define CIN_CTL_MUX2_VFSCLK3               0x0070
+#define CIN_CTL_MUX2_HCLK1                 0x0080
+#define CIN_CTL_MUX2_HCLK2                 0x0090
+#define CIN_CTL_MUX2_HCLK3                 0x00A0
+#define CIN_CTL_MUX2_OSW                   0x00B0
+#define CIN_CTL_MUX2_RST                   0x00C0
+#define CIN_CTL_MUX2_CONVERT               0x00D0
+#define CIN_CTL_MUX2_SAVE                  0x00E0
+#define CIN_CTL_MUX2_HWTRIG                0x00F0
+#define CIN_CTL_MUX2_EXPOSE                0x0000
+
 #define CIN_DATA_IP                        "10.0.5.207"
 #define CIN_DATA_PORT                      49201
 #define CIN_DATA_CTL_PORT                  49203
@@ -175,25 +240,6 @@ typedef struct cin_data_stats {
  * ---------------------------------------------------------------------
  */
 
-#define CIN_CTL_DCM_LOCKED          0x0001
-#define CIN_CTL_DCM_PSDONE          0x0002
-#define CIN_CTL_DCM_STATUS0         0x0004
-#define CIN_CTL_DCM_STATUS1         0x0008
-#define CIN_CTL_DCM_STATUS2         0x0010
-#define CIN_CTL_DCM_TX1_READY       0x0020
-#define CIN_CTL_DCM_TX2_READY       0x0040
-#define CIN_CTL_DCM_ATCA_ALARM      0x0080
-
-#define CIN_CTL_TRIG_INTERNAL       0
-#define CIN_CTL_TRIG_EXTERNAL_1     1
-#define CIN_CTL_TRIG_EXTERNAL_2     2
-#define CIN_CTL_TRIG_EXTERNAL_BOTH  3
-
-#define CIN_CTL_FOCUS_BIT           0x0002
-
-#define CIN_CTL_FCLK_125            0
-#define CIN_CTL_FCLK_200            1
-#define CIN_CTL_FCLK_250            2
 
 /* 
  * Datastructures for status readouts 
@@ -241,6 +287,7 @@ int cin_ctl_close_port(struct cin_port* cp);
 int cin_ctl_read(struct cin_port* cp, uint16_t reg, uint16_t *val);
 int cin_ctl_write(struct cin_port* cp, uint16_t reg, uint16_t val);
 int cin_ctl_stream_write(struct cin_port* cp, char* val,int size);
+int cin_ctl_write_with_readback(struct cin_port* cp, uint16_t reg, uint16_t val);
 
 /*------------------------
  * CIN PowerUP-PowerDown
@@ -264,7 +311,9 @@ int cin_ctl_set_fclk(struct cin_port* cp, int clkfreq);
 int cin_ctl_get_fclk(struct cin_port* cp, int *clkfreq);
 int cin_ctl_get_cfg_fpga_status(struct cin_port* cp,
                                 cin_ctl_fpga_status_t *_val);
+void cin_ctl_display_fpga_status(FILE *out, cin_ctl_fpga_status_t *_val);
 int cin_ctl_get_dcm_status(struct cin_port* cp, uint16_t *_val);
+void cin_ctl_display_dcm_status(FILE *out, uint16_t *_val);
 
 /* Power status */
 
@@ -286,6 +335,7 @@ int cin_ctl_set_clocks(struct cin_port* cp,int val);
 int cin_ctl_set_trigger(struct cin_port* cp,int val);
 int cin_ctl_get_trigger(struct cin_port* cp, int *val);
 int cin_ctl_set_focus(struct cin_port* cp, int val);
+int cin_ctl_get_focus(struct cin_port* cp, int *val);
 int cin_ctl_int_trigger_start(struct cin_port* cp, int nimages);
 int cin_ctl_int_trigger_stop(struct cin_port* cp);
 int cin_ctl_ext_trigger_start(struct cin_port* cp, int trigger_mode);
@@ -294,6 +344,14 @@ int cin_ctl_set_exposure_time(struct cin_port* cp,float e_time);
 int cin_ctl_set_trigger_delay(struct cin_port* cp,float t_time);
 int cin_ctl_set_cycle_time(struct cin_port* cp,float ftime);
 int cin_ctl_set_frame_count_reset(struct cin_port* cp);
+int cin_ctl_set_mux(struct cin_port *cp, int setting);
+
+/*------------------------
+ * CIN TCP/IP Settings
+ *------------------------*/
+
+int cin_ctl_set_fabric_address(struct cin_port* cp, char *ip);
+int cin_ctl_set_address(struct cin_port* cp, char *ip, uint16_t reg0, uint16_t reg1);
 
 /* ---------------------------------------------------------------------
  *
@@ -302,7 +360,7 @@ int cin_ctl_set_frame_count_reset(struct cin_port* cp);
  * ---------------------------------------------------------------------
  */
 
-int cin_init_data_port(struct cin_port* dp,
+int cin_data_init_port(struct cin_port* dp,
                        char* ipaddr, uint16_t port,
                        char* cin_ipaddr, uint16_t cin_port,
                        int rcvbuf);
