@@ -3,11 +3,11 @@ include $(TOP)/configure/CONFIG
 #----------------------------------------
 #  ADD MACRO DEFINITIONS AFTER THIS LINE
 
-LIBRARY_IOC_Linux += fCCD
-LIB_SRCS += fCCD.cpp
+LIBRARY_IOC_Linux += FastCCD
+LIB_SRCS += FastCCD.cpp
 LIB_LIBS += cin
 
-DBD += fCCDSupport.dbd
+DBD += FastCCDSupport.dbd
 
 include $(ADCORE)/ADApp/commonLibraryMakefile
 
