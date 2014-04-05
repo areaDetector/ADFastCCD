@@ -20,7 +20,7 @@
 #include "cin.h"
 #include "FastCCD.h"
 
-static const char *driverName = "fCCD";
+static const char *driverName = "FastCCD";
 
 //Definitions of static class data members
 
@@ -1040,7 +1040,7 @@ static void configFastCCDCallFunc(const iocshArgBuf *args)
                    args[4].ival, args[5].ival);
 }
 
-static void fCCDRegister(void)
+static void FastCCDRegister(void)
 {
 
     iocshRegister(&configFastCCD, configFastCCDCallFunc);
@@ -1077,7 +1077,7 @@ static void cin_power_downRegister(void)
     iocshRegister(&cin_power_downFuncDef, cin_power_downCallFunc);
 }
 
-epicsExportRegistrar(fCCDRegister);
+epicsExportRegistrar(FastCCDRegister);
 epicsExportRegistrar(cin_power_upRegister);
 epicsExportRegistrar(cin_power_downRegister);
 

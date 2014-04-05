@@ -1,1 +1,1 @@
-registrar("fCCDRegister")
+registrar("FastCCDRegister")
