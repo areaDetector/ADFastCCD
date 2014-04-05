@@ -47,7 +47,7 @@ asynStatus FastCCD::connectCamera(){
 
   int ret= 0;
 
-  if(cin_init_data_port(&cin_data_port, NULL, 0, "10.23.5.127", 0, 1000))
+  if(cin_data_init_port(&cin_data_port, NULL, 0, "10.23.5.127", 0, 1000))
     return asynError;
 
   if(cin_ctl_init_port(&cin_ctl_port, NULL, 0, 0))
@@ -58,8 +58,6 @@ asynStatus FastCCD::connectCamera(){
   if( (ret = cin_data_init(CIN_DATA_MODE_PUSH_PULL, 2000, 2000)))
     return asynError;
  
-  printf("Connected\n");
-
   return asynSuccess;
 }
 
@@ -91,7 +89,6 @@ int FastCCD::GetImage()
    {
       // Load the buffer. Pass in memory allocated in NDArrayPool
       cin_data_load_frame((uint16_t *)m_pArray->pData, &frame_number);
-      printf("Got frame %d\n", frame_number);
       return (0);
    }
 
@@ -121,7 +118,6 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
 {
 
   int status = asynSuccess;
-  int i;
   int sizeX, sizeY;
   
   static const char *functionName = "FastCCD";
@@ -129,7 +125,6 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   /* Create an EPICS exit handler */
   epicsAtExit(exitHandler, this);
 
-  //createParam(ADStatusMessageString,                 asynParamOctet, &ADStatusMessage);
   createParam(FCCDSetBiasString,                  asynParamInt32, &FCCDSetBias);
   createParam(FCCDSetClocksString,                asynParamInt32, &FCCDSetClocks);
 
@@ -149,9 +144,6 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   }
 
   try {
-    printf("%s:%s: initializing camera\n",
-           driverName, functionName);
-  
     this->lock();
     connectCamera();
  
@@ -278,34 +270,9 @@ static void exitHandler(void *drvPvt)
 asynStatus FastCCD::readEnum(asynUser *pasynUser, char *strings[], int values[], 
                              int severities[], size_t nElements, size_t *nIn)
 {
-  int function = pasynUser->reason;
-  int i;
+  //int function = pasynUser->reason;
 
-#if 0
-  if (function == AndorAdcSpeed) {
-    for (i=0; ((i<mNumADCSpeeds) && (i<(int)nElements)); i++) {
-      if (strings[i]) free(strings[i]);
-      strings[i] = epicsStrDup(mADCSpeeds[i].EnumString);
-      values[i] = mADCSpeeds[i].EnumValue;
-      severities[i] = 0;
-    }
-  }
-  else if (function == AndorPreAmpGain) {
-    for (i=0; ((i<mNumPreAmpGains) && (i<(int)nElements)); i++) {
-      if (strings[i]) free(strings[i]);
-      strings[i] = epicsStrDup(mPreAmpGains[i].EnumString);
-      values[i] = mPreAmpGains[i].EnumValue;
-      severities[i] = 0;
-    }
-  }
-  else {
-    *nIn = 0;
-    return asynError;
-  }
-  
-#endif
-  
-   return ADDriver::readEnum(pasynUser, strings, values, severities,nElements, nIn );
+  return ADDriver::readEnum(pasynUser, strings, values, severities,nElements, nIn );
   
 }
 
@@ -540,57 +507,6 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
               "%s:%s: function=%d, value=%f\n",
               driverName, functionName, function, value);
     return status;
-}
-
-
-/** Controls shutter
- * @param[in] command 0=close, 1=open, -1=no change, only set other parameters */
-// asynStatus FastCCD::setupShutter(int command)
-// {
-//   double dTemp;
-//   int openTime, closeTime;
-//   int shutterMode;
-//   asynStatus status=asynSuccess;
-//   static const char *functionName = "setupShutter";
-//   
-//   getDoubleParam(ADShutterOpenDelay, &dTemp);
-//   // Convert to ms
-//   openTime = (int)(dTemp * 1000.);
-//   getDoubleParam(ADShutterCloseDelay, &dTemp);
-//   closeTime = (int)(dTemp * 1000.);
-//   
-//   if (command == ADShutterClosed) {
-//     shutterMode = AShutterClose;
-//     setIntegerParam(ADShutterStatus, ADShutterClosed);
-//   }
-//   else if (command == ADShutterOpen) {
-//     if (shutterMode == AShutterOpen) {
-//       setIntegerParam(ADShutterStatus, ADShutterOpen);
-//     }
-//     // No need to change shutterMode, we leave it alone and it shutter
-//     // will do correct thing, i.e. auto or open depending shutterMode
-//   }
-// 
-//   return status;
-// }
-
-
-
-/**
- * Expect returnStatus to be zero, otherwise display error message.
- */
-unsigned int FastCCD::checkStatus(unsigned int returnStatus)
-{
-  char message[256];
-  if (returnStatus == 0) 
-  {
-    return 0;
-  } 
-  else 
-  {
-    printf("checkStatus failed\n.");
-    return (-1);
-  } 
 }
 
 
