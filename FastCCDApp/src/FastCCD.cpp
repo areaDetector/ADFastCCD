@@ -18,7 +18,7 @@
 #include <epicsExit.h>
 
 #include "cin.h"
-#include "fCCD.h"
+#include "FastCCD.h"
 
 static const char *driverName = "fCCD";
 
