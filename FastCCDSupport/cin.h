@@ -343,7 +343,7 @@ int cin_ctl_ext_trigger_stop(struct cin_port* cp);
 int cin_ctl_set_exposure_time(struct cin_port* cp,float e_time);
 int cin_ctl_set_trigger_delay(struct cin_port* cp,float t_time);
 int cin_ctl_set_cycle_time(struct cin_port* cp,float ftime);
-int cin_ctl_set_frame_count_reset(struct cin_port* cp);
+int cin_ctl_frame_count_reset(struct cin_port* cp);
 int cin_ctl_set_mux(struct cin_port *cp, int setting);
 
 /*------------------------
