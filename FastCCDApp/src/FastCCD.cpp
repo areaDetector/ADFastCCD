@@ -35,8 +35,8 @@ const epicsInt32 FastCCD::AShutterClose = 2;
 
 
 //C Function prototypes to tie in with EPICS
-static void FCCDStatusTaskC(void *drvPvt);
-static void FCCDDataTaskC(void *drvPvt);
+static void FastCCDStatusTaskC(void *drvPvt);
+static void FastCCDDataTaskC(void *drvPvt);
 static void exitHandler(void *drvPvt);
 
 asynStatus FastCCD::connect(asynUser *pasynUser){
@@ -95,7 +95,7 @@ int FastCCD::GetImage()
    return (-1); // error
 }
 
-/** Constructor for FCCD driver; most parameters are simply passed to ADDriver::ADDriver.
+/** Constructor for FastCCD driver; most parameters are simply passed to ADDriver::ADDriver.
   * After calling the base class constructor this method creates a thread to collect the detector data, 
   * and sets reasonable default values the parameters defined in this class, asynNDArrayDriver, and ADDriver.
   * \param[in] portName The name of the asyn port driver to be created.
@@ -112,7 +112,7 @@ int FastCCD::GetImage()
 FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory, 
                    const char *installPath, int priority, int stackSize)
 
-  : ADDriver(portName, 1, NUM_FCCD_DET_PARAMS, maxBuffers, maxMemory, 
+  : ADDriver(portName, 1, NUM_FastCCD_DET_PARAMS, maxBuffers, maxMemory, 
              asynEnumMask, asynEnumMask,
              ASYN_CANBLOCK, 1, priority, stackSize)
 {
@@ -125,8 +125,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   /* Create an EPICS exit handler */
   epicsAtExit(exitHandler, this);
 
-  createParam(FCCDSetBiasString,                  asynParamInt32, &FCCDSetBias);
-  createParam(FCCDSetClocksString,                asynParamInt32, &FCCDSetClocks);
+  createParam(FastCCDSetBiasString,                  asynParamInt32, &FastCCDSetBias);
+  createParam(FastCCDSetClocksString,                asynParamInt32, &FastCCDSetClocks);
 
   // Create the epicsEvent for signaling to the status task when parameters should have changed.
   // This will cause it to do a poll immediately, rather than wait for the poll time period.
@@ -190,7 +190,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setIntegerParam(NDArraySize, sizeX*sizeY*sizeof(epicsUInt16)); 
   status |= setDoubleParam(ADShutterOpenDelay, 0.);
   status |= setDoubleParam(ADShutterCloseDelay, 0.);
-  status |= setIntegerParam(FCCDSetBias, 0);
+  status |= setIntegerParam(FastCCDSetBias, 0);
   
 
   setStringParam(ADStatusMessage, "Defaults Set.");
@@ -208,10 +208,10 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   if (stackSize == 0) stackSize = epicsThreadGetStackSize(epicsThreadStackMedium);
 
   /* Create the thread that updates the detector status */
-  status = (epicsThreadCreate("FCCDStatusTask",
+  status = (epicsThreadCreate("FastCCDStatusTask",
                               epicsThreadPriorityMedium,
                               stackSize,
-                              (EPICSTHREADFUNC)FCCDStatusTaskC,
+                              (EPICSTHREADFUNC)FastCCDStatusTaskC,
                               this) == NULL);
   if(status) {
     printf("%s:%s: epicsThreadCreate failure for status task\n",
@@ -220,10 +220,10 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   }
 
   /* Create the thread that does data readout */
-  status = (epicsThreadCreate("FCCDDataTask",
+  status = (epicsThreadCreate("FastCCDDataTask",
                               epicsThreadPriorityMedium,
                               stackSize,
-                              (EPICSTHREADFUNC)FCCDDataTaskC,
+                              (EPICSTHREADFUNC)FastCCDDataTaskC,
                               this) == NULL);
   if (status) {
     printf("%s:%s: epicsThreadCreate failure for data task\n",
@@ -233,7 +233,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
 }
 
 /**
- * Destructor.  Free resources and closes the FCCD library
+ * Destructor.  Free resources and closes the FastCCD library
  */
 FastCCD::~FastCCD() 
 {
@@ -314,7 +314,6 @@ void FastCCD::report(FILE *fp, int details)
 asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 {
     int function = pasynUser->reason;
-    int adstatus = 0;
     epicsInt32 oldValue;
 
     asynStatus status = asynSuccess;
@@ -374,10 +373,10 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
       if (status != asynSuccess) setIntegerParam(function, oldValue);
     } 
-    // else if (function == FCCDSetBias) {
+    // else if (function == FastCCDSetBias) {
     //      cin_ctl_set_bias(cin_ctl_port, value);
     // }
-    // else if (function == FCCDSetClocks) {
+    // else if (function == FastCCDSetClocks) {
     //      cin_ctl_set_clocks(cin_ctl_port, value);
     // }
     // else if (function == ADTriggerMode) {
@@ -515,7 +514,6 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
  */
 void FastCCD::statusTask(void)
 {
-  int value = 0;
   // float temperature;
   // unsigned int uvalue = 0;
   unsigned int status = 0;
@@ -618,7 +616,7 @@ asynStatus FastCCD::setupAcquisition()
    int imageMode;
    int triggerMode;
    int binX, binY, minX, minY, sizeX, sizeY, maxSizeX, maxSizeY;
-   static const char *functionName = "setupAcquisition";
+   //static const char *functionName = "setupAcquisition";
 
    getIntegerParam(ADImageMode, &imageMode);
    getIntegerParam(ADNumExposures, &numExposures);
@@ -724,8 +722,6 @@ void FastCCD::dataTask(void)
   epicsInt32 imageCounter;
   epicsInt32 arrayCallbacks;
   epicsInt32 sizeX, sizeY;
-  NDDataType_t dataType;
-  int itemp;
   epicsTimeStamp startTime;
   
   int autoSave;
@@ -765,7 +761,7 @@ void FastCCD::dataTask(void)
       //   continue;
       // }
       //Read some parameters
-      getIntegerParam(NDDataType, &itemp); dataType = (NDDataType_t)itemp;
+      //getIntegerParam(NDDataType, &itemp); dataType = (NDDataType_t)itemp;
       getIntegerParam(NDAutoSave, &autoSave);
       getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
       getIntegerParam(NDArraySizeX, &sizeX);
@@ -877,7 +873,7 @@ void FastCCD::dataTask(void)
 
 //C utility functions to tie in with EPICS
 
-static void FCCDStatusTaskC(void *drvPvt)
+static void FastCCDStatusTaskC(void *drvPvt)
 {
   FastCCD *pPvt = (FastCCD *)drvPvt;
 
@@ -885,7 +881,7 @@ static void FCCDStatusTaskC(void *drvPvt)
 }
 
 
-static void FCCDDataTaskC(void *drvPvt)
+static void FastCCDDataTaskC(void *drvPvt)
 {
   FastCCD *pPvt = (FastCCD *)drvPvt;
 
@@ -905,7 +901,7 @@ static void FCCDDataTaskC(void *drvPvt)
   * \param[in] stackSize The stack size for the asyn port driver thread
   */
 extern "C" {
-int FCCDConfig(const char *portName, int maxBuffers, size_t maxMemory, 
+int FastCCDConfig(const char *portName, int maxBuffers, size_t maxMemory, 
                    const char *installPath, int priority, int stackSize)
 {
   /*Instantiate class.*/
@@ -917,7 +913,7 @@ int FCCDConfig(const char *portName, int maxBuffers, size_t maxMemory,
 // 
 // IOC shell configuration command for cin power up
 //  
-int FCCD_cin_power_up(const char *strParam)
+int FastCCD_cin_power_up(const char *strParam)
 {
    printf("cin_power_up: %s\n", strParam);
    //cin_power_up(); // defined in cin_power.c
@@ -927,7 +923,7 @@ int FCCD_cin_power_up(const char *strParam)
 // 
 // IOC shell configuration command for cin power down
 //  
-int FCCD_cin_power_down(const char *strParam)
+int FastCCD_cin_power_down(const char *strParam)
 {
    //cin_power_down(); // defined in cin_power.c
    return (0);
@@ -935,24 +931,24 @@ int FCCD_cin_power_down(const char *strParam)
 
 /* Code for iocsh registration */
 
-/* FCCDConfig */
-static const iocshArg FCCDConfigArg0 = {"Port name", iocshArgString};
-static const iocshArg FCCDConfigArg1 = {"maxBuffers", iocshArgInt};
-static const iocshArg FCCDConfigArg2 = {"maxMemory", iocshArgInt};
-static const iocshArg FCCDConfigArg3 = {"installPath", iocshArgString};
-static const iocshArg FCCDConfigArg4 = {"priority", iocshArgInt};
-static const iocshArg FCCDConfigArg5 = {"stackSize", iocshArgInt};
-static const iocshArg * const FCCDConfigArgs[] =  {&FCCDConfigArg0,
-                                                       &FCCDConfigArg1,
-                                                       &FCCDConfigArg2,
-                                                       &FCCDConfigArg3,
-                                                       &FCCDConfigArg4,
-                                                       &FCCDConfigArg5};
+/* FastCCDConfig */
+static const iocshArg FastCCDConfigArg0 = {"Port name", iocshArgString};
+static const iocshArg FastCCDConfigArg1 = {"maxBuffers", iocshArgInt};
+static const iocshArg FastCCDConfigArg2 = {"maxMemory", iocshArgInt};
+static const iocshArg FastCCDConfigArg3 = {"installPath", iocshArgString};
+static const iocshArg FastCCDConfigArg4 = {"priority", iocshArgInt};
+static const iocshArg FastCCDConfigArg5 = {"stackSize", iocshArgInt};
+static const iocshArg * const FastCCDConfigArgs[] =  {&FastCCDConfigArg0,
+                                                       &FastCCDConfigArg1,
+                                                       &FastCCDConfigArg2,
+                                                       &FastCCDConfigArg3,
+                                                       &FastCCDConfigArg4,
+                                                       &FastCCDConfigArg5};
 
-static const iocshFuncDef configFastCCD = {"FCCDConfig", 6, FCCDConfigArgs};
+static const iocshFuncDef configFastCCD = {"FastCCDConfig", 6, FastCCDConfigArgs};
 static void configFastCCDCallFunc(const iocshArgBuf *args)
 {
-    FCCDConfig(args[0].sval, args[1].ival, args[2].ival, args[3].sval, 
+    FastCCDConfig(args[0].sval, args[1].ival, args[2].ival, args[3].sval, 
                    args[4].ival, args[5].ival);
 }
 
@@ -963,39 +959,7 @@ static void FastCCDRegister(void)
 }
 
 
-
-
-/* Information needed by iocsh */
-static const iocshArg     cin_power_upArg0 = {"strParam", iocshArgString};
-static const iocshArg    *cin_power_upArgs[] = {&cin_power_upArg0};
-static const iocshFuncDef cin_power_upFuncDef = {"FCCD_cin_power_up", 1, cin_power_upArgs};
-static const iocshFuncDef cin_power_downFuncDef = {"FCCD_cin_power_down", 1, cin_power_upArgs};
-
-
-static void cin_power_upCallFunc(const iocshArgBuf *args)
-{
-    FCCD_cin_power_up(args[0].sval);
-}
-
-static void cin_power_downCallFunc(const iocshArgBuf *args)
-{
-    FCCD_cin_power_down(args[0].sval);
-}
-
-
-static void cin_power_upRegister(void)
-{
-    iocshRegister(&cin_power_upFuncDef, cin_power_upCallFunc);
-}
-
-static void cin_power_downRegister(void)
-{
-    iocshRegister(&cin_power_downFuncDef, cin_power_downCallFunc);
-}
-
 epicsExportRegistrar(FastCCDRegister);
-epicsExportRegistrar(cin_power_upRegister);
-epicsExportRegistrar(cin_power_downRegister);
 
 } // extern "C"
 
