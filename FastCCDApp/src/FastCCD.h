@@ -17,8 +17,8 @@
 
 #define MAX_ENUM_STRING_SIZE 26
 
-#define FastCCDSetBiasString                  "FastCCD_SETBIAS"
-#define FastCCDSetClocksString                "FastCCD_SETCLOCKS"
+#define FastCCDPwrBus12VString              "FastCCD_PwrBus12V"
+#define FastCCDPwrMgmt2V3String             "FastCCD_PwrMgmt3V3"
 
 /**
  * Driver class for FastCCD CCD. This inherits from ADDriver class in areaDetector.
@@ -27,7 +27,8 @@
 class FastCCD : public ADDriver {
  public:
   FastCCD(const char *portName, int maxBuffers, size_t maxMemory, 
-           const char *installPath, int priority, int stackSize);
+          int priority, int stackSize, int packetBuffer, int imageBuffer);
+
   virtual ~FastCCD();
 
   /* Overload the connect and disconnect routines */
@@ -48,12 +49,15 @@ class FastCCD : public ADDriver {
   void dataTask(void);
 
  protected:
-  int FastCCDSetBias;
-  #define FIRST_ANDOR_PARAM FastCCDSetBias
-  int FastCCDSetClocks;
-  #define LAST_ANDOR_PARAM FastCCDSetClocks
+  int FastCCDPwrBus12V;
+  #define FIRST_FASTCCD_PARAM FastCCDPwrBus12V
+  int FastCCDPwrMgmt2V3;
+  #define LAST_FASTCCD_PARAM FastCCDPwrMgmt2V3
 
  private:
+
+  int cinPacketBuffer;
+  int cinImageBuffer;
 
   // Connect / Disconnect
 
@@ -106,7 +110,7 @@ protected:
   NDArray *m_pArray;
 };
 
-#define NUM_FastCCD_DET_PARAMS ((int)(&LAST_ANDOR_PARAM - &FIRST_ANDOR_PARAM + 1))
+#define NUM_FastCCD_DET_PARAMS ((int)(&LAST_FASTCCD_PARAM- &FIRST_FASTCCD_PARAM + 1))
 
 #endif //FastCCD_H
 

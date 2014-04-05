@@ -55,7 +55,7 @@ asynStatus FastCCD::connectCamera(){
   if(cin_ctl_init_port(&cin_ctl_port_stream, NULL, 49202, 50202))
     return asynError;
    
-  if( (ret = cin_data_init(CIN_DATA_MODE_PUSH_PULL, 2000, 2000)))
+  if( (ret = cin_data_init(CIN_DATA_MODE_PUSH_PULL, cinPacketBuffer, cinImageBuffer)))
     return asynError;
  
   return asynSuccess;
@@ -103,14 +103,11 @@ int FastCCD::GetImage()
   *            allowed to allocate. Set this to -1 to allow an unlimited number of buffers.
   * \param[in] maxMemory The maximum amount of memory that the NDArrayPool for this driver is 
   *            allowed to allocate. Set this to -1 to allow an unlimited amount of memory.
-  * \param[in] installPath The path to the Andor directory containing the detector INI files, etc.
-  *            This can be specified as an empty string ("") for new detectors that don't use the INI
-  *            files on Windows, but must be a valid path on Linux.
   * \param[in] priority The thread priority for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
   * \param[in] stackSize The stack size for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
   */
 FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory, 
-                   const char *installPath, int priority, int stackSize)
+                 int priority, int stackSize, int packetBuffer, int imageBuffer)
 
   : ADDriver(portName, 1, NUM_FastCCD_DET_PARAMS, maxBuffers, maxMemory, 
              asynEnumMask, asynEnumMask,
@@ -122,11 +119,17 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   
   static const char *functionName = "FastCCD";
 
+  /* Write the packet and frame buffer sizes */
+  cinPacketBuffer = packetBuffer;
+  cinImageBuffer = imageBuffer;
+
+  fprintf(stderr, "BUFFERS %d %d\n", cinPacketBuffer, cinImageBuffer);
+
   /* Create an EPICS exit handler */
   epicsAtExit(exitHandler, this);
 
-  createParam(FastCCDSetBiasString,                  asynParamInt32, &FastCCDSetBias);
-  createParam(FastCCDSetClocksString,                asynParamInt32, &FastCCDSetClocks);
+  //createParam(FastCCDSetBiasString,                  asynParamInt32, &FastCCDSetBias);
+  //createParam(FastCCDSetClocksString,                asynParamInt32, &FastCCDSetClocks);
 
   // Create the epicsEvent for signaling to the status task when parameters should have changed.
   // This will cause it to do a poll immediately, rather than wait for the poll time period.
@@ -190,8 +193,6 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setIntegerParam(NDArraySize, sizeX*sizeY*sizeof(epicsUInt16)); 
   status |= setDoubleParam(ADShutterOpenDelay, 0.);
   status |= setDoubleParam(ADShutterCloseDelay, 0.);
-  status |= setIntegerParam(FastCCDSetBias, 0);
-  
 
   setStringParam(ADStatusMessage, "Defaults Set.");
   callParamCallbacks();
@@ -200,8 +201,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   epicsEventSignal(statusEvent);
 
   //Define the polling periods for the status thread.
-  mPollingPeriod = 0.2; //seconds
-  mFastPollingPeriod = 0.05; //seconds
+  mPollingPeriod = 10.0; //seconds
 
   mAcquiringData = 0;
   
@@ -518,7 +518,6 @@ void FastCCD::statusTask(void)
   // unsigned int uvalue = 0;
   unsigned int status = 0;
   double timeout = 0.0;
-  unsigned int forcedFastPolls = 0;
   static const char *functionName = "statusTask";
 
   printf("%s:%s: Status thread started...\n", driverName, functionName);
@@ -526,12 +525,7 @@ void FastCCD::statusTask(void)
 
     //Read timeout for polling freq.
     this->lock();
-    if (forcedFastPolls > 0) {
-      timeout = mFastPollingPeriod;
-      forcedFastPolls--;
-    } else {
-      timeout = mPollingPeriod;
-    }
+    timeout = mPollingPeriod;
     this->unlock();
 
     if (timeout != 0.0) {
@@ -543,54 +537,24 @@ void FastCCD::statusTask(void)
       asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
         "%s:%s: Got status event\n",
         driverName, functionName);
-      //We got an event, rather than a timeout.  This is because other software
-      //knows that data has arrived, or device should have changed state (parameters changed, etc.).
-      //Force a minimum number of fast polls, because the device status
-      //might not have changed in the first few polls
-      forcedFastPolls = 5;
     }
 
     this->lock();
 
-#if 0
     try {
       //Only read these if we are not acquiring data
-      if (!mAcquiringData) {
-        //Read cooler status
-        checkStatus(IsCoolerOn(&value));
-        status = setIntegerParam(AndorCoolerParam, value);
-        //Read temperature of CCD
-        checkStatus(GetTemperatureF(&temperature));
-        status = setDoubleParam(ADTemperatureActual, temperature);
-      }
+      //if (!mAcquiringData) {
+      //  
+      //}
 
-      //Read detector status (idle, acquiring, error, etc.)
-      // YF TODO checkStatus(GetStatus(&value));
-      uvalue = static_cast<unsigned int>(value);
-      if (uvalue == ASIdle) {
-        setIntegerParam(ADStatus, ADStatusIdle);
-        setStringParam(ADStatusMessage, "IDLE. Waiting on instructions.");
-      } else if (uvalue == ASTempCycle) {
-        setIntegerParam(ADStatus, ADStatusWaiting);
-        setStringParam(ADStatusMessage, "Executing temperature cycle.");
-      } else if (uvalue == ASAcquiring) {
-        setIntegerParam(ADStatus, ADStatusAcquire);
-        setStringParam(ADStatusMessage, "Data acquisition in progress.");
-      } else if (uvalue == ASAccumTimeNotMet) {
-        setIntegerParam(ADStatus, ADStatusError);
-        setStringParam(ADStatusMessage, "Unable to meet accumulate time.");
-      } else if (uvalue == ASKineticTimeNotMet) {
-        setIntegerParam(ADStatus, ADStatusError);
-        setStringParam(ADStatusMessage, "Unable to meet kinetic cycle time.");
-      } else if (uvalue == ASErrorAck) {
-        setIntegerParam(ADStatus, ADStatusError);
-        setStringParam(ADStatusMessage, "Unable to communicate with device.");
-      } else if (uvalue == ASAcqBuffer) {
-        setIntegerParam(ADStatus, ADStatusError);
-        setStringParam(ADStatusMessage, "Computer unable to read data from device at required rate.");
-      } else if (uvalue == ASSpoolError) {
-        setIntegerParam(ADStatus, ADStatusError);
-        setStringParam(ADStatusMessage, "Overflow of the spool buffer.");
+      int cin_status;
+      cin_ctl_pwr_mon_t pwr_value;
+      cin_ctl_fpga_status fpga_status;
+      int pwr;
+      cin_status  = cin_ctl_get_power_status(&cin_ctl_port, &pwr, &pwr_value);
+      cin_status |= cin_ctl_get_cfg_fpga_status(&cin_ctl_port, &fpga_status);
+      if(!cin_status){
+        fprintf(stderr,"OK\n");
       }
     } catch (const std::string &e) {
       asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -598,7 +562,6 @@ void FastCCD::statusTask(void)
         driverName, functionName, e.c_str());
       setStringParam(ADStatusMessage, e.c_str());
     }
-#endif    
 
     /* Call the callbacks to update any changes */
     callParamCallbacks();
@@ -667,41 +630,6 @@ asynStatus FastCCD::setupAcquisition()
    setIntegerParam(NDArraySizeX, sizeX/binX);
    setIntegerParam(NDArraySizeY, sizeY/binY);
   
-   // try
-   // {
-   //    switch (imageMode) 
-   //    {
-   //       case ADImageSingle:
-   //          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-   //             "%s:%s:, CIN_set_trigger_mode(1)\n", driverName, functionName);
-   //           // Set Hardware to single trigger mode.
-   //           // This also sets number of exposures = 1
-   //          checkStatus(CIN_set_trigger_mode(1)); // Single Image mode
-   //          break;
-
-   //       case ADImageMultiple:
-   //          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-   //             "%s:%s:, CIN_set_trigger_mode(n)\n", 
-   //             driverName, functionName);
-   //          checkStatus(CIN_set_trigger_mode(numImages) );  // Multiple Image Mode
-   //          break;
-
-   //       case ADImageContinuous:
-   //          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-   //             "%s:%s:, CIN_set_trigger_mode(0)\n", 
-   //             driverName, functionName);
-   //          checkStatus(CIN_set_trigger_mode(0) );  // Continuous mode    
-   //          break;
-
-   //    } // switch
-   // } 
-   //  catch (const std::string &e) 
-   //  {
-   //     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,  "%s:%s: %s\n",
-   //        driverName, functionName, e.c_str());
-   //     return asynError;
-   //  }
-   // 
    return asynSuccess;
 }
 
@@ -894,39 +822,17 @@ static void FastCCDDataTaskC(void *drvPvt)
   *            allowed to allocate. Set this to -1 to allow an unlimited number of buffers.
   * \param[in] maxMemory The maximum amount of memory that the NDArrayPool for this driver is 
   *            allowed to allocate. Set this to -1 to allow an unlimited amount of memory.
-  * \param[in] installPath The path to the Andor directory containing the detector INI files, etc.
-  *            This can be specified as an empty string ("") for new detectors that don't use the INI
-  *            files on Windows, but must be a valid path on Linux.
   * \param[in] priority The thread priority for the asyn port driver thread
   * \param[in] stackSize The stack size for the asyn port driver thread
+  * \param[in] packetBuffer The CINDATA packet buffer size
+  * \param[in] imageBuffer The CINDATA image buffer size
   */
 extern "C" {
 int FastCCDConfig(const char *portName, int maxBuffers, size_t maxMemory, 
-                   const char *installPath, int priority, int stackSize)
+                  int priority, int stackSize, int packetBuffer, int imageBuffer)
 {
-  /*Instantiate class.*/
-  new FastCCD(portName, maxBuffers, maxMemory, installPath, priority, stackSize);
+  new FastCCD(portName, maxBuffers, maxMemory, priority, stackSize, packetBuffer, imageBuffer);
   return(asynSuccess);
-}
-
-
-// 
-// IOC shell configuration command for cin power up
-//  
-int FastCCD_cin_power_up(const char *strParam)
-{
-   printf("cin_power_up: %s\n", strParam);
-   //cin_power_up(); // defined in cin_power.c
-   return (0);
-}
-
-// 
-// IOC shell configuration command for cin power down
-//  
-int FastCCD_cin_power_down(const char *strParam)
-{
-   //cin_power_down(); // defined in cin_power.c
-   return (0);
 }
 
 /* Code for iocsh registration */
@@ -935,29 +841,30 @@ int FastCCD_cin_power_down(const char *strParam)
 static const iocshArg FastCCDConfigArg0 = {"Port name", iocshArgString};
 static const iocshArg FastCCDConfigArg1 = {"maxBuffers", iocshArgInt};
 static const iocshArg FastCCDConfigArg2 = {"maxMemory", iocshArgInt};
-static const iocshArg FastCCDConfigArg3 = {"installPath", iocshArgString};
-static const iocshArg FastCCDConfigArg4 = {"priority", iocshArgInt};
-static const iocshArg FastCCDConfigArg5 = {"stackSize", iocshArgInt};
+static const iocshArg FastCCDConfigArg3 = {"priority", iocshArgInt};
+static const iocshArg FastCCDConfigArg4 = {"stackSize", iocshArgInt};
+static const iocshArg FastCCDConfigArg5 = {"packetBuffer", iocshArgInt};
+static const iocshArg FastCCDConfigArg6 = {"imageBuffer", iocshArgInt};
 static const iocshArg * const FastCCDConfigArgs[] =  {&FastCCDConfigArg0,
                                                        &FastCCDConfigArg1,
                                                        &FastCCDConfigArg2,
                                                        &FastCCDConfigArg3,
                                                        &FastCCDConfigArg4,
-                                                       &FastCCDConfigArg5};
+                                                       &FastCCDConfigArg5,
+                                                       &FastCCDConfigArg6};
 
-static const iocshFuncDef configFastCCD = {"FastCCDConfig", 6, FastCCDConfigArgs};
+static const iocshFuncDef configFastCCD = {"FastCCDConfig", 7, FastCCDConfigArgs};
 static void configFastCCDCallFunc(const iocshArgBuf *args)
 {
-    FastCCDConfig(args[0].sval, args[1].ival, args[2].ival, args[3].sval, 
-                   args[4].ival, args[5].ival);
+    FastCCDConfig(args[0].sval, args[1].ival, args[2].ival,
+                  args[3].ival, args[4].ival, args[5].ival,
+                  args[6].ival);
 }
 
 static void FastCCDRegister(void)
 {
-
     iocshRegister(&configFastCCD, configFastCCDCallFunc);
 }
-
 
 epicsExportRegistrar(FastCCDRegister);
 
