@@ -10,34 +10,19 @@ dbLoadDatabase("$(ADFASTCCD)/dbd/FastCCDApp.dbd")
 FastCCDApp_registerRecordDeviceDriver(pdbbase) 
 
 epicsEnvSet("PREFIX", "13ANDOR1:")
-epicsEnvSet("PORT",   "ANDOR")
+epicsEnvSet("PORT",   "FASTCCD")
 epicsEnvSet("QSIZE",  "20")
 epicsEnvSet("XSIZE",  "2048")
 epicsEnvSet("YSIZE",  "2048")
 epicsEnvSet("NCHANS", "2048")
 
-#The following variables must be set to the correct file paths and file names.
-epicsEnvSet("FCCD_CONFIG_DIR", "/home/jfarrington/Documents/cin_config/")
-epicsEnvSet("FPGA_CONFIGFILE", "top_frame_fpga-v1019j.bit")
-epicsEnvSet("CIN_WAVEFORM", "2013_Nov_30-200MHz_CCD_timing.txt")
-epicsEnvSet("CIN_FCRIC", "2013_Nov_25-200MHz_fCRIC_timing.txt")
-epicsEnvSet("CIN_BIAS", "2013_Nov_05_Bias_Settings.txt")
+# FastCCDConfig(const char *portName, int maxBuffers, size_t maxMemory, 
+#               int priority, int stackSize, int packetBuffer, int imageBuffer)
 
-# andorCCDConfig(const char *portName, int maxBuffers, size_t maxMemory, 
-#                const char *installPath, int priority, int stackSize)
-# andorCCDConfig("$(PORT)", 0, 0, "/usr/local/etc/andor/", 0, 100000)
+FastCCDConfig("$(PORT)", 0, 0, 0, 100000, 2000, 200)
 
-# Set up the paths for CIN config files
-# Call FCCD_ConfigDirs before FCCD_cin_power_up
-#FCCD_ConfigDirs($(FCCD_CONFIG_DIR), $(FPGA_CONFIGFILE), $(CIN_WAVEFORM), $(CIN_FCRIC), $(CIN_BIAS) )
+# Load Records
 
-
-#FCCD_cin_power_up("param1")
-FCCDConfig("$(PORT)", 0, 0, "/usr/local/etc/andor/", 0, 100000)
-
-#
-#FCCD_cin_power_down("param1")
-#
 dbLoadRecords("$(ADCORE)/db/ADBase.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 dbLoadRecords("$(ADCORE)/db/NDFile.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 dbLoadRecords("$(TOP)/db/FastCCD.template",   "P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
@@ -54,8 +39,8 @@ dbLoadRecords("$(ADCORE)/db/NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=I
 # Load all other plugins using commonPlugins.cmd
 < $(ADCORE)/iocBoot/commonPlugins.cmd
 
-#asynSetTraceMask("$(PORT)",0,3)
-#asynSetTraceIOMask("$(PORT)",0,4)
+#asynSetTraceMask("$(PORT)",0,0x10)
+#asynSetTraceIOMask("$(PORT)",0,1)
 
 iocInit()
 
