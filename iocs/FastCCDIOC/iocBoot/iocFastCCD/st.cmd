@@ -9,7 +9,7 @@ epicsEnvSet(EPICS_CA_MAX_ARRAY_BYTES,4432896)
 dbLoadDatabase("$(ADFASTCCD)/dbd/FastCCDApp.dbd")
 FastCCDApp_registerRecordDeviceDriver(pdbbase) 
 
-epicsEnvSet("PREFIX", "13ANDOR1:")
+epicsEnvSet("PREFIX", "XF:23ID1-ES{Det-CCD}")
 epicsEnvSet("PORT",   "FASTCCD")
 epicsEnvSet("QSIZE",  "20")
 epicsEnvSet("XSIZE",  "2048")
