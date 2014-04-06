@@ -39,10 +39,12 @@ class FastCCD : public ADDriver {
   /* These are the methods that we override from ADDriver */
   virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
   virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
-  virtual void report(FILE *fp, int details);
   virtual asynStatus readEnum(asynUser *pasynUser, char *strings[], 
                               int values[], int severities[], 
                               size_t nElements, size_t *nIn);
+
+  // Filename to report driver info
+  virtual void report(FILE *fp, int details);
 
   // Should be private, but are called from C so must be public
   void statusTask(void);
@@ -61,17 +63,10 @@ class FastCCD : public ADDriver {
 
   // Connect / Disconnect
 
-  asynStatus disconnectCamera();
-  asynStatus connectCamera();
+  virtual asynStatus disconnectCamera();
+  virtual asynStatus connectCamera();
 
-  unsigned int checkStatus(unsigned int returnStatus);
   asynStatus setupAcquisition();
-
-  // List of acquisiton modes.
-  static const epicsUInt32 AASingle;
-  static const epicsUInt32 AAAccumulate;
-  static const epicsUInt32 AARunTillAbort;
-  static const epicsUInt32 AATimeDelayedInt;
 
   // List of trigger modes.
   static const epicsUInt32 ATInternal;
@@ -79,19 +74,10 @@ class FastCCD : public ADDriver {
   static const epicsUInt32 ATExternal2;
   static const epicsUInt32 ATExternal1or2;
 
-  // List of detector status states
-  static const epicsUInt32 ASIdle;
-  static const epicsUInt32 ASAcquiring;
-
-  // List of shutter modes
-  static const epicsInt32 AShutterAuto;
-  static const epicsInt32 AShutterOpen;
-  static const epicsInt32 AShutterClose;
-
   epicsEventId statusEvent;
   epicsEventId dataEvent;
+
   double mPollingPeriod;
-  double mFastPollingPeriod;
   unsigned int mAcquiringData;
   unsigned int m_bRequestStop;
   
@@ -101,7 +87,6 @@ class FastCCD : public ADDriver {
   
   int FastCCD_Init();
   int GetImage(); 
-  void int_handler(int dummy);
    
 protected:
   struct cin_port cin_data_port;

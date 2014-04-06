@@ -29,11 +29,6 @@ const epicsUInt32 FastCCD::ATExternal1 = 1;
 const epicsUInt32 FastCCD::ATExternal2 = 2;
 const epicsUInt32 FastCCD::ATExternal1or2 = 3;
 
-const epicsInt32 FastCCD::AShutterAuto = 0;
-const epicsInt32 FastCCD::AShutterOpen = 1;
-const epicsInt32 FastCCD::AShutterClose = 2;
-
-
 //C Function prototypes to tie in with EPICS
 static void FastCCDStatusTaskC(void *drvPvt);
 static void FastCCDDataTaskC(void *drvPvt);
@@ -370,35 +365,20 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
              (function == ADBinX)         || (function == ADBinY)        ||
              (function == ADMinX)         || (function == ADMinY)        ||
              (function == ADSizeX)        || (function == ADSizeY)  )
-             {
-      status = setupAcquisition();
-
+    {
       if (status != asynSuccess) setIntegerParam(function, oldValue);
     } 
-    // else if (function == FastCCDSetBias) {
-    //      cin_ctl_set_bias(cin_ctl_port, value);
-    // }
-    // else if (function == FastCCDSetClocks) {
-    //      cin_ctl_set_clocks(cin_ctl_port, value);
-    // }
-    // else if (function == ADTriggerMode) {
-    //      // Cache this as it is needed by
-    //      // the start triggers
-    //      mTriggerMode = value;
-    //      asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-    //                "%s:%s:, trigger mode set to %d\n", 
-    //                driverName, functionName, value);
-    // }
-    else {
+    else 
+    {
       status = ADDriver::writeInt32(pasynUser, value);
     }
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
 
-    /* Send a signal to the poller task which will make it 
-       do a poll, and switch to the fast poll rate */
-    epicsEventSignal(statusEvent);
+    ///* Send a signal to the poller task which will make it 
+    //   do a poll, and switch to the fast poll rate */
+    //epicsEventSignal(statusEvent);
 
     if (mAcquiringData) {
       asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
@@ -433,66 +413,20 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     /* Set the parameter and readback in the parameter library.  */
     status = setDoubleParam(function, value);
 
-    if (function == ADAcquireTime) {
+    if (function == ADAcquireTime) 
+    {
       mAcquireTime = (float)value; 
       cin_ctl_set_exposure_time(&cin_ctl_port, mAcquireTime);
       status = asynSuccess;
-      // status = setupAcquisition();
-    }
-    else if (function == ADAcquirePeriod) {
+    } 
+    else if (function == ADAcquirePeriod) 
+    {
       mAcquirePeriod = (float)value;  
       cin_ctl_set_cycle_time(&cin_ctl_port, mAcquirePeriod);
       status = asynSuccess;
     }
-    // else if (function == ADGain) {
-    //   try {
-    //     asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-    //       "%s:%s:, SetPreAmpGain(%d)\n", 
-    //       driverName, functionName, (int)value);
-    //   } catch (const std::string &e) {
-    //     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-    //       "%s:%s: %s\n",
-    //       driverName, functionName, e.c_str());
-    //     status = asynError;
-    //   }
-    // }
-    // else if (function == AndorAccumulatePeriod) {
-    //   mAccumulatePeriod = (float)value;  
-    //   status = setupAcquisition();
-    // }
-    // else if (function == ADTemperature) {
-    //   asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-    //     "%s:%s:, Setting temperature value %f\n", 
-    //     driverName, functionName, value);
-    //   try {
-    //     asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-    //       "%s:%s:, CCD Min Temp: %d, Max Temp %d\n", 
-    //       driverName, functionName, minTemp, maxTemp);
-    //     // YF TODO  checkStatus(GetTemperatureRange(&minTemp, &maxTemp));
-    //     if ((static_cast<int>(value) > minTemp) & (static_cast<int>(value) < maxTemp)) {
-    //       asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-    //         "%s:%s:, SetTemperature(%d)\n", 
-    //         driverName, functionName, static_cast<int>(value));
-    //       // YF TODO  checkStatus(SetTemperature(static_cast<int>(value)));
-    //     } else {
-    //       setStringParam(ADStatusMessage, "Temperature is out of range.");
-    //       callParamCallbacks();
-    //       status = asynError;
-    //     }
-    //   } catch (const std::string &e) {
-    //     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-    //       "%s:%s: %s\n",
-    //       driverName, functionName, e.c_str());
-    //     status = asynError;
-    //   }
-    // }
-    // 
-    //else if (function == ADShutterOpenDelay) 
-    //{
-    //  float fVal = (float)value;
-    //  CIN_set_trigger_delay(fVal);
-    //}
-    else {
+    else 
+    {
       status = ADDriver::writeFloat64(pasynUser, value);
     }
 
@@ -500,13 +434,17 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     callParamCallbacks();
 
     if(status)
+    {
         asynPrint(pasynUser, ASYN_TRACE_ERROR,
               "%s:%s: error, status=%d function=%d, value=%f\n",
               driverName, functionName, status, function, value);
+    }
     else
+    {
         asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
               "%s:%s: function=%d, value=%f\n",
               driverName, functionName, function, value);
+    }
     return status;
 }
 
@@ -573,69 +511,6 @@ void FastCCD::statusTask(void)
 
 }
 
-/** Set up acquisition parameters */
-asynStatus FastCCD::setupAcquisition()
-{
-   int numExposures;
-   int numImages;
-   int imageMode;
-   int triggerMode;
-   int binX, binY, minX, minY, sizeX, sizeY, maxSizeX, maxSizeY;
-   //static const char *functionName = "setupAcquisition";
-
-   getIntegerParam(ADImageMode, &imageMode);
-   getIntegerParam(ADNumExposures, &numExposures);
-   if(numExposures <= 0) {
-    numExposures = 1;
-    setIntegerParam(ADNumExposures, numExposures);
-   }
-   getIntegerParam(ADNumImages, &numImages);
-   if(numImages <= 0) {
-    numImages = 1;
-    setIntegerParam(ADNumImages, numImages);
-   }
-   getIntegerParam(ADBinX, &binX);
-   if (binX <= 0) {
-    binX = 1;
-    setIntegerParam(ADBinX, binX);
-   }
-   getIntegerParam(ADBinY, &binY);
-   if (binY <= 0) {
-    binY = 1;
-    setIntegerParam(ADBinY, binY);
-   }
-   getIntegerParam(ADMinX, &minX);
-   getIntegerParam(ADMinY, &minY);
-   getIntegerParam(ADSizeX, &sizeX);
-   getIntegerParam(ADSizeY, &sizeY);
-   getIntegerParam(ADMaxSizeX, &maxSizeX);
-   getIntegerParam(ADMaxSizeY, &maxSizeY);
-   if (minX > (maxSizeX - 2*binX)) {
-    minX = maxSizeX - 2*binX;
-    setIntegerParam(ADMinX, minX);
-   }
-   if (minY > (maxSizeY - 2*binY)) {
-    minY = maxSizeY - 2*binY;
-    setIntegerParam(ADMinY, minY);
-   }
-   if ((minX + sizeX) > maxSizeX) {
-    sizeX = maxSizeX - minX;
-    setIntegerParam(ADSizeX, sizeX);
-   }
-   if ((minY + sizeY) > maxSizeY) {
-    sizeY = maxSizeY - minY;
-    setIntegerParam(ADSizeY, sizeY);
-   }
-  
-   getIntegerParam(ADTriggerMode, &triggerMode);
-
-   setIntegerParam(NDArraySizeX, sizeX/binX);
-   setIntegerParam(NDArraySizeY, sizeY/binY);
-  
-   return asynSuccess;
-}
-
-
 /**
  * Do data readout from the detector. Meant to be run in own thread.
  */
@@ -676,7 +551,6 @@ void FastCCD::dataTask(void)
     //Sanity check that main thread thinks we are acquiring data
     // if (mAcquiringData) {
       // try {
-      //   status = setupAcquisition();
       //   ///if (status != asynSuccess) continue;
       //   asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
       //     "%s:%s:, StartAcquisition()\n", 
