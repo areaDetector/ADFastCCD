@@ -125,11 +125,8 @@ extern "C" {
  * -------------------------------------------------------------------------------
  */
 
-#define CIN_DATA_MODE_PUSH_PULL         0x01
+#define CIN_DATA_MODE_CALLBACK          0x01
 #define CIN_DATA_MODE_DBL_BUFFER        0x02
-#define CIN_DATA_MODE_BUFFER            0x04
-#define CIN_DATA_MODE_WRITER            0x08
-#define CIN_DATA_MODE_DBL_BUFFER_COPY   0x10
 
 /* ---------------------------------------------------------------------
  *
@@ -207,6 +204,7 @@ typedef struct cin_data_frame {
   struct timeval timestamp;
   int size_x;
   int size_y;
+  void *usr_cont; // User container
 } cin_data_frame_t;
 
 typedef struct cin_data_stats {
@@ -232,6 +230,10 @@ typedef struct cin_data_stats {
   long int dropped_packets;
   long int mallformed_packets;
 } cin_data_stats_t;
+
+// Callback functions
+
+typedef void (*cin_data_callback) (cin_data_frame_t *);
 
 /* ---------------------------------------------------------------------
  *
@@ -272,6 +274,12 @@ typedef struct {
   cin_ctl_pwr_val_t v6_2v5;
   cin_ctl_pwr_val_t fp;
 } cin_ctl_pwr_mon_t;
+
+/*------------------------
+ * Reporting functions
+ *------------------------*/
+
+void cin_report(FILE *fp, int details);
 
 /*------------------------
  * UDP Socket
@@ -353,6 +361,12 @@ int cin_ctl_set_mux(struct cin_port *cp, int setting);
 int cin_ctl_set_fabric_address(struct cin_port* cp, char *ip);
 int cin_ctl_set_address(struct cin_port* cp, char *ip, uint16_t reg0, uint16_t reg1);
 
+/*------------------------
+ * CIN Register Dump
+ *------------------------*/
+
+int cin_ctl_reg_dump(struct cin_port *cp, FILE *fp);
+
 /* ---------------------------------------------------------------------
  *
  * CIN Data Routines
@@ -370,7 +384,8 @@ int cin_data_init_port(struct cin_port* dp,
  * are NULL and the ports zero then defaults are used.
  */
 
-int cin_data_init(int mode, int packet_buffer_len, int frame_buffer_len);
+int cin_data_init(int mode, int packet_buffer_len, int frame_buffer_len,
+                  cin_data_callback push_callback, cin_data_callback pop_callback);
 /*
  * Initialize the data handeling routines and start the threads for listening.
  * mode should be set for the desired output. The packet_buffer_len in the
@@ -395,8 +410,6 @@ void cin_data_release_buffered_frame(void);
 
 struct cin_data_stats cin_data_get_stats(void);
 void cin_data_show_stats(void);
-
-int cin_data_load_frame(uint16_t *buffer, uint16_t *frame_num);
 
 void cin_data_start_monitor_output(void);
 void cin_data_stop_monitor_output(void);
