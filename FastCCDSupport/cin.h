@@ -204,7 +204,7 @@ typedef struct cin_data_frame {
   struct timeval timestamp;
   int size_x;
   int size_y;
-  void *usr_cont; // User container
+  void *usr_ptr; // User container
 } cin_data_frame_t;
 
 typedef struct cin_data_stats {
@@ -385,7 +385,8 @@ int cin_data_init_port(struct cin_port* dp,
  */
 
 int cin_data_init(int mode, int packet_buffer_len, int frame_buffer_len,
-                  cin_data_callback push_callback, cin_data_callback pop_callback);
+                  cin_data_callback push_callback, cin_data_callback pop_callback,
+                  void *usr_ptr);
 /*
  * Initialize the data handeling routines and start the threads for listening.
  * mode should be set for the desired output. The packet_buffer_len in the
