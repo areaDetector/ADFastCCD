@@ -39,6 +39,8 @@ dbLoadRecords("$(ADCORE)/db/NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=I
 # Load all other plugins using commonPlugins.cmd
 < $(ADCORE)/iocBoot/commonPlugins.cmd
 
+set_requestfile_path("$(ADFASTCCD)/FastCCDApp/Db")
+
 #asynSetTraceMask("$(PORT)",0,0x10)
 #asynSetTraceIOMask("$(PORT)",0,1)
 
