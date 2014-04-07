@@ -29,32 +29,30 @@ const epicsUInt32 FastCCD::ATExternal1 = 1;
 const epicsUInt32 FastCCD::ATExternal2 = 2;
 const epicsUInt32 FastCCD::ATExternal1or2 = 3;
 
-//C Function prototypes to tie in with EPICS
-static void FastCCDStatusTaskC(void *drvPvt);
-static void FastCCDDataTaskC(void *drvPvt);
-static void exitHandler(void *drvPvt);
-
 asynStatus FastCCD::connect(asynUser *pasynUser){
   return connectCamera();
 }
 
 asynStatus FastCCD::connectCamera(){
 
-  int ret= 0;
-
-  fprintf(stderr, "Connect\n");
-
   if(cin_data_init_port(&cin_data_port, NULL, 0, "10.23.5.127", 0, 1000))
+  {
     return asynError;
-
+  }
   if(cin_ctl_init_port(&cin_ctl_port, NULL, 0, 0))
+  {
     return asynError;
+  }
   if(cin_ctl_init_port(&cin_ctl_port_stream, NULL, 49202, 50202))
+  {
     return asynError;
-   
-  if(cin_data_init(CIN_DATA_MODE_PUSH_PULL, cinPacketBuffer, cinImageBuffer))
+  }
+  if(cin_data_init(CIN_DATA_MODE_CALLBACK, cinPacketBuffer, cinImageBuffer,
+                   allocateImageC, processImageC, this))
+  {
     return asynError;
- 
+  }
+
   return asynSuccess;
 }
 
@@ -68,28 +66,86 @@ asynStatus FastCCD::disconnectCamera(){
   return asynSuccess; 
 }
 
-int FastCCD::GetImage() 
-{
-   size_t dims[2];
-   int nDims = 2;
-   uint16_t frame_number;
-   NDDataType_t dataType;
-   
-   dims[0] = CIN_DATA_FRAME_WIDTH;
-   dims[1] = CIN_DATA_FRAME_HEIGHT;
-   dataType = NDUInt16; 
-   
-   m_pArray = this->pNDArrayPool->alloc(nDims, dims, dataType, 
-                                        0, NULL);
-      
-   if(m_pArray)
-   {
-      // Load the buffer. Pass in memory allocated in NDArrayPool
-      cin_data_load_frame((uint16_t *)m_pArray->pData, &frame_number);
-      return (0);
-   }
+static void allocateImageC(cin_data_frame_t *frame){
+  FastCCD *ptr = (FastCCD*)frame->usr_ptr;
+  ptr->allocateImage(frame);
+}
 
-   return (-1); // error
+void FastCCD::allocateImage(cin_data_frame_t *frame)
+{
+  size_t dims[2];
+  int nDims = 2;
+   
+  dims[0] = CIN_DATA_FRAME_WIDTH;
+  dims[1] = CIN_DATA_FRAME_HEIGHT;
+  NDDataType_t dataType = NDUInt16; 
+  
+  while(!(pImage = this->pNDArrayPool->alloc(nDims, dims, dataType, 
+                                        0, NULL)))
+  {
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+              "Unable to allocate array from pool....\n");
+    sleep(1);
+  }
+      
+  frame->data = (uint16_t*)pImage->pData;
+
+  return;
+}
+
+static void processImageC(cin_data_frame_t *frame)
+{
+  FastCCD *ptr = (FastCCD*)frame->usr_ptr;
+  ptr->processImage(frame);
+}
+
+void FastCCD::processImage(cin_data_frame_t *frame)
+{
+  const char* functionName = "processImage";
+  this->lock();
+
+  // TODO : Do timestamp processing using cin_data_frame
+  
+  // Get any attributes for the driver
+  this->getAttributes(pImage->pAttributeList);
+       
+  int arrayCallbacks;
+  getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
+
+  if (arrayCallbacks) {
+    /* Call the NDArray callback */
+    /* Must release the lock here, or we can get into a deadlock, because we can
+     * block on the plugin lock, and the plugin can be calling us */
+    this->unlock();
+    doCallbacksGenericPointer(pImage, NDArrayData, 0);
+    this->lock();
+  }
+
+  if (this->framesRemaining > 0) this->framesRemaining--;
+  if (this->framesRemaining == 0) {
+    setIntegerParam(ADAcquire, 0);
+    setIntegerParam(ADStatus, ADStatusIdle);
+  }
+
+  /* Update the frame counter */
+  int imageCounter;
+  getIntegerParam(NDArrayCounter, &imageCounter);
+  imageCounter++;
+  setIntegerParam(NDArrayCounter, imageCounter);
+ 
+  asynPrint(this->pasynUserSelf, ASYN_TRACEIO_DRIVER,
+              "%s:%s: frameId=%d\n",
+              driverName, functionName, frame->number);
+
+  // Release the frame as we are done with it!
+  // SBW Not sure we should do this!!!!!!
+  pImage->release();
+
+  /* Update any changed parameters */
+  callParamCallbacks();
+
+  this->unlock();
+  return;
 }
 
 /** Constructor for FastCCD driver; most parameters are simply passed to ADDriver::ADDriver.
@@ -120,8 +176,9 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   cinPacketBuffer = packetBuffer;
   cinImageBuffer = imageBuffer;
 
-  fprintf(stderr, "BUFFERS %d %d\n", cinPacketBuffer, cinImageBuffer);
-
+  //Define the polling periods for the status thread.
+  mPollingPeriod = 10.0; //seconds
+  
   /* Create an EPICS exit handler */
   epicsAtExit(exitHandler, this);
 
@@ -132,28 +189,18 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   // This will cause it to do a poll immediately, rather than wait for the poll time period.
   this->statusEvent = epicsEventMustCreate(epicsEventEmpty);
   if (!this->statusEvent) {
-    printf("%s:%s epicsEventCreate failure for start event\n", driverName, functionName);
-    return;
-  }
-
-  // Use this to signal the data acquisition task that acquisition has started.
-  this->dataEvent = epicsEventMustCreate(epicsEventEmpty);
-  if (!this->dataEvent) {
-    printf("%s:%s epicsEventCreate failure for data event\n", driverName, functionName);
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+              "%s:%s: Failed to create event for status task.\n",
+              driverName, functionName);
     return;
   }
 
   try {
     this->lock();
     connectCamera();
- 
-    // Set some parameters as default
-
-    cin_ctl_set_focus(&cin_ctl_port, 1);
- 
     this->unlock();
 
-    setStringParam(ADStatusMessage, "Camera successfully initialized.");
+    setStringParam(ADStatusMessage, "Initialized");
     callParamCallbacks();
   } catch (const std::string &e) {
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -166,7 +213,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   sizeY = CIN_DATA_FRAME_HEIGHT;
 
   /* Set some default values for parameters */
-  status =  setStringParam(ADManufacturer, "LB National Lab.");
+  status =  setStringParam(ADManufacturer, "Berkeley Laboratory");
   status |= setStringParam(ADModel, "1k x 2k FastCCD"); // Model ?
   status |= setIntegerParam(ADSizeX, sizeX);
   status |= setIntegerParam(ADSizeY, sizeY);
@@ -178,10 +225,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setIntegerParam(ADMaxSizeY, sizeY);  
   status |= setIntegerParam(ADImageMode, ADImageSingle);
   status |= setIntegerParam(ADTriggerMode, FastCCD::ATInternal);
-  mAcquireTime = 0.005;
-  status |= setDoubleParam (ADAcquireTime, mAcquireTime);
-  mAcquirePeriod = 0.5;
-  status |= setDoubleParam (ADAcquirePeriod, mAcquirePeriod);
+  status |= setDoubleParam (ADAcquireTime, 0.005);
+  status |= setDoubleParam (ADAcquirePeriod, 1.0);
   status |= setIntegerParam(ADNumImages, 1);
   status |= setIntegerParam(ADNumExposures, 1);
   status |= setIntegerParam(NDArraySizeX, sizeX);
@@ -191,16 +236,10 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setDoubleParam(ADShutterOpenDelay, 0.);
   status |= setDoubleParam(ADShutterCloseDelay, 0.);
 
-  setStringParam(ADStatusMessage, "Defaults Set.");
   callParamCallbacks();
 
-  /* Send a signal to the poller task which will make it do a poll, and switch to the fast poll rate */
+  // Signal the status thread to poll the detector
   epicsEventSignal(statusEvent);
-
-  //Define the polling periods for the status thread.
-  mPollingPeriod = 10.0; //seconds
-
-  mAcquiringData = 0;
   
   if (stackSize == 0) stackSize = epicsThreadGetStackSize(epicsThreadStackMedium);
 
@@ -211,22 +250,12 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
                               (EPICSTHREADFUNC)FastCCDStatusTaskC,
                               this) == NULL);
   if(status) {
-    printf("%s:%s: epicsThreadCreate failure for status task\n",
-           driverName, functionName);
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+      "%s:%s: Failed to create status task.\n",
+      driverName, functionName);
     return;
   }
 
-  /* Create the thread that does data readout */
-  status = (epicsThreadCreate("FastCCDDataTask",
-                              epicsThreadPriorityMedium,
-                              stackSize,
-                              (EPICSTHREADFUNC)FastCCDDataTaskC,
-                              this) == NULL);
-  if (status) {
-    printf("%s:%s: epicsThreadCreate failure for data task\n",
-           driverName, functionName);
-    return;
-  }
 }
 
 /**
@@ -237,14 +266,10 @@ FastCCD::~FastCCD()
   static const char *functionName = "~FastCCD";
 
   try {
-    printf("Shutdown and freeing up memory...\n");
     this->lock();
-    printf("Camera shutting down as part of IOC exit.\n");
     cin_data_stop_threads();
     cin_data_wait_for_threads();
     this->unlock();
-    sleep(2);
-
   } catch (const std::string &e) {
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
       "%s:%s: %s\n",
@@ -264,15 +289,15 @@ static void exitHandler(void *drvPvt)
 }
 
 
-asynStatus FastCCD::readEnum(asynUser *pasynUser, char *strings[], int values[], 
-                             int severities[], size_t nElements, size_t *nIn)
-{
-  //int function = pasynUser->reason;
-
-  return ADDriver::readEnum(pasynUser, strings, values, severities,nElements, nIn );
-  
-}
-
+//asynStatus FastCCD::readEnum(asynUser *pasynUser, char *strings[], int values[], 
+//                             int severities[], size_t nElements, size_t *nIn)
+//{
+//  //int function = pasynUser->reason;
+//
+//  return ADDriver::readEnum(pasynUser, strings, values, severities,nElements, nIn );
+//  
+//}
+//
 
 /** Report status of the driver.
   * Prints details about the detector in us if details>0.
@@ -329,22 +354,29 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
          getIntegerParam(ADTriggerMode, &t_mode);
          getIntegerParam(ADNumImages, &n_images);
          getIntegerParam(ADImageMode, &i_mode);
-
-         if(i_mode == ADImageSingle){
-           n_images = 1;
-         } else if(i_mode == ADImageContinuous){
-           n_images = 0;
+         switch(i_mode) {
+           case ADImageSingle:
+             this->framesRemaining = 1;
+             n_images = 1;
+             break;
+           case ADImageMultiple:
+             this->framesRemaining = n_images;
+             break;
+           case ADImageContinuous:
+             this->framesRemaining = -1;
+             n_images = 0;
+             break;
          }
 
          if(t_mode == FastCCD::ATInternal){
            if(!cin_ctl_int_trigger_start(&cin_ctl_port, n_images)){
-             mAcquiringData = 1;
+             setIntegerParam(ADAcquire, 1);
              setIntegerParam(ADStatus, ADStatusAcquire);
            }
          } else {
            if(!cin_ctl_ext_trigger_start(&cin_ctl_port, t_mode)){
-             mAcquiringData = 0;
              setIntegerParam(ADStatus, ADStatusAcquire);
+             setIntegerParam(ADAcquire, 1);
            }
          }
       }
@@ -353,22 +385,16 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
          // Send the hardware a stop trigger command
          if(!cin_ctl_int_trigger_stop(&cin_ctl_port)){
            setIntegerParam(ADStatus, ADStatusIdle);
+           setIntegerParam(ADAcquire, 0);
          }
          if(!cin_ctl_ext_trigger_stop(&cin_ctl_port)){
            setIntegerParam(ADStatus, ADStatusIdle);
+           setIntegerParam(ADAcquire, 0);
          }
       }
-      //getIntegerParam(ADStatus, &adstatus);
     }
     else if ((function == ADNumExposures) || (function == ADNumImages)   ||
-             (function == ADImageMode)    ||                             
-             (function == ADBinX)         || (function == ADBinY)        ||
-             (function == ADMinX)         || (function == ADMinY)        ||
-             (function == ADSizeX)        || (function == ADSizeY)  )
-    {
-      if (status != asynSuccess) setIntegerParam(function, oldValue);
-    } 
-    else 
+             (function == ADImageMode))
     {
       status = ADDriver::writeInt32(pasynUser, value);
     }
@@ -376,26 +402,16 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
 
-    ///* Send a signal to the poller task which will make it 
-    //   do a poll, and switch to the fast poll rate */
-    //epicsEventSignal(statusEvent);
-
-    if (mAcquiringData) {
-      asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-        "%s:%s:, Sending dataEvent to dataTask ...\n", 
-        driverName, functionName);
-      //Also signal the data readout thread
-      epicsEventSignal(dataEvent);
-    }
-
     if (status)
+    {
         asynPrint(pasynUser, ASYN_TRACE_ERROR,
               "%s:%s: error, status=%d function=%d, value=%d\n",
               driverName, functionName, status, function, value);
-    else
+    } else {
         asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
               "%s:%s: function=%d, value=%d\n",
               driverName, functionName, function, value);
+    }
     return status;
 }
 
@@ -415,14 +431,12 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 
     if (function == ADAcquireTime) 
     {
-      mAcquireTime = (float)value; 
-      cin_ctl_set_exposure_time(&cin_ctl_port, mAcquireTime);
+      cin_ctl_set_exposure_time(&cin_ctl_port, (float)value);
       status = asynSuccess;
     } 
     else if (function == ADAcquirePeriod) 
     {
-      mAcquirePeriod = (float)value;  
-      cin_ctl_set_cycle_time(&cin_ctl_port, mAcquirePeriod);
+      cin_ctl_set_cycle_time(&cin_ctl_port, (float)value);
       status = asynSuccess;
     }
     else 
@@ -460,7 +474,6 @@ void FastCCD::statusTask(void)
   double timeout = 0.0;
   static const char *functionName = "statusTask";
 
-  printf("%s:%s: Status thread started...\n", driverName, functionName);
   while(1) {
 
     //Read timeout for polling freq.
@@ -479,14 +492,7 @@ void FastCCD::statusTask(void)
         driverName, functionName);
     }
 
-    this->lock();
-
     try {
-      //Only read these if we are not acquiring data
-      //if (!mAcquiringData) {
-      //  
-      //}
-
       int cin_status;
       cin_ctl_pwr_mon_t pwr_value;
       cin_ctl_fpga_status fpga_status;
@@ -504,176 +510,13 @@ void FastCCD::statusTask(void)
     }
 
     /* Call the callbacks to update any changes */
+    this->lock();
     callParamCallbacks();
     this->unlock();
         
   } //End of loop
 
 }
-
-/**
- * Do data readout from the detector. Meant to be run in own thread.
- */
-void FastCCD::dataTask(void)
-{
-  epicsUInt32 status = 0;
-  // int acquireStatus;
-  char *errorString = NULL;
-  int acquiring = 0;
-  int imageMode;
-  epicsInt32 numImages;
-  epicsInt32 numImagesCounter;
-  epicsInt32 numExposuresCounter;
-  epicsInt32 imageCounter;
-  epicsInt32 arrayCallbacks;
-  epicsInt32 sizeX, sizeY;
-  epicsTimeStamp startTime;
-  
-  int autoSave;
-  static const char *functionName = "dataTask";
-
-  printf("%s:%s: Data thread started...\n", driverName, functionName);
-  
-  this->lock();
-
-  while(1) {
-    
-    errorString = NULL;
-
-    // Wait for event from main thread to signal that data acquisition has started.
-    this->unlock();
-    status = epicsEventWait(dataEvent);
-    asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
-              "%s:%s:, got data event\n", 
-              driverName, functionName);
-    this->lock();
-
-    //Sanity check that main thread thinks we are acquiring data
-    // if (mAcquiringData) {
-      // try {
-      //   ///if (status != asynSuccess) continue;
-      //   asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-      //     "%s:%s:, StartAcquisition()\n", 
-      //     driverName, functionName);
-      //   /// YF TODO checkStatus(StartAcquisition());
-      //   // YF Need to do anything to start acquisition?
-      //   acquiring = 1;
-      // } catch (const std::string &e) {
-      //   asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-      //     "%s:%s: %s\n",
-      //     driverName, functionName, e.c_str());
-      //   continue;
-      // }
-      //Read some parameters
-      //getIntegerParam(NDDataType, &itemp); dataType = (NDDataType_t)itemp;
-      getIntegerParam(NDAutoSave, &autoSave);
-      getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
-      getIntegerParam(NDArraySizeX, &sizeX);
-      getIntegerParam(NDArraySizeY, &sizeY);
-      getIntegerParam(ADNumImages, &numImages);
-      // Reset the counters
-      setIntegerParam(ADNumImagesCounter, 0);
-      setIntegerParam(ADNumExposuresCounter, 0);
-      getIntegerParam(ADImageMode, &imageMode);
-      setIntegerParam(ADStatus, 1 /*"Acquire", def in ADBase.template */); 
-      
-      callParamCallbacks();
-    // } else {
-    //   asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
-    //     "%s:%s:, Data thread is running but main thread thinks we are not acquiring.\n", 
-    //     driverName, functionName);
-    //   acquiring = 0;
-    // }
-  
-    acquiring = 1;
-    while (acquiring)
-    {
-      try {
-         // Get the image, unlocking the mutex as we block here.
-         this->unlock();
-         printf("Waiting for data .....\n");
-         status = GetImage(); 
-         this->lock();
-         asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-                   "%s:%s:, Got an image.\n", driverName, functionName);
-         
-         // Increment the number of exposures counter
-         getIntegerParam(ADNumExposuresCounter, &numExposuresCounter);
-         numExposuresCounter++;
-         setIntegerParam(ADNumExposuresCounter, numExposuresCounter);
-         callParamCallbacks();
-
-         // Increment the array counter
-         getIntegerParam(NDArrayCounter, &imageCounter);
-         imageCounter++;
-         setIntegerParam(NDArrayCounter, imageCounter);;
-         getIntegerParam(ADNumImagesCounter, &numImagesCounter);
-         numImagesCounter++;
-         setIntegerParam(ADNumImagesCounter, numImagesCounter);
-          
-         if (arrayCallbacks && (status == 0) ) {
-            epicsTimeGetCurrent(&startTime);
-            
-            if (m_pArray)
-            {
-               setIntegerParam(NDArraySize, sizeX * sizeY * sizeof(uint16_t));
-         
-               /* Put the frame number and time stamp into the buffer */
-               m_pArray->uniqueId = imageCounter; // SBW: Should this come from the CIN?
-               m_pArray->timeStamp = startTime.secPastEpoch + startTime.nsec / 1.e9;
-
-               /* Get any attributes that have been defined for this driver */        
-               this->getAttributes(m_pArray->pAttributeList);
-               /* Call the NDArray callback */
-               /* Must release the lock here, or we can get into a deadlock, because we can
-                * block on the plugin lock, and the plugin can be calling us */
-               this->unlock();
-               asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-                    "%s:%s:, calling array callbacks\n", 
-                    driverName, functionName);
-                    
-               doCallbacksGenericPointer(m_pArray, NDArrayData, 0);
-               this->lock();
-               m_pArray->release();
-            }
-            else
-            {
-               printf("Out of memory in data task!\n");
-            }
-          } 
-
-          callParamCallbacks();
-
-      } catch (const std::string &e) {
-        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-          "%s:%s: %s\n",
-          driverName, functionName, e.c_str());
-        errorString = const_cast<char *>(e.c_str());
-        setStringParam(ADStatusMessage, errorString);
-      }
-      
-      // Never exit the acquire loop.
-      // See here if the acquisition is done 
-      /* See if acquisition is done */
-      printf("numImages = %d\n", numImagesCounter);
-      if ((imageMode == ADImageSingle) ||
-         ((imageMode == ADImageMultiple) &&
-          (numImagesCounter >= numImages))) {
-            acquiring = 0;
-      }
-    } // while acquiring
-      
-    //Now clear main thread flag
-    mAcquiringData = 0;
-    setIntegerParam(ADAcquire, 0);
-    setIntegerParam(ADStatus, 0); 
-
-    /* Call the callbacks to update any changes */
-    callParamCallbacks();
-  } //End of loop
-
-}
-
 
 //C utility functions to tie in with EPICS
 
@@ -684,13 +527,6 @@ static void FastCCDStatusTaskC(void *drvPvt)
   pPvt->statusTask();
 }
 
-
-static void FastCCDDataTaskC(void *drvPvt)
-{
-  FastCCD *pPvt = (FastCCD *)drvPvt;
-
-  pPvt->dataTask();
-}
 
 /** IOC shell configuration command for Andor driver
   * \param[in] portName The name of the asyn port driver to be created.
@@ -704,6 +540,7 @@ static void FastCCDDataTaskC(void *drvPvt)
   * \param[in] imageBuffer The CINDATA image buffer size
   */
 extern "C" {
+
 int FastCCDConfig(const char *portName, int maxBuffers, size_t maxMemory, 
                   int priority, int stackSize, int packetBuffer, int imageBuffer)
 {

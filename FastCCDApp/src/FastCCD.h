@@ -1,12 +1,9 @@
 /**
  * Area Detector driver for the FastCCD CCD.
  *
- * @author Matthew Pearson
+ * @author Stuart Wilkins and Daron Chabot
  * @date June 2009
  *
- * Updated Dec 2011 for Asyn 4-17 and areaDetector 1-7 
- *
- * Major updates to get callbacks working, etc. by Mark Rivers Feb. 2011
  */
 
 #ifndef FastCCD_H
@@ -20,6 +17,12 @@
 #define FastCCDPwrBus12VString              "FastCCD_PwrBus12V"
 #define FastCCDPwrMgmt2V3String             "FastCCD_PwrMgmt3V3"
 
+//C Function prototypes to tie in with EPICS
+static void FastCCDStatusTaskC(void *drvPvt);
+static void exitHandler(void *drvPvt);
+static void allocateImageC(cin_data_frame_t *frame);
+static void processImageC(cin_data_frame_t *frame);
+
 /**
  * Driver class for FastCCD CCD. This inherits from ADDriver class in areaDetector.
  *
@@ -29,7 +32,7 @@ class FastCCD : public ADDriver {
   FastCCD(const char *portName, int maxBuffers, size_t maxMemory, 
           int priority, int stackSize, int packetBuffer, int imageBuffer);
 
-  virtual ~FastCCD();
+  ~FastCCD();
 
   /* Overload the connect and disconnect routines */
 
@@ -37,18 +40,20 @@ class FastCCD : public ADDriver {
   asynStatus disconnect(asynUser *pasynUser);
 
   /* These are the methods that we override from ADDriver */
-  virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
-  virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
-  virtual asynStatus readEnum(asynUser *pasynUser, char *strings[], 
-                              int values[], int severities[], 
-                              size_t nElements, size_t *nIn);
+  asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
+  asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
+  //virtual asynStatus readEnum(asynUser *pasynUser, char *strings[], 
+  //                            int values[], int severities[], 
+  //                            size_t nElements, size_t *nIn);
 
   // Filename to report driver info
-  virtual void report(FILE *fp, int details);
+  void report(FILE *fp, int details);
 
   // Should be private, but are called from C so must be public
   void statusTask(void);
-  void dataTask(void);
+  
+  void allocateImage(cin_data_frame_t *frame);
+  void processImage(cin_data_frame_t *frame);  
 
  protected:
   int FastCCDPwrBus12V;
@@ -63,8 +68,8 @@ class FastCCD : public ADDriver {
 
   // Connect / Disconnect
 
-  virtual asynStatus disconnectCamera();
-  virtual asynStatus connectCamera();
+  asynStatus disconnectCamera();
+  asynStatus connectCamera();
 
   asynStatus setupAcquisition();
 
@@ -78,21 +83,14 @@ class FastCCD : public ADDriver {
   epicsEventId dataEvent;
 
   double mPollingPeriod;
-  unsigned int mAcquiringData;
-  unsigned int m_bRequestStop;
-  
-  float mAcquireTime;
-  float mAcquirePeriod;
-  float mAccumulatePeriod;
-  
-  int FastCCD_Init();
-  int GetImage(); 
-   
+ 
+  int framesRemaining;
+
 protected:
+  NDArray *pImage;
   struct cin_port cin_data_port;
   struct cin_port cin_ctl_port;
   struct cin_port cin_ctl_port_stream;
-  NDArray *m_pArray;
 };
 
 #define NUM_FastCCD_DET_PARAMS ((int)(&LAST_FASTCCD_PARAM- &FIRST_FASTCCD_PARAM + 1))
