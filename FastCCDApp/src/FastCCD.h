@@ -17,6 +17,9 @@
 #define FastCCDPwrBus12VString              "FastCCD_PwrBus12V"
 #define FastCCDPwrMgmt2V3String             "FastCCD_PwrMgmt3V3"
 
+#define FastCCDMux1String                      "FCCD_MUX1"
+#define FastCCDMux2String                      "FCCD_MUX2"
+
 //C Function prototypes to tie in with EPICS
 static void FastCCDStatusTaskC(void *drvPvt);
 static void exitHandler(void *drvPvt);
@@ -56,8 +59,10 @@ class FastCCD : public ADDriver {
   void processImage(cin_data_frame_t *frame);  
 
  protected:
+  int FastCCDMux1;
+  #define FIRST_FASTCCD_PARAM FastCCDMux1
+  int FastCCDMux2;
   int FastCCDPwrBus12V;
-  #define FIRST_FASTCCD_PARAM FastCCDPwrBus12V
   int FastCCDPwrMgmt2V3;
   #define LAST_FASTCCD_PARAM FastCCDPwrMgmt2V3
 
@@ -74,10 +79,10 @@ class FastCCD : public ADDriver {
   asynStatus setupAcquisition();
 
   // List of trigger modes.
-  static const epicsUInt32 ATInternal;
-  static const epicsUInt32 ATExternal1;
-  static const epicsUInt32 ATExternal2;
-  static const epicsUInt32 ATExternal1or2;
+  //static const epicsUInt32 ATInternal;
+  //static const epicsUInt32 ATExternal1;
+  //static const epicsUInt32 ATExternal2;
+  //static const epicsUInt32 ATExternal1or2;
 
   epicsEventId statusEvent;
   epicsEventId dataEvent;

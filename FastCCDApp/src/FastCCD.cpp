@@ -24,10 +24,10 @@ static const char *driverName = "FastCCD";
 
 //Definitions of static class data members
 
-const epicsUInt32 FastCCD::ATInternal = 0;
-const epicsUInt32 FastCCD::ATExternal1 = 1;
-const epicsUInt32 FastCCD::ATExternal2 = 2;
-const epicsUInt32 FastCCD::ATExternal1or2 = 3;
+//const epicsUInt32 FastCCD::ATInternal = 0;
+//const epicsUInt32 FastCCD::ATExternal1 = 1;
+//const epicsUInt32 FastCCD::ATExternal2 = 2;
+//const epicsUInt32 FastCCD::ATExternal1or2 = 3;
 
 asynStatus FastCCD::connect(asynUser *pasynUser){
   return connectCamera();
@@ -104,6 +104,9 @@ void FastCCD::processImage(cin_data_frame_t *frame)
   const char* functionName = "processImage";
   this->lock();
 
+  // Set the unique ID
+  pImage->uniqueId = frame->number;
+
   // TODO : Do timestamp processing using cin_data_frame
   
   // Get any attributes for the driver
@@ -177,13 +180,16 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   cinImageBuffer = imageBuffer;
 
   //Define the polling periods for the status thread.
-  mPollingPeriod = 10.0; //seconds
+  mPollingPeriod = 30.0; //seconds
   
   /* Create an EPICS exit handler */
   epicsAtExit(exitHandler, this);
 
   //createParam(FastCCDSetBiasString,                  asynParamInt32, &FastCCDSetBias);
   //createParam(FastCCDSetClocksString,                asynParamInt32, &FastCCDSetClocks);
+
+  createParam(FastCCDMux1String,                asynParamInt32, &FastCCDMux1);
+  createParam(FastCCDMux2String,                asynParamInt32, &FastCCDMux2);
 
   // Create the epicsEvent for signaling to the status task when parameters should have changed.
   // This will cause it to do a poll immediately, rather than wait for the poll time period.
@@ -199,7 +205,6 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
     this->lock();
     connectCamera();
     this->unlock();
-
     setStringParam(ADStatusMessage, "Initialized");
     callParamCallbacks();
   } catch (const std::string &e) {
@@ -224,7 +229,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setIntegerParam(ADMaxSizeX, sizeX);
   status |= setIntegerParam(ADMaxSizeY, sizeY);  
   status |= setIntegerParam(ADImageMode, ADImageSingle);
-  status |= setIntegerParam(ADTriggerMode, FastCCD::ATInternal);
+  status |= setIntegerParam(ADTriggerMode, 1);
   status |= setDoubleParam (ADAcquireTime, 0.005);
   status |= setDoubleParam (ADAcquirePeriod, 1.0);
   status |= setIntegerParam(ADNumImages, 1);
@@ -244,17 +249,17 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   if (stackSize == 0) stackSize = epicsThreadGetStackSize(epicsThreadStackMedium);
 
   /* Create the thread that updates the detector status */
-  status = (epicsThreadCreate("FastCCDStatusTask",
-                              epicsThreadPriorityMedium,
-                              stackSize,
-                              (EPICSTHREADFUNC)FastCCDStatusTaskC,
-                              this) == NULL);
-  if(status) {
-    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-      "%s:%s: Failed to create status task.\n",
-      driverName, functionName);
-    return;
-  }
+  //status = (epicsThreadCreate("FastCCDStatusTask",
+  //                            epicsThreadPriorityMedium,
+  //                            stackSize,
+  //                            (EPICSTHREADFUNC)FastCCDStatusTaskC,
+  //                            this) == NULL);
+  //if(status) {
+  //  asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+  //    "%s:%s: Failed to create status task.\n",
+  //    driverName, functionName);
+  //  return;
+  //}
 
 }
 
@@ -368,7 +373,7 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
              break;
          }
 
-         if(t_mode == FastCCD::ATInternal){
+         if(t_mode == 0){
            if(!cin_ctl_int_trigger_start(&cin_ctl_port, n_images)){
              setIntegerParam(ADAcquire, 1);
              setIntegerParam(ADStatus, ADStatusAcquire);
@@ -397,6 +402,14 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
              (function == ADImageMode))
     {
       status = ADDriver::writeInt32(pasynUser, value);
+    }
+    else if (function == FastCCDMux1)
+    {
+      cin_ctl_set_mux(&cin_ctl_port, value);   
+    }
+    else if (function == FastCCDMux2)
+    {
+      cin_ctl_set_mux(&cin_ctl_port, value << 8);
     }
 
     /* Do callbacks so higher layers see any changes */
@@ -493,15 +506,12 @@ void FastCCD::statusTask(void)
     }
 
     try {
-      int cin_status;
       cin_ctl_pwr_mon_t pwr_value;
       cin_ctl_fpga_status fpga_status;
       int pwr;
+      int cin_status;
       cin_status  = cin_ctl_get_power_status(&cin_ctl_port, &pwr, &pwr_value);
       cin_status |= cin_ctl_get_cfg_fpga_status(&cin_ctl_port, &fpga_status);
-      if(!cin_status){
-        fprintf(stderr,"OK\n");
-      }
     } catch (const std::string &e) {
       asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
         "%s:%s: %s\n",
