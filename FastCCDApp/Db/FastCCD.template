@@ -1,29 +1,3 @@
-#record(mbbo, "$(P)$(R)ImageMode")
-#{
-#   field(ZRST, "Single")
-#   field(ZRVL, "0")
-#   field(ONST, "Multiple")
-#   field(ONVL, "1")
-#   field(TWST, "Continuous")
-#   field(TWVL, "2")
-#   field(THST, "Fast Kinetics")
-#   field(THVL, "3")
-#   field(VAL,  "2")
-#}
-#
-#record(mbbi, "$(P)$(R)ImageMode_RBV")
-#{
-#   field(ZRST, "Single")
-#   field(ZRVL, "0")
-#   field(ONST, "Multiple")
-#   field(ONVL, "1")
-#   field(TWST, "Continuous")
-#   field(TWVL, "2")
-#   field(THST, "Fast Kinetics")
-#   field(THVL, "3")
-#   field(SCAN, "I/O Intr")
-#}
-#
 record(mbbo, "$(P)$(R)TriggerMode")
 {
    field(ZRST, "Internal")
@@ -93,8 +67,6 @@ record(mbbi, "$(P)$(R)DataType_RBV")
 
 #Records for monotoring the FCCD
 
-
-
 #Records in ADBase that do not apply to the fCCD
 
 record(mbbo, "$(P)$(R)ColorMode")
@@ -118,6 +90,85 @@ record(bo, "$(P)$(R)ReverseY")
     field(DISA, "1")
 }
 record(bi, "$(P)$(R)ReverseY_RBV")
+{
+    field(DISA, "1")
+}
+record(longout, "$(P)$(R)BinX")
+{
+    field(DISA, "1")
+}
+
+record(longin, "$(P)$(R)BinX_RBV")
+{
+    field(DISA, "1")
+}
+
+record(longout, "$(P)$(R)BinY")
+{
+    field(DISA, "1")
+}
+
+record(longin, "$(P)$(R)BinY_RBV")
+{
+    field(DISA, "1")
+}
+
+record(longout, "$(P)$(R)MinX")
+{
+    field(DISA, "1")
+}
+
+record(longin, "$(P)$(R)MinX_RBV")
+{
+    field(DISA, "1")
+}
+
+record(longout, "$(P)$(R)MinY")
+{
+    field(DISA, "1")
+}
+
+record(longin, "$(P)$(R)MinY_RBV")
+{
+    field(DISA, "1")
+}
+
+record(longout, "$(P)$(R)SizeX")
+{
+    field(DISA, "1")
+}
+
+record(longin, "$(P)$(R)SizeX_RBV")
+{
+    field(DISA, "1")
+}
+
+record(longout, "$(P)$(R)SizeY")
+{
+    field(DISA, "1")
+}
+
+record(longin, "$(P)$(R)SizeY_RBV")
+{
+    field(DISA, "1")
+}
+
+record(ao, "$(P)$(R)Gain")
+{
+    field(DISA, "1")
+}
+
+record(ai, "$(P)$(R)Gain_RBV")
+{
+    field(DISA, "1")
+}
+
+record(longin, "$(P)$(R)NumExposures_RBV")
+{
+    field(DISA, "1")
+}
+
+record(longin, "$(P)$(R)NumExposuresCounter_RBV")
 {
     field(DISA, "1")
 }
