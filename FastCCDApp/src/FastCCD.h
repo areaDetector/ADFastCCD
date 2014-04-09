@@ -20,6 +20,32 @@
 #define FastCCDMux1String                      "FCCD_MUX1"
 #define FastCCDMux2String                      "FCCD_MUX2"
 
+#define FastCCDVBus12V0String                   "VBUS_12v0"
+#define FastCCDVMgmt3v3String                   "VMGMT_3v3"
+#define FastCCDVMgmt2v5String                   "VMGMT_2v5"
+#define FastCCDVMgmt1v2String                   "VMGMT_1v2"
+#define FastCCDVEnet1v0String                   "VENET_1v0"
+#define FastCCDVS3E3v3String                    "VS3E_3v3"
+#define FastCCDVGen3v3String                    "VGEN_3v3"
+#define FastCCDVGen2v5String                    "VGEN_2v5"
+#define FastCCDV60v9String                      "V6_0v9"
+#define FastCCDV61v0String                      "V6_1v0"
+#define FastCCDV62v5String                      "V6_2v5"
+#define FastCCDVFpString                        "VFP"
+
+#define FastCCDIBus12V0String                   "IBUS_12v0"
+#define FastCCDIMgmt3v3String                   "IMGMT_3v3"
+#define FastCCDIMgmt2v5String                   "IMGMT_2v5"
+#define FastCCDIMgmt1v2String                   "IMGMT_1v2"
+#define FastCCDIEnet1v0String                   "IENET_1v0"
+#define FastCCDIS3E3v3String                    "IS3E_3v3"
+#define FastCCDIGen3v3String                    "IGEN_3v3"
+#define FastCCDIGen2v5String                    "IGEN_2v5"
+#define FastCCDI60v9String                      "I6_0v9"
+#define FastCCDI61v0String                      "I6_1v0"
+#define FastCCDI62v5String                      "I6_2v5"
+#define FastCCDIFpString                        "IFP"
+
 //C Function prototypes to tie in with EPICS
 static void FastCCDStatusTaskC(void *drvPvt);
 static void exitHandler(void *drvPvt);
@@ -64,7 +90,31 @@ class FastCCD : public ADDriver {
   int FastCCDMux2;
   int FastCCDPwrBus12V;
   int FastCCDPwrMgmt2V3;
-  #define LAST_FASTCCD_PARAM FastCCDPwrMgmt2V3
+  int FastCCDVBus12V0;
+  int FastCCDVMgmt3v3;
+  int FastCCDVMgmt2v5;
+  int FastCCDVMgmt1v2;
+  int FastCCDVEnet1v0;
+  int FastCCDVS3E3v3;
+  int FastCCDVGen3v3;
+  int FastCCDVGen2v5;
+  int FastCCDV60v9;
+  int FastCCDV61v0;
+  int FastCCDV62v5;
+  int FastCCDVFp;
+  int FastCCDIBus12V0;
+  int FastCCDIMgmt3v3;
+  int FastCCDIMgmt2v5;
+  int FastCCDIMgmt1v2;
+  int FastCCDIEnet1v0;
+  int FastCCDIS3E3v3;
+  int FastCCDIGen3v3;
+  int FastCCDIGen2v5;
+  int FastCCDI60v9;
+  int FastCCDI61v0;
+  int FastCCDI62v5;
+  int FastCCDIFp;
+  #define LAST_FASTCCD_PARAM FastCCDIFp
 
  private:
 

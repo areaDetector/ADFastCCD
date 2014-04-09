@@ -180,7 +180,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   cinImageBuffer = imageBuffer;
 
   //Define the polling periods for the status thread.
-  mPollingPeriod = 30.0; //seconds
+  mPollingPeriod = 10.0; //seconds
   
   /* Create an EPICS exit handler */
   epicsAtExit(exitHandler, this);
@@ -188,8 +188,34 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   //createParam(FastCCDSetBiasString,                  asynParamInt32, &FastCCDSetBias);
   //createParam(FastCCDSetClocksString,                asynParamInt32, &FastCCDSetClocks);
 
-  createParam(FastCCDMux1String,                asynParamInt32, &FastCCDMux1);
-  createParam(FastCCDMux2String,                asynParamInt32, &FastCCDMux2);
+  createParam(FastCCDMux1String,                asynParamInt32,    &FastCCDMux1);
+  createParam(FastCCDMux2String,                asynParamInt32,    &FastCCDMux2);
+
+  createParam(FastCCDVBus12V0String,            asynParamFloat64,  &FastCCDVBus12V0);
+  createParam(FastCCDVMgmt3v3String,            asynParamFloat64,  &FastCCDVMgmt3v3);
+  createParam(FastCCDVMgmt2v5String,            asynParamFloat64,  &FastCCDVMgmt2v5);
+  createParam(FastCCDVMgmt1v2String,            asynParamFloat64,  &FastCCDVMgmt1v2);
+  createParam(FastCCDVEnet1v0String,            asynParamFloat64,  &FastCCDVEnet1v0);
+  createParam(FastCCDVS3E3v3String,             asynParamFloat64,  &FastCCDVS3E3v3);
+  createParam(FastCCDVGen3v3String,             asynParamFloat64,  &FastCCDVGen3v3);
+  createParam(FastCCDVGen2v5String,             asynParamFloat64,  &FastCCDVGen2v5);
+  createParam(FastCCDV60v9String,               asynParamFloat64,  &FastCCDV60v9);
+  createParam(FastCCDV61v0String,               asynParamFloat64,  &FastCCDV61v0);
+  createParam(FastCCDV62v5String,               asynParamFloat64,  &FastCCDV62v5);
+  createParam(FastCCDVFpString,                 asynParamFloat64,  &FastCCDVFp);
+
+  createParam(FastCCDIBus12V0String,            asynParamFloat64,  &FastCCDIBus12V0);
+  createParam(FastCCDIMgmt3v3String,            asynParamFloat64,  &FastCCDIMgmt3v3);
+  createParam(FastCCDIMgmt2v5String,            asynParamFloat64,  &FastCCDIMgmt2v5);
+  createParam(FastCCDIMgmt1v2String,            asynParamFloat64,  &FastCCDIMgmt1v2);
+  createParam(FastCCDIEnet1v0String,            asynParamFloat64,  &FastCCDIEnet1v0);
+  createParam(FastCCDIS3E3v3String,             asynParamFloat64,  &FastCCDIS3E3v3);
+  createParam(FastCCDIGen3v3String,             asynParamFloat64,  &FastCCDIGen3v3);
+  createParam(FastCCDIGen2v5String,             asynParamFloat64,  &FastCCDIGen2v5);
+  createParam(FastCCDI60v9String,               asynParamFloat64,  &FastCCDI60v9);
+  createParam(FastCCDI61v0String,               asynParamFloat64,  &FastCCDI61v0);
+  createParam(FastCCDI62v5String,               asynParamFloat64,  &FastCCDI62v5);
+  createParam(FastCCDIFpString,                 asynParamFloat64,  &FastCCDIFp);
 
   // Create the epicsEvent for signaling to the status task when parameters should have changed.
   // This will cause it to do a poll immediately, rather than wait for the poll time period.
@@ -246,20 +272,23 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   // Signal the status thread to poll the detector
   epicsEventSignal(statusEvent);
   
-  if (stackSize == 0) stackSize = epicsThreadGetStackSize(epicsThreadStackMedium);
+  if (stackSize == 0)
+  {
+    stackSize = epicsThreadGetStackSize(epicsThreadStackMedium);
+  }
 
   /* Create the thread that updates the detector status */
-  //status = (epicsThreadCreate("FastCCDStatusTask",
-  //                            epicsThreadPriorityMedium,
-  //                            stackSize,
-  //                            (EPICSTHREADFUNC)FastCCDStatusTaskC,
-  //                            this) == NULL);
-  //if(status) {
-  //  asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-  //    "%s:%s: Failed to create status task.\n",
-  //    driverName, functionName);
-  //  return;
-  //}
+  status = (epicsThreadCreate("FastCCDStatusTask",
+                              epicsThreadPriorityMedium,
+                              stackSize,
+                              (EPICSTHREADFUNC)FastCCDStatusTaskC,
+                              this) == NULL);
+  if(status) {
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+      "%s:%s: Failed to create status task.\n",
+      driverName, functionName);
+    return;
+  }
 
 }
 
@@ -405,11 +434,19 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
     }
     else if (function == FastCCDMux1)
     {
+      int _val;
+      getIntegerParam(FastCCDMux2, &_val);
+      _val = (_val << 4) | value;
+      fprintf(stderr, "Value = %x\n", _val);
       cin_ctl_set_mux(&cin_ctl_port, value);   
     }
     else if (function == FastCCDMux2)
     {
-      cin_ctl_set_mux(&cin_ctl_port, value << 8);
+      int _val;
+      getIntegerParam(FastCCDMux1, &_val);
+      _val = _val | (value << 4);
+      cin_ctl_set_mux(&cin_ctl_port, _val);
+      fprintf(stderr, "Value = %x\n", _val);
     }
 
     /* Do callbacks so higher layers see any changes */
@@ -512,6 +549,38 @@ void FastCCD::statusTask(void)
       int cin_status;
       cin_status  = cin_ctl_get_power_status(&cin_ctl_port, &pwr, &pwr_value);
       cin_status |= cin_ctl_get_cfg_fpga_status(&cin_ctl_port, &fpga_status);
+
+      if(!cin_status){
+        // Voltage Values
+
+        setDoubleParam(FastCCDVBus12V0, pwr_value.bus_12v0.v);
+        setDoubleParam(FastCCDVMgmt3v3, pwr_value.mgmt_3v3.v);
+        setDoubleParam(FastCCDVMgmt2v5, pwr_value.mgmt_2v5.v);
+        setDoubleParam(FastCCDVMgmt1v2, pwr_value.mgmt_1v2.v);
+        setDoubleParam(FastCCDVEnet1v0, pwr_value.enet_1v0.v);
+        setDoubleParam(FastCCDVS3E3v3,  pwr_value.s3e_3v3.v);
+        setDoubleParam(FastCCDVGen3v3,  pwr_value.gen_3v3.v);
+        setDoubleParam(FastCCDVGen2v5,  pwr_value.gen_2v5.v);
+        setDoubleParam(FastCCDV60v9,    pwr_value.v6_0v9.v);
+        setDoubleParam(FastCCDV61v0,    pwr_value.v6_1v0.v);
+        setDoubleParam(FastCCDV62v5,    pwr_value.v6_2v5.v);
+        setDoubleParam(FastCCDVFp,      pwr_value.fp.v);
+
+        // Current Values
+
+        setDoubleParam(FastCCDIBus12V0, pwr_value.bus_12v0.i);
+        setDoubleParam(FastCCDIMgmt3v3, pwr_value.mgmt_3v3.i);
+        setDoubleParam(FastCCDIMgmt2v5, pwr_value.mgmt_2v5.i);
+        setDoubleParam(FastCCDIMgmt1v2, pwr_value.mgmt_1v2.i);
+        setDoubleParam(FastCCDIEnet1v0, pwr_value.enet_1v0.i);
+        setDoubleParam(FastCCDIS3E3v3,  pwr_value.s3e_3v3.i);
+        setDoubleParam(FastCCDIGen3v3,  pwr_value.gen_3v3.i);
+        setDoubleParam(FastCCDIGen2v5,  pwr_value.gen_2v5.i);
+        setDoubleParam(FastCCDI60v9,    pwr_value.v6_0v9.i);
+        setDoubleParam(FastCCDI61v0,    pwr_value.v6_1v0.i);
+        setDoubleParam(FastCCDI62v5,    pwr_value.v6_2v5.i);
+        setDoubleParam(FastCCDIFp,      pwr_value.fp.i);
+      }
     } catch (const std::string &e) {
       asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
         "%s:%s: %s\n",
