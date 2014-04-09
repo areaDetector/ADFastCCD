@@ -196,6 +196,8 @@ struct cin_port {
     int rcvbuf; /* For setting data recieve buffer */
     int rcvbuf_rb; /* For readback */
     cin_ctl_listener_t *listener;
+    pthread_mutex_t access; /* For sequential access to CIN */
+    pthread_mutexattr_t access_attr;
 };
 
 typedef struct cin_data_frame {
