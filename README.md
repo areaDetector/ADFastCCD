@@ -1,4 +1,4 @@
-ADfCCD
+ADFastCCD
 ======
 
 areaDetector driver for FastCCD
