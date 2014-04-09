@@ -165,7 +165,7 @@ record(mbbi, "$(P)$(R)Mux2_RBV")
 record(ai, "$(P)$(R)E:Bus12v-I")
 {
   field(DTYP, "asynFloat64")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VBUS_12v0")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VBUS_12V0")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
 }
@@ -173,10 +173,179 @@ record(ai, "$(P)$(R)E:Bus12v-I")
 record(ai, "$(P)$(R)I:Bus12v-I")
 {
   field(DTYP, "asynFloat64")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IBUS_12v0")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IBUS_12V0")
   field(EGU,  "I")
   field(SCAN, "I/O Intr")
 }
+
+record(ai, "$(P)$(R)E:Mgmt3v3-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VMGMT_3V3")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)I:Mgmt3v3-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IMGMT_3V3")
+  field(EGU,  "I")
+  field(SCAN, "I/O Intr")
+}
+record(ai, "$(P)$(R)E:Mgmt2v5-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VMGMT_2V5")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)I:Mgmt2v5-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IMGMT_2V5")
+  field(EGU,  "I")
+  field(SCAN, "I/O Intr")
+}
+record(ai, "$(P)$(R)E:Mgmt1v2-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VMGMT_1V2")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)I:Mgmt1v2-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IMGMT_1V2")
+  field(EGU,  "I")
+  field(SCAN, "I/O Intr")
+}
+record(ai, "$(P)$(R)E:Enet-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VENET_1V0")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)I:Enet-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IENET_1V0")
+  field(EGU,  "I")
+  field(SCAN, "I/O Intr")
+}
+record(ai, "$(P)$(R)E:S3E-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VS3E_3v3")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)I:S3E-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VS3E_3V3")
+  field(EGU,  "I")
+  field(SCAN, "I/O Intr")
+}
+record(ai, "$(P)$(R)E:Gen3v3-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VGEN_3V3")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)I:Gen3v3-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IGEN_3V3")
+  field(EGU,  "I")
+  field(SCAN, "I/O Intr")
+}
+record(ai, "$(P)$(R)E:Gen2v5-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VGEN_2V5")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)I:Gen2v5-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IGEN_2V5")
+  field(EGU,  "I")
+  field(SCAN, "I/O Intr")
+}
+record(ai, "$(P)$(R)E:0v9-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))V6_0V9")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)I:0v9-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))V6_0V9")
+  field(EGU,  "I")
+  field(SCAN, "I/O Intr")
+}
+record(ai, "$(P)$(R)E:1v0-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))V6_1V0")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)I:1v0-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))V6_1V0")
+  field(EGU,  "I")
+  field(SCAN, "I/O Intr")
+}
+record(ai, "$(P)$(R)E:2v5-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))V6_2V5")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)I:2v5-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))I6_2V5")
+  field(EGU,  "I")
+  field(SCAN, "I/O Intr")
+}
+record(ai, "$(P)$(R)E:FP-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VFP")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)I:FP-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IFP")
+  field(EGU,  "I")
+  field(SCAN, "I/O Intr")
+}
+#
+# FastCCD Trigger Modes
+#
 
 record(mbbo, "$(P)$(R)TriggerMode")
 {
