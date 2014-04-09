@@ -1,3 +1,7 @@
+#
+# MUX Settings for front panel
+#
+
 record(mbbo, "$(P)$(R)Mux1")
 {
   field(DTYP, "asynInt32")
@@ -154,6 +158,26 @@ record(mbbi, "$(P)$(R)Mux2_RBV")
   field(FFVL, "15")
 }
 
+#
+# Power monitoring records
+#
+
+record(ai, "$(P)$(R)E:Bus12v-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VBUS_12v0")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)I:Bus12v-I")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IBUS_12v0")
+  field(EGU,  "I")
+  field(SCAN, "I/O Intr")
+}
+
 record(mbbo, "$(P)$(R)TriggerMode")
 {
    field(ZRST, "Internal")
@@ -221,7 +245,11 @@ record(mbbi, "$(P)$(R)DataType_RBV")
    field(SVVL, "")
 }
 
-#Records for monotoring the FCCD
+#
+# Records for monotoring the FCCD
+#
+
+recrod(ai, "$(P)$(R)
 
 #Records in ADBase that do not apply to the fCCD
 
