@@ -343,6 +343,7 @@ record(ai, "$(P)$(R)I:FP-I")
   field(EGU,  "I")
   field(SCAN, "I/O Intr")
 }
+
 #
 # FastCCD Trigger Modes
 #
@@ -415,12 +416,108 @@ record(mbbi, "$(P)$(R)DataType_RBV")
 }
 
 #
-# Records for monotoring the FCCD
+# Records for storing config files
 #
 
-recrod(ai, "$(P)$(R)
+record(waveform, "$(P)$(R)FirmwarePath")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetWrite")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FIRMWARE_PATH")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+}
 
-#Records in ADBase that do not apply to the fCCD
+record(waveform, "$(P)$(R)FirmwarePath_RBV")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FIRMWARE_PATH")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+  field(SCAN, "I/O Intr")
+}
+
+record(waveform, "$(P)$(R)BiasPath")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetWrite")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_PATH")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+}
+
+record(waveform, "$(P)$(R)BiasPath_RBV")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_PATH")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+  field(SCAN, "I/O Intr")
+}
+record(waveform, "$(P)$(R)ClockPath")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetWrite")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))CLOCK_PATH")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+}
+
+record(waveform, "$(P)$(R)ClockPath_RBV")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))CLOCK_PATH")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+  field(SCAN, "I/O Intr")
+}
+
+#
+# Records for uploading files
+#
+
+record(busy, "$(P)$(R)FwUpload") {
+   field(DTYP, "asynInt32")
+   field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))FIRMWARE_UPLOAD")
+   field(ZNAM, "Done")
+   field(ONAM, "Uploading")
+   field(VAL,  "0")
+}
+
+record(bi, "$(P)$(R)FwUpload_RBV") {
+   field(DTYP, "asynInt32")
+   field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))FIRMWARE_UPLOAD")
+   field(ZNAM, "Done")
+   field(ZSV,  "NO_ALARM")
+   field(ONAM, "Uploading")
+   field(OSV,  "MINOR")
+   field(SCAN, "I/O Intr")
+}
+
+record(busy, "$(P)$(R)ClockUpload") {
+   field(DTYP, "asynInt32")
+   field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CLOCK_UPLOAD")
+   field(ZNAM, "Done")
+   field(ONAM, "Uploading")
+   field(VAL,  "0")
+}
+
+record(bi, "$(P)$(R)ClockUpload_RBV") {
+   field(DTYP, "asynInt32")
+   field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CLOCK_UPLOAD")
+   field(ZNAM, "Done")
+   field(ZSV,  "NO_ALARM")
+   field(ONAM, "Uploading")
+   field(OSV,  "MINOR")
+   field(SCAN, "I/O Intr")
+}
+
+#
+# Records in ADBase that do not apply to the fCCD
+#
 
 record(mbbo, "$(P)$(R)ColorMode")
 {
