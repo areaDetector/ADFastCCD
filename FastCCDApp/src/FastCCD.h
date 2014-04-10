@@ -14,8 +14,19 @@
 
 #define MAX_ENUM_STRING_SIZE 26
 
-#define FastCCDMux1String                      "FCCD_MUX1"
-#define FastCCDMux2String                      "FCCD_MUX2"
+#define FastCCDMux1String                       "FCCD_MUX1"
+#define FastCCDMux2String                       "FCCD_MUX2"
+
+#define FastCCDFirmwarePathString               "FIRMWARE_PATH"
+#define FastCCDBiasPathString                   "BIAS_PATH"
+#define FastCCDClockPathString                  "CLOCK_PATH"
+
+#define FastCCDFirmwareUploadString             "FIRMWARE_UPLOAD"
+#define FastCCDClockUploadString                "CLOCK_UPLOAD"
+#define FastCCDBiasUploadString                 "BIAS_UPLOAD"
+
+#define FastCCDPowerString                      "CIN_POWER"
+#define FastCCDFPPowerString                    "FP_POWER"
 
 #define FastCCDVBus12V0String                   "VBUS_12V0"
 #define FastCCDVMgmt3v3String                   "VMGMT_3V3"
@@ -82,9 +93,25 @@ class FastCCD : public ADDriver {
   void processImage(cin_data_frame_t *frame);  
 
  protected:
+  // Mux Variables
   int FastCCDMux1;
   #define FIRST_FASTCCD_PARAM FastCCDMux1
   int FastCCDMux2;
+  
+  int FastCCDFirmwarePath;
+  int FastCCDBiasPath;
+  int FastCCDClockPath;
+
+  // File upload
+  int FastCCDFirmwareUpload;
+  int FastCCDBiasUpload;
+  int FastCCDClockUpload;
+
+  // Power Status
+  int FastCCDPower;
+  int FastCCDFPPower;
+
+  // Power monitor Variables
   int FastCCDPwrBus12V;
   int FastCCDPwrMgmt2V3;
   int FastCCDVBus12V0;
