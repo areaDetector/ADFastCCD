@@ -1,2 +1,5 @@
 $(P)$(R)Mux1
 $(P)$(R)Mux2
+$(P)$(R)FirmwarePath
+$(P)$(R)ClockPath
+$(P)$(R)BiasPath
