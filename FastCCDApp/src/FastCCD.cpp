@@ -173,7 +173,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   cinImageBuffer = imageBuffer;
 
   //Define the polling periods for the status thread.
-  mPollingPeriod = 10.0; //seconds
+  mPollingPeriod = 5.0; //seconds
   
   /* Create an EPICS exit handler */
   epicsAtExit(exitHandler, this);
@@ -190,7 +190,14 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDClockUploadString,         asynParamInt32,    &FastCCDClockUpload);
 
   createParam(FastCCDPowerString,               asynParamInt32,    &FastCCDPower);
-  createParam(FastCCDFPPowerString,             asynParamInt32,    &FastCCDFPPower);
+
+  createParam(FastCCDFrameIPAddrString,         asynParamOctet,    &FastCCDFrameIPAddr);
+  createParam(FastCCDFrameMACAddrString,        asynParamOctet,    &FastCCDFrameMACAddr);
+  createParam(FastCCDDataIPAddrString,          asynParamOctet,    &FastCCDDataIPAddr);
+  createParam(FastCCDDataMACAddrString,         asynParamOctet,    &FastCCDDataMACAddr);
+
+  createParam(FastCCDFPGAStatusString,          asynParamInt32,    &FastCCDFPGAStatus);
+  createParam(FastCCDFPPowerStatusString,       asynParamInt32,    &FastCCDFPPowerStatus);
 
   createParam(FastCCDVBus12V0String,            asynParamFloat64,  &FastCCDVBus12V0);
   createParam(FastCCDVMgmt3v3String,            asynParamFloat64,  &FastCCDVMgmt3v3);
@@ -267,12 +274,50 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setIntegerParam(NDArraySize, sizeX*sizeY*sizeof(epicsUInt16)); 
   status |= setDoubleParam(ADShutterOpenDelay, 0.);
   status |= setDoubleParam(ADShutterCloseDelay, 0.);
+
   status |= setIntegerParam(FastCCDFirmwareUpload, 0);
   status |= setIntegerParam(FastCCDClockUpload, 0);
   status |= setIntegerParam(FastCCDBiasUpload, 0);
-  status |= setIntegerParam(FastCCDPower, 0);
-  status |= setIntegerParam(FastCCDFPPower, 0);
 
+  //status |= setIntegerParam(FastCCDPower, 0);
+  status |= setIntegerParam(FastCCDFPGAStatus, 0);
+  status |= setIntegerParam(FastCCDFPPowerStatus, 0);
+
+  status |= setIntegerParam(FastCCDMux1, 0);
+  status |= setIntegerParam(FastCCDMux2, 0);
+
+  status |= setStringParam(FastCCDFirmwarePath, "");
+  status |= setStringParam(FastCCDBiasPath, "");
+  status |= setStringParam(FastCCDClockPath, "");
+
+  status |= setStringParam(FastCCDFrameIPAddr, "");
+  status |= setStringParam(FastCCDFrameMACAddr, "");
+
+  status |= setDoubleParam(FastCCDVBus12V0, 0);
+  status |= setDoubleParam(FastCCDVMgmt3v3, 0);
+  status |= setDoubleParam(FastCCDVMgmt2v5, 0);
+  status |= setDoubleParam(FastCCDVMgmt1v2, 0);
+  status |= setDoubleParam(FastCCDVEnet1v0, 0);
+  status |= setDoubleParam(FastCCDVS3E3v3, 0);
+  status |= setDoubleParam(FastCCDVGen3v3, 0);
+  status |= setDoubleParam(FastCCDVGen2v5, 0);
+  status |= setDoubleParam(FastCCDV60v9, 0);
+  status |= setDoubleParam(FastCCDV61v0, 0);
+  status |= setDoubleParam(FastCCDV62v5, 0);
+  status |= setDoubleParam(FastCCDVFp, 0);
+
+  status |= setDoubleParam(FastCCDIBus12V0, 0);
+  status |= setDoubleParam(FastCCDIMgmt3v3, 0);
+  status |= setDoubleParam(FastCCDIMgmt2v5, 0);
+  status |= setDoubleParam(FastCCDIMgmt1v2, 0);
+  status |= setDoubleParam(FastCCDIEnet1v0, 0);
+  status |= setDoubleParam(FastCCDIS3E3v3, 0);
+  status |= setDoubleParam(FastCCDIGen3v3, 0);
+  status |= setDoubleParam(FastCCDIGen2v5, 0);
+  status |= setDoubleParam(FastCCDI60v9, 0);
+  status |= setDoubleParam(FastCCDI61v0, 0);
+  status |= setDoubleParam(FastCCDI62v5, 0);
+  status |= setDoubleParam(FastCCDIFp, 0);
 
   callParamCallbacks();
 
@@ -509,47 +554,36 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
   * For all parameters it sets the value in the parameter library and calls any registered callbacks.
   * \param[in] pasynUser pasynUser structure that encodes the reason and address.
   * \param[in] value Value to write. */
-asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
-{
-    int function = pasynUser->reason;
-    asynStatus status = asynSuccess;
-    static const char *functionName = "writeFloat64";
-
-    /* Set the parameter and readback in the parameter library.  */
-    status = setDoubleParam(function, value);
-
-    if (function == ADAcquireTime) 
-    {
-      cin_ctl_set_exposure_time(&cin_ctl_port, (float)value);
-      status = asynSuccess;
-    } 
-    else if (function == ADAcquirePeriod) 
-    {
-      cin_ctl_set_cycle_time(&cin_ctl_port, (float)value);
-      status = asynSuccess;
-    }
-    else 
-    {
-      status = ADDriver::writeFloat64(pasynUser, value);
-    }
-
-    /* Do callbacks so higher layers see any changes */
-    callParamCallbacks();
-
-    if(status)
-    {
-        asynPrint(pasynUser, ASYN_TRACE_ERROR,
-              "%s:%s: error, status=%d function=%d, value=%f\n",
-              driverName, functionName, status, function, value);
-    }
-    else
-    {
-        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
-              "%s:%s: function=%d, value=%f\n",
-              driverName, functionName, function, value);
-    }
-    return status;
-}
+//asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
+//{
+//    int function = pasynUser->reason;
+//    asynStatus status = asynSuccess;
+//    static const char *functionName = "writeFloat64";
+//
+//    /* Set the parameter and readback in the parameter library.  */
+//    status = setDoubleParam(function, value);
+//
+//    {
+//      status = ADDriver::writeFloat64(pasynUser, value);
+//    }
+//
+//    /* Do callbacks so higher layers see any changes */
+//    callParamCallbacks();
+//
+//    if(status)
+//    {
+//        asynPrint(pasynUser, ASYN_TRACE_ERROR,
+//              "%s:%s: error, status=%d function=%d, value=%f\n",
+//              driverName, functionName, status, function, value);
+//    }
+//    else
+//    {
+//        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+//              "%s:%s: function=%d, value=%f\n",
+//              driverName, functionName, function, value);
+//    }
+//    return status;
+//}
 
 
 /**
@@ -565,6 +599,7 @@ void FastCCD::statusTask(void)
   int pwr;
   int cin_status;
   uint16_t fpga_status;
+  cin_data_stats_t stats;
 
   while(1) {
 
@@ -585,47 +620,95 @@ void FastCCD::statusTask(void)
         driverName, functionName);
     }
 
+    cin_data_compute_stats(&stats);
+
     cin_status  = cin_ctl_get_power_status(&cin_ctl_port, &pwr, &pwr_value);
-    cin_status |= cin_ctl_get_cfg_fpga_status(&cin_ctl_port, &fpga_status);
+
+    fprintf(stderr, "cin_status = %d, pwr = %d\n", cin_status, pwr);
 
     if(!cin_status){
       // Power Status
       if(pwr){
         setIntegerParam(FastCCDPower, 1);
+
+        // Voltage Values
+
+        setDoubleParam(FastCCDVBus12V0, pwr_value.bus_12v0.v);
+        setDoubleParam(FastCCDVMgmt3v3, pwr_value.mgmt_3v3.v);
+        setDoubleParam(FastCCDVMgmt2v5, pwr_value.mgmt_2v5.v);
+        setDoubleParam(FastCCDVMgmt1v2, pwr_value.mgmt_1v2.v);
+        setDoubleParam(FastCCDVEnet1v0, pwr_value.enet_1v0.v);
+        setDoubleParam(FastCCDVS3E3v3,  pwr_value.s3e_3v3.v);
+        setDoubleParam(FastCCDVGen3v3,  pwr_value.gen_3v3.v);
+        setDoubleParam(FastCCDVGen2v5,  pwr_value.gen_2v5.v);
+        setDoubleParam(FastCCDV60v9,    pwr_value.v6_0v9.v);
+        setDoubleParam(FastCCDV61v0,    pwr_value.v6_1v0.v);
+        setDoubleParam(FastCCDV62v5,    pwr_value.v6_2v5.v);
+        setDoubleParam(FastCCDVFp,      pwr_value.fp.v);
+
+        // Current Values
+
+        setDoubleParam(FastCCDIBus12V0, pwr_value.bus_12v0.i);
+        setDoubleParam(FastCCDIMgmt3v3, pwr_value.mgmt_3v3.i);
+        setDoubleParam(FastCCDIMgmt2v5, pwr_value.mgmt_2v5.i);
+        setDoubleParam(FastCCDIMgmt1v2, pwr_value.mgmt_1v2.i);
+        setDoubleParam(FastCCDIEnet1v0, pwr_value.enet_1v0.i);
+        setDoubleParam(FastCCDIS3E3v3,  pwr_value.s3e_3v3.i);
+        setDoubleParam(FastCCDIGen3v3,  pwr_value.gen_3v3.i);
+        setDoubleParam(FastCCDIGen2v5,  pwr_value.gen_2v5.i);
+        setDoubleParam(FastCCDI60v9,    pwr_value.v6_0v9.i);
+        setDoubleParam(FastCCDI61v0,    pwr_value.v6_1v0.i);
+        setDoubleParam(FastCCDI62v5,    pwr_value.v6_2v5.i);
+        setDoubleParam(FastCCDIFp,      pwr_value.fp.i);
+
       } else {
         setIntegerParam(FastCCDPower, 0);
+
+        // Voltage Values
+
+        setDoubleParam(FastCCDVBus12V0, 0);
+        setDoubleParam(FastCCDVMgmt3v3, 0);
+        setDoubleParam(FastCCDVMgmt2v5, 0);
+        setDoubleParam(FastCCDVMgmt1v2, 0);
+        setDoubleParam(FastCCDVEnet1v0, 0);
+        setDoubleParam(FastCCDVS3E3v3,  0);
+        setDoubleParam(FastCCDVGen3v3,  0);
+        setDoubleParam(FastCCDVGen2v5,  0);
+        setDoubleParam(FastCCDV60v9,    0);
+        setDoubleParam(FastCCDV61v0,    0);
+        setDoubleParam(FastCCDV62v5,    0);
+        setDoubleParam(FastCCDVFp,      0);
+
+
+        // Current Values
+
+        setDoubleParam(FastCCDIBus12V0, 0);
+        setDoubleParam(FastCCDIMgmt3v3, 0);
+        setDoubleParam(FastCCDIMgmt2v5, 0);
+        setDoubleParam(FastCCDIMgmt1v2, 0);
+        setDoubleParam(FastCCDIEnet1v0, 0);
+        setDoubleParam(FastCCDIS3E3v3,  0);
+        setDoubleParam(FastCCDIGen3v3,  0);
+        setDoubleParam(FastCCDIGen2v5,  0);
+        setDoubleParam(FastCCDI60v9,    0);
+        setDoubleParam(FastCCDI61v0,    0);
+        setDoubleParam(FastCCDI62v5,    0);
+        setDoubleParam(FastCCDIFp,      0);
+
       }
-
-      // Voltage Values
-
-      setDoubleParam(FastCCDVBus12V0, pwr_value.bus_12v0.v);
-      setDoubleParam(FastCCDVMgmt3v3, pwr_value.mgmt_3v3.v);
-      setDoubleParam(FastCCDVMgmt2v5, pwr_value.mgmt_2v5.v);
-      setDoubleParam(FastCCDVMgmt1v2, pwr_value.mgmt_1v2.v);
-      setDoubleParam(FastCCDVEnet1v0, pwr_value.enet_1v0.v);
-      setDoubleParam(FastCCDVS3E3v3,  pwr_value.s3e_3v3.v);
-      setDoubleParam(FastCCDVGen3v3,  pwr_value.gen_3v3.v);
-      setDoubleParam(FastCCDVGen2v5,  pwr_value.gen_2v5.v);
-      setDoubleParam(FastCCDV60v9,    pwr_value.v6_0v9.v);
-      setDoubleParam(FastCCDV61v0,    pwr_value.v6_1v0.v);
-      setDoubleParam(FastCCDV62v5,    pwr_value.v6_2v5.v);
-      setDoubleParam(FastCCDVFp,      pwr_value.fp.v);
-
-      // Current Values
-
-      setDoubleParam(FastCCDIBus12V0, pwr_value.bus_12v0.i);
-      setDoubleParam(FastCCDIMgmt3v3, pwr_value.mgmt_3v3.i);
-      setDoubleParam(FastCCDIMgmt2v5, pwr_value.mgmt_2v5.i);
-      setDoubleParam(FastCCDIMgmt1v2, pwr_value.mgmt_1v2.i);
-      setDoubleParam(FastCCDIEnet1v0, pwr_value.enet_1v0.i);
-      setDoubleParam(FastCCDIS3E3v3,  pwr_value.s3e_3v3.i);
-      setDoubleParam(FastCCDIGen3v3,  pwr_value.gen_3v3.i);
-      setDoubleParam(FastCCDIGen2v5,  pwr_value.gen_2v5.i);
-      setDoubleParam(FastCCDI60v9,    pwr_value.v6_0v9.i);
-      setDoubleParam(FastCCDI61v0,    pwr_value.v6_1v0.i);
-      setDoubleParam(FastCCDI62v5,    pwr_value.v6_2v5.i);
-      setDoubleParam(FastCCDIFp,      pwr_value.fp.i);
     }
+
+    cin_status = cin_ctl_get_cfg_fpga_status(&cin_ctl_port, &fpga_status);
+    if(!cin_status){
+      fprintf(stderr, "fpga_status = %x\n", fpga_status);
+      setIntegerParam(FastCCDFPGAStatus, (fpga_status & CIN_CTL_FPGA_STS_CFG));
+      setIntegerParam(FastCCDFPPowerStatus, (fpga_status & CIN_CTL_FPGA_STS_FP_PWR));
+    }
+    
+    // Status
+
+    //cin_data_show_stats(stats);
+
 
     /* Call the callbacks to update any changes */
     this->lock();
