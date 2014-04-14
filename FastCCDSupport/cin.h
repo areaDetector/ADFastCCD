@@ -406,11 +406,13 @@ void cin_data_release_frame(int free_mem);
 struct cin_data_frame* cin_data_get_buffered_frame(void);
 void cin_data_release_buffered_frame(void);
 
-struct cin_data_stats cin_data_get_stats(void);
-void cin_data_show_stats(void);
+void cin_data_compute_stats(cin_data_stats_t *stats);
+void cin_data_show_stats(FILE *fp,cin_data_stats_t stats);
 
 void cin_data_start_monitor_output(void);
 void cin_data_stop_monitor_output(void);
+
+int cin_data_send_magic(void);
 
 #ifdef __cplusplus
 }
