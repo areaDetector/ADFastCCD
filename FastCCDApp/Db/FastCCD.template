@@ -159,6 +159,28 @@ record(mbbi, "$(P)$(R)Mux2_RBV")
 }
 
 #
+# FPGA Status
+#
+
+record(bi, "$(P)$(R)FrameSts_RBV")
+{
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FPGA_STATUS")
+  field(SCAN, "I/O Intr")
+  field(ZNAM, "Not Configured")
+  field(ONAM, "Configured")
+}
+
+record(bi, "$(P)$(R)FPPwrSts_RBV")
+{
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FPPWR_STATUS")
+  field(SCAN, "I/O Intr")
+  field(ZNAM, "Enabled")
+  field(ONAM, "Locked Out")
+}
+
+#
 # Power monitoring records
 #
 
@@ -168,14 +190,16 @@ record(ai, "$(P)$(R)E:Bus12v-I")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VBUS_12V0")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 
 record(ai, "$(P)$(R)I:Bus12v-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IBUS_12V0")
-  field(EGU,  "I")
+  field(EGU,  "A")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 
 record(ai, "$(P)$(R)E:Mgmt3v3-I")
@@ -184,14 +208,16 @@ record(ai, "$(P)$(R)E:Mgmt3v3-I")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VMGMT_3V3")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 
 record(ai, "$(P)$(R)I:Mgmt3v3-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IMGMT_3V3")
-  field(EGU,  "I")
+  field(EGU,  "A")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 record(ai, "$(P)$(R)E:Mgmt2v5-I")
 {
@@ -199,14 +225,16 @@ record(ai, "$(P)$(R)E:Mgmt2v5-I")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VMGMT_2V5")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 
 record(ai, "$(P)$(R)I:Mgmt2v5-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IMGMT_2V5")
-  field(EGU,  "I")
+  field(EGU,  "A")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 record(ai, "$(P)$(R)E:Mgmt1v2-I")
 {
@@ -214,14 +242,16 @@ record(ai, "$(P)$(R)E:Mgmt1v2-I")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VMGMT_1V2")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 
 record(ai, "$(P)$(R)I:Mgmt1v2-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IMGMT_1V2")
-  field(EGU,  "I")
+  field(EGU,  "A")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 record(ai, "$(P)$(R)E:Enet-I")
 {
@@ -229,14 +259,16 @@ record(ai, "$(P)$(R)E:Enet-I")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VENET_1V0")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 
 record(ai, "$(P)$(R)I:Enet-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IENET_1V0")
-  field(EGU,  "I")
+  field(EGU,  "A")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 record(ai, "$(P)$(R)E:S3E-I")
 {
@@ -244,14 +276,16 @@ record(ai, "$(P)$(R)E:S3E-I")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VS3E_3v3")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 
 record(ai, "$(P)$(R)I:S3E-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VS3E_3V3")
-  field(EGU,  "I")
+  field(EGU,  "A")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 record(ai, "$(P)$(R)E:Gen3v3-I")
 {
@@ -259,14 +293,16 @@ record(ai, "$(P)$(R)E:Gen3v3-I")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VGEN_3V3")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 
 record(ai, "$(P)$(R)I:Gen3v3-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IGEN_3V3")
-  field(EGU,  "I")
+  field(EGU,  "A")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 record(ai, "$(P)$(R)E:Gen2v5-I")
 {
@@ -274,14 +310,16 @@ record(ai, "$(P)$(R)E:Gen2v5-I")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VGEN_2V5")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 
 record(ai, "$(P)$(R)I:Gen2v5-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IGEN_2V5")
-  field(EGU,  "I")
+  field(EGU,  "A")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 record(ai, "$(P)$(R)E:0v9-I")
 {
@@ -289,14 +327,16 @@ record(ai, "$(P)$(R)E:0v9-I")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))V6_0V9")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 
 record(ai, "$(P)$(R)I:0v9-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))V6_0V9")
-  field(EGU,  "I")
+  field(EGU,  "A")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 record(ai, "$(P)$(R)E:1v0-I")
 {
@@ -304,14 +344,16 @@ record(ai, "$(P)$(R)E:1v0-I")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))V6_1V0")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 
 record(ai, "$(P)$(R)I:1v0-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))V6_1V0")
-  field(EGU,  "I")
+  field(EGU,  "A")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 record(ai, "$(P)$(R)E:2v5-I")
 {
@@ -319,14 +361,16 @@ record(ai, "$(P)$(R)E:2v5-I")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))V6_2V5")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 
 record(ai, "$(P)$(R)I:2v5-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))I6_2V5")
-  field(EGU,  "I")
+  field(EGU,  "A")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 record(ai, "$(P)$(R)E:FP-I")
 {
@@ -334,14 +378,16 @@ record(ai, "$(P)$(R)E:FP-I")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VFP")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 
 record(ai, "$(P)$(R)I:FP-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IFP")
-  field(EGU,  "I")
+  field(EGU,  "A")
   field(SCAN, "I/O Intr")
+  field(PREC, "4")
 }
 
 #
@@ -371,6 +417,10 @@ record(mbbi, "$(P)$(R)TriggerMode_RBV")
    field(THST, "External 1+2")
    field(THVL, "3")
 }
+
+#
+# Override records for the FastCCD
+#
 
 record(mbbo, "$(P)$(R)DataType")
 {
@@ -456,6 +506,7 @@ record(waveform, "$(P)$(R)BiasPath_RBV")
   field(NELM, "256")
   field(SCAN, "I/O Intr")
 }
+
 record(waveform, "$(P)$(R)ClockPath")
 {
   field(PINI, "YES")
@@ -470,6 +521,86 @@ record(waveform, "$(P)$(R)ClockPath_RBV")
   field(PINI, "YES")
   field(DTYP, "asynOctetRead")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))CLOCK_PATH")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+  field(SCAN, "I/O Intr")
+}
+
+#
+# IP Address and MAC Addr
+#
+
+record(waveform, "$(P)$(R)FrameIP")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetWrite")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FRAME_IP")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+}
+
+record(waveform, "$(P)$(R)FrameIP_RBV")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FRAME_IP")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+  field(SCAN, "I/O Intr")
+}
+
+record(waveform, "$(P)$(R)FrameMAC")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetWrite")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FRAME_MAC")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+}
+
+record(waveform, "$(P)$(R)FrameMAC_RBV")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FRAME_MAC")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+  field(SCAN, "I/O Intr")
+}
+
+record(waveform, "$(P)$(R)DataIP")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetWrite")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DATA_IP")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+}
+
+record(waveform, "$(P)$(R)DataIP_RBV")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DATA_IP")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+  field(SCAN, "I/O Intr")
+}
+
+record(waveform, "$(P)$(R)DataMAC")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetWrite")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DATA_MAC")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+}
+
+record(waveform, "$(P)$(R)DataMAC_RBV")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DATA_MAC")
   field(FTVL, "CHAR")
   field(NELM, "256")
   field(SCAN, "I/O Intr")
@@ -521,7 +652,7 @@ record(bi, "$(P)$(R)ClockUpload_RBV") {
 
 record(bo, "$(P)$(R)Power")
 {
-  field(PINI, "YES")
+  #field(PINI, "YES")
   field(DTYP, "asynInt32")
   field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CIN_POWER")
   field(ZNAM, "Off")
@@ -539,25 +670,25 @@ record(bi, "$(P)$(R)Power_RBV")
   field(SCAN, "I/O Intr")
 }
 
-record(bo, "$(P)$(R)FPPower")
-{
-  field(DTYP, "asynInt32")
-  field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))FP_POWER")
-  field(ZNAM, "Off")
-  field(ONAM, "On")
-  field(PINI, "YES")
-}
-
-record(bi, "$(P)$(R)FPPower_RBV")
-{
-  field(DTYP, "asynInt32")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FP_POWER")
-  field(ZNAM, "Off")
-  field(ONAM, "On")
-  field(OSV,  "NO_ALARM")
-  field(ZSV,  "MINOR")
-  field(SCAN, "I/O Intr")
-}
+#record(bo, "$(P)$(R)FPPower")
+#{
+#  field(DTYP, "asynInt32")
+#  field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))FP_POWER")
+#  field(ZNAM, "Off")
+#  field(ONAM, "On")
+#  #field(PINI, "YES")
+#}
+#
+#record(bi, "$(P)$(R)FPPower_RBV")
+#{
+#  field(DTYP, "asynInt32")
+#  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FP_POWER")
+#  field(ZNAM, "Off")
+#  field(ONAM, "On")
+#  field(OSV,  "NO_ALARM")
+#  field(ZSV,  "MINOR")
+#  field(SCAN, "I/O Intr")
+#}
 
 #
 # Records in ADBase that do not apply to the fCCD
