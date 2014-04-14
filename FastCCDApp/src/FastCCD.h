@@ -26,7 +26,14 @@
 #define FastCCDBiasUploadString                 "BIAS_UPLOAD"
 
 #define FastCCDPowerString                      "CIN_POWER"
-#define FastCCDFPPowerString                    "FP_POWER"
+#define FastCCDFPPowerStatusString              "FPPWR_STATUS"
+
+#define FastCCDFPGAStatusString                 "FPGA_STATUS"
+
+#define FastCCDFrameIPAddrString                "FRAME_IP"
+#define FastCCDFrameMACAddrString               "FRAME_MAC"
+#define FastCCDDataIPAddrString                 "DATA_IP"
+#define FastCCDDataMACAddrString                "DATA_MAC"
 
 #define FastCCDVBus12V0String                   "VBUS_12V0"
 #define FastCCDVMgmt3v3String                   "VMGMT_3V3"
@@ -78,7 +85,7 @@ class FastCCD : public ADDriver {
 
   /* These are the methods that we override from ADDriver */
   asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
-  asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
+  //asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
   //virtual asynStatus readEnum(asynUser *pasynUser, char *strings[], 
   //                            int values[], int severities[], 
   //                            size_t nElements, size_t *nIn);
@@ -109,7 +116,14 @@ class FastCCD : public ADDriver {
 
   // Power Status
   int FastCCDPower;
-  int FastCCDFPPower;
+  int FastCCDFPPowerStatus;
+
+  // Frame FPGA
+  int FastCCDFPGAStatus;
+  int FastCCDFrameIPAddr;
+  int FastCCDFrameMACAddr;
+  int FastCCDDataIPAddr;
+  int FastCCDDataMACAddr;
 
   // Power monitor Variables
   int FastCCDPwrBus12V;
@@ -151,12 +165,6 @@ class FastCCD : public ADDriver {
   asynStatus connectCamera();
 
   asynStatus setupAcquisition();
-
-  // List of trigger modes.
-  //static const epicsUInt32 ATInternal;
-  //static const epicsUInt32 ATExternal1;
-  //static const epicsUInt32 ATExternal2;
-  //static const epicsUInt32 ATExternal1or2;
 
   epicsEventId statusEvent;
   epicsEventId dataEvent;
