@@ -22,13 +22,6 @@
 
 static const char *driverName = "FastCCD";
 
-//Definitions of static class data members
-
-//const epicsUInt32 FastCCD::ATInternal = 0;
-//const epicsUInt32 FastCCD::ATExternal1 = 1;
-//const epicsUInt32 FastCCD::ATExternal2 = 2;
-//const epicsUInt32 FastCCD::ATExternal1or2 = 3;
-
 asynStatus FastCCD::connect(asynUser *pasynUser){
   return connectCamera();
 }
