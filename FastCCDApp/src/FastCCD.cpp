@@ -430,15 +430,24 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
     getIntegerParam(function, &oldValue);
     status = setIntegerParam(function, value);
 
+    int _status ; // For return of cin functions
+
     if (function == ADAcquire) 
     {
       if (value) // User clicked 'Start' button
       {
          // Send the hardware a start trigger command
          int n_images, t_mode, i_mode;
+         double t_exp, t_cycle; 
          getIntegerParam(ADTriggerMode, &t_mode);
          getIntegerParam(ADNumImages, &n_images);
          getIntegerParam(ADImageMode, &i_mode);
+         getDoubleParam(ADAcquireTime, &t_exp);
+         getDoubleParam(ADAcquirePeriod, &t_cycle);
+
+         cin_ctl_set_exposure_time(&cin_ctl_port, (float)t_exp);
+         cin_ctl_set_cycle_time(&cin_ctl_port, (float)t_cycle);
+
          switch(i_mode) {
            case ADImageSingle:
              this->framesRemaining = 1;
@@ -485,9 +494,16 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       setIntegerParam(FastCCDFirmwareUpload, 1);
       setStringParam(ADStatusMessage, "Uploading Firmware.");
       callParamCallbacks();
-      int _status = cin_ctl_load_firmware(&cin_ctl_port, 
-                                          &cin_ctl_port_stream, path);
-      
+
+      _status = cin_ctl_load_firmware(&cin_ctl_port, 
+                                      &cin_ctl_port_stream, path);
+     
+      if(!_status){
+        char ip[256];
+        getStringParam(FastCCDFrameIPAddr, sizeof(ip), ip);
+        _status |= cin_ctl_set_fabric_address(&cin_ctl_port, ip);
+        _status |= cin_data_send_magic();
+      }
       setIntegerParam(FastCCDFirmwareUpload, 0);
       setStringParam(ADStatusMessage, "");
     }
@@ -498,7 +514,7 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       setIntegerParam(FastCCDClockUpload, 1);
       setStringParam(ADStatusMessage, "Uploading Clock File");
       callParamCallbacks();
-      int _status = cin_ctl_load_config(&cin_ctl_port, path);
+      _status = cin_ctl_load_config(&cin_ctl_port, path);
       setIntegerParam(FastCCDClockUpload, 0);
       setStringParam(ADStatusMessage, "");
     }
@@ -509,9 +525,20 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       setIntegerParam(FastCCDBiasUpload, 1);
       setStringParam(ADStatusMessage, "Uploading Bias File");
       callParamCallbacks();
-      int _status = cin_ctl_load_config(&cin_ctl_port, path);
+      _status = cin_ctl_load_config(&cin_ctl_port, path);
       setIntegerParam(FastCCDBiasUpload, 0);
       setStringParam(ADStatusMessage, "");
+    }
+    else if (function == FastCCDPower)
+    {
+      if(value)
+      {
+        _status = cin_ctl_pwr(&cin_ctl_port, 1);
+        sleep(1);
+        _status = cin_ctl_fp_pwr(&cin_ctl_port, 1);
+      } else {
+        _status = cin_ctl_pwr(&cin_ctl_port, 0);
+      }
     }
     else if ((function == ADNumExposures) || (function == ADNumImages)   ||
              (function == ADImageMode))
