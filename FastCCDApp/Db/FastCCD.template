@@ -1,3 +1,12 @@
+record(bi, "$(P)$(R)test")
+{
+  field(DTYP, "asynUInt32Digital")
+  field(INP,  "@asynMask($(PORT),15, 0x1)DCM_STATUS")
+  field(SCAN, "I/O Intr")
+  field(ZNAM, "Off")
+  field(ONAM, "On")
+}
+
 #
 # MUX Settings for front panel
 #

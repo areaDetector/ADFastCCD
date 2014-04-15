@@ -173,7 +173,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   cinImageBuffer = imageBuffer;
 
   //Define the polling periods for the status thread.
-  mPollingPeriod = 5.0; //seconds
+  mPollingPeriod = 2.0; //seconds
   
   /* Create an EPICS exit handler */
   epicsAtExit(exitHandler, this);
@@ -197,6 +197,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDDataMACAddrString,         asynParamOctet,    &FastCCDDataMACAddr);
 
   createParam(FastCCDFPGAStatusString,          asynParamInt32,    &FastCCDFPGAStatus);
+  createParam(FastCCDDCMStatusString,           asynParamUInt32Digital, &FastCCDDCMStatus);
   createParam(FastCCDFPPowerStatusString,       asynParamInt32,    &FastCCDFPPowerStatus);
 
   createParam(FastCCDVBus12V0String,            asynParamFloat64,  &FastCCDVBus12V0);
@@ -282,6 +283,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   //status |= setIntegerParam(FastCCDPower, 0);
   status |= setIntegerParam(FastCCDFPGAStatus, 0);
   status |= setIntegerParam(FastCCDFPPowerStatus, 0);
+  status |= setUIntDigitalParam(FastCCDDCMStatus, 0x1, 0x1);
 
   status |= setIntegerParam(FastCCDMux1, 0);
   status |= setIntegerParam(FastCCDMux2, 0);
@@ -734,8 +736,9 @@ void FastCCD::statusTask(void)
     
     // Status
 
+    setUIntDigitalParam(FastCCDDCMStatus, 0, 0x0);
+    
     //cin_data_show_stats(stats);
-
 
     /* Call the callbacks to update any changes */
     this->lock();

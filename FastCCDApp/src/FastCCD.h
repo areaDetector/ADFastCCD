@@ -29,6 +29,7 @@
 #define FastCCDFPPowerStatusString              "FPPWR_STATUS"
 
 #define FastCCDFPGAStatusString                 "FPGA_STATUS"
+#define FastCCDDCMStatusString                  "DCM_STATUS"
 
 #define FastCCDFrameIPAddrString                "FRAME_IP"
 #define FastCCDFrameMACAddrString               "FRAME_MAC"
@@ -120,6 +121,7 @@ class FastCCD : public ADDriver {
 
   // Frame FPGA
   int FastCCDFPGAStatus;
+  int FastCCDDCMStatus;
   int FastCCDFrameIPAddr;
   int FastCCDFrameMACAddr;
   int FastCCDDataIPAddr;
