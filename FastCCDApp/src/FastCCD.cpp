@@ -159,7 +159,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
                  int priority, int stackSize, int packetBuffer, int imageBuffer)
 
   : ADDriver(portName, 1, NUM_FastCCD_DET_PARAMS, maxBuffers, maxMemory, 
-             asynEnumMask, asynEnumMask,
+             asynUInt32DigitalMask, asynUInt32DigitalMask,
              ASYN_CANBLOCK, 1, priority, stackSize)
 {
 
@@ -283,7 +283,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   //status |= setIntegerParam(FastCCDPower, 0);
   status |= setIntegerParam(FastCCDFPGAStatus, 0);
   status |= setIntegerParam(FastCCDFPPowerStatus, 0);
-  status |= setUIntDigitalParam(FastCCDDCMStatus, 0x1, 0x1);
+  status |= setUIntDigitalParam(FastCCDDCMStatus, 0x0, 0xFFFF);
 
   status |= setIntegerParam(FastCCDMux1, 0);
   status |= setIntegerParam(FastCCDMux2, 0);
@@ -736,7 +736,7 @@ void FastCCD::statusTask(void)
     
     // Status
 
-    setUIntDigitalParam(FastCCDDCMStatus, 0, 0x0);
+    setUIntDigitalParam(FastCCDDCMStatus, fpga_status, 0xFFFF);
     
     //cin_data_show_stats(stats);
 
@@ -745,7 +745,7 @@ void FastCCD::statusTask(void)
     callParamCallbacks();
     this->unlock();
         
-  } //End of loop
+  } //End of while loop
 
 }
 

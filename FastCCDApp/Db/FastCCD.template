@@ -1,7 +1,7 @@
 record(bi, "$(P)$(R)test")
 {
   field(DTYP, "asynUInt32Digital")
-  field(INP,  "@asynMask($(PORT),15, 0x1)DCM_STATUS")
+  field(INP,  "@asynMask($(PORT),$(ADDR),0x8000, $(TIMEOUT))DCM_STATUS")
   field(SCAN, "I/O Intr")
   field(ZNAM, "Off")
   field(ONAM, "On")
