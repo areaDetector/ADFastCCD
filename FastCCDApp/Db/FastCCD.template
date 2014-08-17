@@ -1,10 +1,51 @@
-record(bi, "$(P)$(R)test")
+record(bi, "$(P)$(R)FrmConf_RBV")
 {
   field(DTYP, "asynUInt32Digital")
-  field(INP,  "@asynMask($(PORT),$(ADDR),0x8000, $(TIMEOUT))DCM_STATUS")
+  field(INP,  "@asynMask($(PORT),$(ADDR),0x8000, $(TIMEOUT))FPGA_STATUS")
+  field(SCAN, "I/O Intr")
+  field(ZNAM, "Not Configured")
+  field(ONAM, "Configured")
+  field(OSV,  "MINOR")
+}
+
+record(bi, "$(P)$(R)FPPwrLocked_RBV")
+{
+  field(DTYP, "asynUInt32Digital")
+  field(INP,  "@asynMask($(PORT),$(ADDR),0x8000, $(TIMEOUT))FPGA_STATUS")
+  field(SCAN, "I/O Intr")
+  field(ZNAM, "Unlocked")
+  field(ONAM, "Locked")
+  field(OSV,  "MINOR")
+}
+
+record(bi, "$(P)$(R)ACTAAlarm_RBV")
+{
+  field(DTYP, "asynUInt32Digital")
+  field(INP,  "@asynMask($(PORT),$(ADDR),0x0080, $(TIMEOUT))DCM_STATUS")
   field(SCAN, "I/O Intr")
   field(ZNAM, "Off")
   field(ONAM, "On")
+  field(OSV,  "MAJOR")
+}
+
+record(bi, "$(P)$(R)CFGDCM_RBV")
+{
+  field(DTYP, "asynUInt32Digital")
+  field(INP,  "@asynMask($(PORT),$(ADDR),0x0001, $(TIMEOUT))DCM_STATUS")
+  field(SCAN, "I/O Intr")
+  field(ZNAM, "Unlocked")
+  field(ONAM, "Locked")
+  field(OSV,  "MAJOR")
+}
+ 
+record(bi, "$(P)$(R)FPPSIlk_RBV")
+{
+  field(DTYP, "asynUInt32Digital")
+  field(INP,  "@asynMask($(PORT),$(ADDR),0x0800, $(TIMEOUT))DCM_STATUS")
+  field(SCAN, "I/O Intr")
+  field(ZNAM, "Enabled")
+  field(ONAM, "Overridden")
+  field(OSV,  "MAJOR")
 }
 
 #
@@ -165,28 +206,6 @@ record(mbbi, "$(P)$(R)Mux2_RBV")
   field(FTVL, "14")
   field(FFST, "HWTRIG")
   field(FFVL, "15")
-}
-
-#
-# FPGA Status
-#
-
-record(bi, "$(P)$(R)FrameSts_RBV")
-{
-  field(DTYP, "asynInt32")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FPGA_STATUS")
-  field(SCAN, "I/O Intr")
-  field(ZNAM, "Not Configured")
-  field(ONAM, "Configured")
-}
-
-record(bi, "$(P)$(R)FPPwrSts_RBV")
-{
-  field(DTYP, "asynInt32")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FPPWR_STATUS")
-  field(SCAN, "I/O Intr")
-  field(ZNAM, "Enabled")
-  field(ONAM, "Locked Out")
 }
 
 #
