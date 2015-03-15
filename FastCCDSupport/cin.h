@@ -13,6 +13,10 @@
 extern "C" {
 #endif
 
+extern const char *cin_build_git_time;
+extern const char *cin_build_git_sha;
+extern const char *cin_build_version;
+
 /* -------------------------------------------------------------------------------
  *
  * Global definitions
@@ -28,6 +32,10 @@ extern "C" {
 
 #define CIN_CTL_MAX_READ_TRIES             10
 #define CIN_CTL_MAX_WRITE_TRIES            5
+
+#define CIN_CTL_POWER_ENABLE               0x001F
+#define CIN_CTL_POWER_DISABLE              0x0000
+#define CIN_CTL_FP_POWER_ENABLE            0x0020
 
 #define CIN_CTL_DCM_LOCKED                 0x0001
 #define CIN_CTL_DCM_PSDONE                 0x0002
@@ -336,7 +344,9 @@ int cin_ctl_calc_vi_status(struct cin_port* cp,
  *------------------------*/
 
 int cin_ctl_set_bias(struct cin_port* cp,int val);
+int cin_ctl_get_bias(struct cin_port* cp, int *val);
 int cin_ctl_set_clocks(struct cin_port* cp,int val);
+int cin_ctl_get_clocks(struct cin_port* cp, int *val);
 int cin_ctl_set_trigger(struct cin_port* cp,int val);
 int cin_ctl_get_trigger(struct cin_port* cp, int *val);
 int cin_ctl_set_focus(struct cin_port* cp, int val);
@@ -408,6 +418,7 @@ void cin_data_release_buffered_frame(void);
 
 void cin_data_compute_stats(cin_data_stats_t *stats);
 void cin_data_show_stats(FILE *fp,cin_data_stats_t stats);
+void cin_data_reset_stats(void);
 
 void cin_data_start_monitor_output(void);
 void cin_data_stop_monitor_output(void);

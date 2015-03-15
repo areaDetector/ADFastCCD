@@ -25,24 +25,20 @@ static const char *driverName = "FastCCD";
 asynStatus FastCCD::connect(asynUser *pasynUser){
   return connectCamera();
 }
-
+  
 asynStatus FastCCD::connectCamera(){
 
-  if(cin_data_init_port(&cin_data_port, NULL, 0, "10.23.5.127", 0, 1000))
-  {
+  if(cin_data_init_port(&cin_data_port, NULL, 0, (char *)cinFabricIP, 0, 500)) {
     return asynError;
   }
-  if(cin_ctl_init_port(&cin_ctl_port, NULL, 0, 0))
-  {
+  if(cin_ctl_init_port(&cin_ctl_port, NULL, 0, 0)) {
     return asynError;
   }
-  if(cin_ctl_init_port(&cin_ctl_port_stream, NULL, 49202, 50202))
-  {
+  if(cin_ctl_init_port(&cin_ctl_port_stream, NULL, 49202, 50202)) {
     return asynError;
   }
   if(cin_data_init(CIN_DATA_MODE_CALLBACK, cinPacketBuffer, cinImageBuffer,
-                   allocateImageC, processImageC, this))
-  {
+                   allocateImageC, processImageC, this)) {
     return asynError;
   }
 
@@ -156,7 +152,8 @@ void FastCCD::processImage(cin_data_frame_t *frame)
   * \param[in] stackSize The stack size for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
   */
 FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory, 
-                 int priority, int stackSize, int packetBuffer, int imageBuffer)
+                 int priority, int stackSize, int packetBuffer, int imageBuffer,
+		         const char *baseIP, const char *fabricIP, const char *fabricMAC)
 
   : ADDriver(portName, 1, NUM_FastCCD_DET_PARAMS, maxBuffers, maxMemory, 
              asynUInt32DigitalMask, asynUInt32DigitalMask,
@@ -172,8 +169,15 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   cinPacketBuffer = packetBuffer;
   cinImageBuffer = imageBuffer;
 
+  /* Store the network information */
+
+  strncpy(cinBaseIP, baseIP, 20);
+  strncpy(cinFabricIP, fabricIP, 20);
+  strncpy(cinFabricMAC, fabricMAC, 20);
+
   //Define the polling periods for the status thread.
-  mPollingPeriod = 2.0; //seconds
+  statusPollingPeriod = 5; //seconds
+  dataStatsPollingPeriod = 0.5; //seconds
   
   /* Create an EPICS exit handler */
   epicsAtExit(exitHandler, this);
@@ -190,15 +194,13 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDClockUploadString,         asynParamInt32,    &FastCCDClockUpload);
 
   createParam(FastCCDPowerString,               asynParamInt32,    &FastCCDPower);
+  createParam(FastCCDFPPowerString,             asynParamInt32,    &FastCCDFPPower);
 
-  createParam(FastCCDFrameIPAddrString,         asynParamOctet,    &FastCCDFrameIPAddr);
-  createParam(FastCCDFrameMACAddrString,        asynParamOctet,    &FastCCDFrameMACAddr);
-  createParam(FastCCDDataIPAddrString,          asynParamOctet,    &FastCCDDataIPAddr);
-  createParam(FastCCDDataMACAddrString,         asynParamOctet,    &FastCCDDataMACAddr);
-
-  createParam(FastCCDFPGAStatusString,          asynParamInt32,    &FastCCDFPGAStatus);
+  createParam(FastCCDFPGAStatusString,          asynParamUInt32Digital, &FastCCDFPGAStatus);
   createParam(FastCCDDCMStatusString,           asynParamUInt32Digital, &FastCCDDCMStatus);
-  createParam(FastCCDFPPowerStatusString,       asynParamInt32,    &FastCCDFPPowerStatus);
+
+  createParam(FastCCDBiasString,                asynParamInt32,    &FastCCDBias);
+  createParam(FastCCDClockString,               asynParamInt32,    &FastCCDClock);
 
   createParam(FastCCDVBus12V0String,            asynParamFloat64,  &FastCCDVBus12V0);
   createParam(FastCCDVMgmt3v3String,            asynParamFloat64,  &FastCCDVMgmt3v3);
@@ -226,12 +228,32 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDI62v5String,               asynParamFloat64,  &FastCCDI62v5);
   createParam(FastCCDIFpString,                 asynParamFloat64,  &FastCCDIFp);
 
+  createParam(FastCCDLibCinVersionString,       asynParamOctet,    &FastCCDLibCinVersion);
+  createParam(FastCCDBoardIDString,             asynParamInt32,    &FastCCDBoardID);
+  createParam(FastCCDSerialNumString,           asynParamInt32,    &FastCCDSerialNum);
+  createParam(FastCCDFPGAVersionString,         asynParamInt32,    &FastCCDFPGAVersion);
+
+  createParam(FastCCDStatusHBString,            asynParamInt32,    &FastCCDStatusHB);
+
+  createParam(FastCCDBadPckString,              asynParamInt32,    &FastCCDBadPck);
+  createParam(FastCCDDroppedPckString,          asynParamInt32,    &FastCCDDroppedPck);
+  createParam(FastCCDLastFrameString,           asynParamInt32,    &FastCCDLastFrame);
+  createParam(FastCCDResetStatsString,          asynParamInt32,    &FastCCDResetStats);
+
   // Create the epicsEvent for signaling to the status task when parameters should have changed.
   // This will cause it to do a poll immediately, rather than wait for the poll time period.
   this->statusEvent = epicsEventMustCreate(epicsEventEmpty);
   if (!this->statusEvent) {
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
               "%s:%s: Failed to create event for status task.\n",
+              driverName, functionName);
+    return;
+  }
+
+  this->dataStatsEvent = epicsEventMustCreate(epicsEventEmpty);
+  if (!this->dataStatsEvent) {
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+              "%s:%s: Failed to create event for data stats task.\n",
               driverName, functionName);
     return;
   }
@@ -280,10 +302,12 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setIntegerParam(FastCCDClockUpload, 0);
   status |= setIntegerParam(FastCCDBiasUpload, 0);
 
-  //status |= setIntegerParam(FastCCDPower, 0);
-  status |= setIntegerParam(FastCCDFPGAStatus, 0);
-  status |= setIntegerParam(FastCCDFPPowerStatus, 0);
+  status |= setIntegerParam(FastCCDPower, 0);
+  status |= setIntegerParam(FastCCDFPPower, 0);
+  status |= setUIntDigitalParam(FastCCDFPGAStatus, 0x0, 0xFFFF);
   status |= setUIntDigitalParam(FastCCDDCMStatus, 0x0, 0xFFFF);
+  status |= setIntegerParam(FastCCDBias, 0);
+  status |= setIntegerParam(FastCCDClock, 0);
 
   status |= setIntegerParam(FastCCDMux1, 0);
   status |= setIntegerParam(FastCCDMux2, 0);
@@ -291,9 +315,6 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setStringParam(FastCCDFirmwarePath, "");
   status |= setStringParam(FastCCDBiasPath, "");
   status |= setStringParam(FastCCDClockPath, "");
-
-  status |= setStringParam(FastCCDFrameIPAddr, "");
-  status |= setStringParam(FastCCDFrameMACAddr, "");
 
   status |= setDoubleParam(FastCCDVBus12V0, 0);
   status |= setDoubleParam(FastCCDVMgmt3v3, 0);
@@ -321,13 +342,15 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setDoubleParam(FastCCDI62v5, 0);
   status |= setDoubleParam(FastCCDIFp, 0);
 
+  status |= setStringParam(FastCCDLibCinVersion, (char *)cin_build_version);
+
   callParamCallbacks();
 
   // Signal the status thread to poll the detector
   epicsEventSignal(statusEvent);
+  epicsEventSignal(dataStatsEvent);
   
-  if (stackSize == 0)
-  {
+  if (stackSize == 0) {
     stackSize = epicsThreadGetStackSize(epicsThreadStackMedium);
   }
 
@@ -344,6 +367,18 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
     return;
   }
 
+  /* Create the thread that updates the data stats */
+  status = (epicsThreadCreate("FastCCDDataStatsTask",
+                              epicsThreadPriorityMedium,
+                              stackSize,
+                              (EPICSTHREADFUNC)FastCCDDataStatsTaskC,
+                              this) == NULL);
+  if(status) {
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+      "%s:%s: Failed to create data stats task.\n",
+      driverName, functionName);
+    return;
+  }
 }
 
 /**
@@ -494,20 +529,35 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       char path[256];
       getStringParam(FastCCDFirmwarePath, sizeof(path), path);
       setIntegerParam(FastCCDFirmwareUpload, 1);
-      setStringParam(ADStatusMessage, "Uploading Firmware.");
-      callParamCallbacks();
 
+      // Power off the cin
+	  
+      setStringParam(ADStatusMessage, "Powering CIN OFF");
+      callParamCallbacks();
+      cin_ctl_pwr(&cin_ctl_port, 0);
+      sleep(2);
+	  
+      // Power on the cin
+	  
+      setStringParam(ADStatusMessage, "Powering CIN ON");
+      callParamCallbacks();
+      cin_ctl_pwr(&cin_ctl_port, 1);
+      sleep(2);
+
+      setStringParam(ADStatusMessage, "Uploading Firmware");
+      callParamCallbacks();
       _status = cin_ctl_load_firmware(&cin_ctl_port, 
                                       &cin_ctl_port_stream, path);
      
       if(!_status){
-        char ip[256];
-        getStringParam(FastCCDFrameIPAddr, sizeof(ip), ip);
-        _status |= cin_ctl_set_fabric_address(&cin_ctl_port, ip);
+        _status |= cin_ctl_set_fabric_address(&cin_ctl_port, (char *)cinFabricIP);
         _status |= cin_data_send_magic();
       }
       setIntegerParam(FastCCDFirmwareUpload, 0);
-      setStringParam(ADStatusMessage, "");
+      char msg[256];
+      sprintf(msg, "Set Fabric Ip to %s", cinFabricIP);
+      setStringParam(ADStatusMessage, msg);
+      callParamCallbacks();
     }
     else if (function == FastCCDClockUpload)
     {
@@ -516,9 +566,12 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       setIntegerParam(FastCCDClockUpload, 1);
       setStringParam(ADStatusMessage, "Uploading Clock File");
       callParamCallbacks();
+
       _status = cin_ctl_load_config(&cin_ctl_port, path);
+
       setIntegerParam(FastCCDClockUpload, 0);
-      setStringParam(ADStatusMessage, "");
+      setStringParam(ADStatusMessage, "Done");
+      callParamCallbacks();
     }
     else if (function == FastCCDBiasUpload)
     {
@@ -527,19 +580,43 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       setIntegerParam(FastCCDBiasUpload, 1);
       setStringParam(ADStatusMessage, "Uploading Bias File");
       callParamCallbacks();
+
       _status = cin_ctl_load_config(&cin_ctl_port, path);
+
       setIntegerParam(FastCCDBiasUpload, 0);
-      setStringParam(ADStatusMessage, "");
+      setStringParam(ADStatusMessage, "Done");
+      callParamCallbacks();
     }
     else if (function == FastCCDPower)
     {
-      if(value)
-      {
+      if(value) {
         _status = cin_ctl_pwr(&cin_ctl_port, 1);
-        sleep(1);
-        _status = cin_ctl_fp_pwr(&cin_ctl_port, 1);
       } else {
         _status = cin_ctl_pwr(&cin_ctl_port, 0);
+      }
+    }
+    else if (function == FastCCDFPPower)
+    {
+      if(value) {
+        _status = cin_ctl_fp_pwr(&cin_ctl_port, 1);
+      } else {
+        _status = cin_ctl_fp_pwr(&cin_ctl_port, 0);
+      }
+    }
+    else if (function == FastCCDBias)
+    {
+      if(value){
+        _status = cin_ctl_set_bias(&cin_ctl_port, 1);
+      } else {
+        _status = cin_ctl_set_bias(&cin_ctl_port, 0);
+      }
+    }
+    else if (function == FastCCDClock)
+    {
+      if(value){
+        _status = cin_ctl_set_clocks(&cin_ctl_port, 1);
+      } else {
+        _status = cin_ctl_set_clocks(&cin_ctl_port, 0);
       }
     }
     else if ((function == ADNumExposures) || (function == ADNumImages)   ||
@@ -560,6 +637,10 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       getIntegerParam(FastCCDMux1, &_val);
       _val = _val | (value << 4);
       cin_ctl_set_mux(&cin_ctl_port, _val);
+    }
+    else if (function == FastCCDResetStats)
+    {
+      cin_data_reset_stats();
     }
 
     /* Do callbacks so higher layers see any changes */
@@ -614,6 +695,42 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 //    return status;
 //}
 
+void FastCCD::dataStatsTask(void)
+{
+  unsigned int status = 0;
+  double timeout = 0.0;
+  static const char *functionName = "dataStatsTask";
+
+  while(1) {
+
+    //Read timeout for polling freq.
+    this->lock();
+    timeout = dataStatsPollingPeriod;
+    this->unlock();
+
+    if (timeout != 0.0) {
+      status = epicsEventWaitWithTimeout(dataStatsEvent, timeout);
+    } else {
+      status = epicsEventWait(dataStatsEvent);
+    }              
+  
+    if (status == epicsEventWaitOK) {
+      asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
+        "%s:%s: Got status event\n",
+        driverName, functionName);
+    }
+
+    cin_data_stats_t stats;
+    cin_data_compute_stats(&stats);
+    setIntegerParam(FastCCDDroppedPck, (int)stats.dropped_packets);
+    setIntegerParam(FastCCDBadPck, (int)stats.mallformed_packets);
+    setIntegerParam(FastCCDLastFrame, stats.last_frame);
+    
+    this->lock();
+    callParamCallbacks();
+    this->unlock();
+  }
+}
 
 /**
  * Update status of detector. Meant to be run in own thread.
@@ -627,14 +744,14 @@ void FastCCD::statusTask(void)
   cin_ctl_pwr_mon_t pwr_value;
   int pwr;
   int cin_status;
-  uint16_t fpga_status;
-  cin_data_stats_t stats;
+  int ticktock = 0;
+  int run_once = 0;
 
   while(1) {
 
     //Read timeout for polling freq.
     this->lock();
-    timeout = mPollingPeriod;
+    timeout = statusPollingPeriod;
     this->unlock();
 
     if (timeout != 0.0) {
@@ -649,17 +766,40 @@ void FastCCD::statusTask(void)
         driverName, functionName);
     }
 
-    cin_data_compute_stats(&stats);
+    // Update the ticktock
+    
+    ticktock += 1;
+    setIntegerParam(FastCCDStatusHB, ticktock);
 
-    cin_status  = cin_ctl_get_power_status(&cin_ctl_port, &pwr, &pwr_value);
+    // Run once certain reads
+    
+    if(!run_once){
+      cin_ctl_id_t id;
+      cin_status = 0;
+      cin_status |= cin_ctl_get_id(&cin_ctl_port, &id);
+      if(!cin_status){
+        setIntegerParam(FastCCDBoardID, id.board_id);
+        setIntegerParam(FastCCDSerialNum, id.serial_no);
+        setIntegerParam(FastCCDFPGAVersion, id.fpga_ver);
+      }
 
-    fprintf(stderr, "cin_status = %d, pwr = %d\n", cin_status, pwr);
+      // If sucsessful, don't run again
+
+      if(!cin_status){
+        run_once = 1;
+      }
+    }
+
+    cin_status = cin_ctl_get_power_status(&cin_ctl_port, &pwr, &pwr_value);
 
     if(!cin_status){
       // Power Status
       if(pwr){
         setIntegerParam(FastCCDPower, 1);
-
+        if(pwr == 2){
+          setIntegerParam(FastCCDFPPower, 1);
+        }
+       
         // Voltage Values
 
         setDoubleParam(FastCCDVBus12V0, pwr_value.bus_12v0.v);
@@ -692,6 +832,7 @@ void FastCCD::statusTask(void)
 
       } else {
         setIntegerParam(FastCCDPower, 0);
+        setIntegerParam(FastCCDFPPower, 0);
 
         // Voltage Values
 
@@ -727,18 +868,38 @@ void FastCCD::statusTask(void)
       }
     }
 
-    cin_status = cin_ctl_get_cfg_fpga_status(&cin_ctl_port, &fpga_status);
+    // Status
+	
+    uint16_t fpga_status, dcm_status;
+    
+	  cin_status = cin_ctl_get_cfg_fpga_status(&cin_ctl_port, &fpga_status);
     if(!cin_status){
-      fprintf(stderr, "fpga_status = %x\n", fpga_status);
-      setIntegerParam(FastCCDFPGAStatus, (fpga_status & CIN_CTL_FPGA_STS_CFG));
-      setIntegerParam(FastCCDFPPowerStatus, (fpga_status & CIN_CTL_FPGA_STS_FP_PWR));
+      setUIntDigitalParam(FastCCDFPGAStatus, fpga_status, 0xFFFF);
+      //setIntegerParam(FastCCDFPPower, (fpga_status & CIN_CTL_FPGA_STS_FP_PWR));
     }
     
-    // Status
+	  cin_status = cin_ctl_get_dcm_status(&cin_ctl_port, &dcm_status);
+      if(!cin_status){
+	    setUIntDigitalParam(FastCCDDCMStatus, dcm_status, 0xFFFF);
+	  }
 
-    setUIntDigitalParam(FastCCDDCMStatus, fpga_status, 0xFFFF);
+    /* Are we powered up and configured? */
+
+    if(fpga_status & CIN_CTL_FPGA_STS_CFG){
+
+      // Clock and Bias status
     
-    //cin_data_show_stats(stats);
+      int bias, clock;
+      cin_status = cin_ctl_get_bias(&cin_ctl_port, &bias);
+      if(!cin_status){
+        setIntegerParam(FastCCDBias, bias);
+      }
+
+      cin_status = cin_ctl_get_clocks(&cin_ctl_port, &clock);
+      if(!cin_status){
+        setIntegerParam(FastCCDClock, clock);
+      }
+    }
 
     /* Call the callbacks to update any changes */
     this->lock();
@@ -759,6 +920,13 @@ static void FastCCDStatusTaskC(void *drvPvt)
 }
 
 
+static void FastCCDDataStatsTaskC(void *drvPvt)
+{
+  FastCCD *pPvt = (FastCCD *)drvPvt;
+
+  pPvt->dataStatsTask();
+}
+
 /** IOC shell configuration command for Andor driver
   * \param[in] portName The name of the asyn port driver to be created.
   * \param[in] maxBuffers The maximum number of NDArray buffers that the NDArrayPool for this driver is 
@@ -773,9 +941,11 @@ static void FastCCDStatusTaskC(void *drvPvt)
 extern "C" {
 
 int FastCCDConfig(const char *portName, int maxBuffers, size_t maxMemory, 
-                  int priority, int stackSize, int packetBuffer, int imageBuffer)
+                  int priority, int stackSize, int packetBuffer, int imageBuffer,
+				  const char *baseIP, const char *fabricIP, const char *fabricMAC)
 {
-  new FastCCD(portName, maxBuffers, maxMemory, priority, stackSize, packetBuffer, imageBuffer);
+  new FastCCD(portName, maxBuffers, maxMemory, priority, stackSize, packetBuffer, imageBuffer,
+		      baseIP, fabricIP, fabricMAC);
   return(asynSuccess);
 }
 
@@ -789,20 +959,27 @@ static const iocshArg FastCCDConfigArg3 = {"priority", iocshArgInt};
 static const iocshArg FastCCDConfigArg4 = {"stackSize", iocshArgInt};
 static const iocshArg FastCCDConfigArg5 = {"packetBuffer", iocshArgInt};
 static const iocshArg FastCCDConfigArg6 = {"imageBuffer", iocshArgInt};
+static const iocshArg FastCCDConfigArg7 = {"baseIP", iocshArgString};
+static const iocshArg FastCCDConfigArg8 = {"fabricIP", iocshArgString};
+static const iocshArg FastCCDConfigArg9 = {"fabricMAC", iocshArgString};
 static const iocshArg * const FastCCDConfigArgs[] =  {&FastCCDConfigArg0,
                                                        &FastCCDConfigArg1,
                                                        &FastCCDConfigArg2,
                                                        &FastCCDConfigArg3,
                                                        &FastCCDConfigArg4,
                                                        &FastCCDConfigArg5,
-                                                       &FastCCDConfigArg6};
+                                                       &FastCCDConfigArg6,
+                                                       &FastCCDConfigArg7,
+                                                       &FastCCDConfigArg8,
+                                                       &FastCCDConfigArg9};
 
-static const iocshFuncDef configFastCCD = {"FastCCDConfig", 7, FastCCDConfigArgs};
+static const iocshFuncDef configFastCCD = {"FastCCDConfig", 10, FastCCDConfigArgs};
 static void configFastCCDCallFunc(const iocshArgBuf *args)
 {
     FastCCDConfig(args[0].sval, args[1].ival, args[2].ival,
                   args[3].ival, args[4].ival, args[5].ival,
-                  args[6].ival);
+                  args[6].ival, args[7].sval, args[8].sval,
+				  args[9].sval);
 }
 
 static void FastCCDRegister(void)

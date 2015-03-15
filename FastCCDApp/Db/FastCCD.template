@@ -1,4 +1,22 @@
-record(bi, "$(P)$(R)FrmConf_RBV")
+record(longin, "$(P)$(R)StatusHB_RBV"){
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))STATUS_HB")
+  field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)FPGAStatus_RBV"){
+  field(DTYP, "asynUInt32Digital")
+  field(INP,  "@asynMask($(PORT),$(ADDR),0xFFFF,$(TIMEOUT))FPGA_STATUS")
+  field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)DCMStatus_RBV"){
+  field(DTYP, "asynUInt32Digital")
+  field(INP,  "@asynMask($(PORT),$(ADDR),0xFFFF,$(TIMEOUT))DCM_STATUS")
+  field(SCAN, "I/O Intr")
+}
+
+record(bi, "$(P)$(R)FPGACfg_RBV")
 {
   field(DTYP, "asynUInt32Digital")
   field(INP,  "@asynMask($(PORT),$(ADDR),0x8000, $(TIMEOUT))FPGA_STATUS")
@@ -8,13 +26,13 @@ record(bi, "$(P)$(R)FrmConf_RBV")
   field(OSV,  "MINOR")
 }
 
-record(bi, "$(P)$(R)FPPwrLocked_RBV")
+record(bi, "$(P)$(R)FPIlck_RBV")
 {
   field(DTYP, "asynUInt32Digital")
-  field(INP,  "@asynMask($(PORT),$(ADDR),0x8000, $(TIMEOUT))FPGA_STATUS")
+  field(INP,  "@asynMask($(PORT),$(ADDR),0x0008, $(TIMEOUT))FPGA_STATUS")
   field(SCAN, "I/O Intr")
-  field(ZNAM, "Unlocked")
-  field(ONAM, "Locked")
+  field(ZNAM, "OK")
+  field(ONAM, "Interlocked")
   field(OSV,  "MINOR")
 }
 
@@ -28,26 +46,26 @@ record(bi, "$(P)$(R)ACTAAlarm_RBV")
   field(OSV,  "MAJOR")
 }
 
-record(bi, "$(P)$(R)CFGDCM_RBV")
+record(bi, "$(P)$(R)CFGClock_RBV")
 {
   field(DTYP, "asynUInt32Digital")
   field(INP,  "@asynMask($(PORT),$(ADDR),0x0001, $(TIMEOUT))DCM_STATUS")
   field(SCAN, "I/O Intr")
   field(ZNAM, "Unlocked")
   field(ONAM, "Locked")
-  field(OSV,  "MAJOR")
+  field(ZSV,  "MAJOR")
 }
- 
-record(bi, "$(P)$(R)FPPSIlk_RBV")
+
+record(bi, "$(P)$(R)FPIlckStatus_RBV")
 {
   field(DTYP, "asynUInt32Digital")
   field(INP,  "@asynMask($(PORT),$(ADDR),0x0800, $(TIMEOUT))DCM_STATUS")
   field(SCAN, "I/O Intr")
   field(ZNAM, "Enabled")
-  field(ONAM, "Overridden")
-  field(OSV,  "MAJOR")
+  field(ONAM, "Disabled")
+  field(OSV,  "MINOR")
 }
-
+ 
 #
 # MUX Settings for front panel
 #
@@ -206,6 +224,44 @@ record(mbbi, "$(P)$(R)Mux2_RBV")
   field(FTVL, "14")
   field(FFST, "HWTRIG")
   field(FFVL, "15")
+}
+
+#
+# Bias / Clock Controls
+#
+
+record(bo, "$(P)$(R)Bias") {
+   field(DTYP, "asynInt32")
+   field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS")
+   field(ZNAM, "OFF")
+   field(ONAM, "ON")
+}
+
+record(bi, "$(P)$(R)Bias_RBV") {
+   field(DTYP, "asynInt32")
+   field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS")
+   field(ZNAM, "OFF")
+   field(OSV,  "NO_ALARM")
+   field(ONAM, "ON")
+   field(ZSV,  "MINOR")
+   field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)Clock") {
+   field(DTYP, "asynInt32")
+   field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CLOCK")
+   field(ZNAM, "OFF")
+   field(ONAM, "ON")
+}
+
+record(bi, "$(P)$(R)Clock_RBV") {
+   field(DTYP, "asynInt32")
+   field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CLOCK")
+   field(ZNAM, "OFF")
+   field(OSV,  "NO_ALARM")
+   field(ONAM, "ON")
+   field(ZSV,  "MINOR")
+   field(SCAN, "I/O Intr")
 }
 
 #
@@ -555,86 +611,6 @@ record(waveform, "$(P)$(R)ClockPath_RBV")
 }
 
 #
-# IP Address and MAC Addr
-#
-
-record(waveform, "$(P)$(R)FrameIP")
-{
-  field(PINI, "YES")
-  field(DTYP, "asynOctetWrite")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FRAME_IP")
-  field(FTVL, "CHAR")
-  field(NELM, "256")
-}
-
-record(waveform, "$(P)$(R)FrameIP_RBV")
-{
-  field(PINI, "YES")
-  field(DTYP, "asynOctetRead")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FRAME_IP")
-  field(FTVL, "CHAR")
-  field(NELM, "256")
-  field(SCAN, "I/O Intr")
-}
-
-record(waveform, "$(P)$(R)FrameMAC")
-{
-  field(PINI, "YES")
-  field(DTYP, "asynOctetWrite")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FRAME_MAC")
-  field(FTVL, "CHAR")
-  field(NELM, "256")
-}
-
-record(waveform, "$(P)$(R)FrameMAC_RBV")
-{
-  field(PINI, "YES")
-  field(DTYP, "asynOctetRead")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FRAME_MAC")
-  field(FTVL, "CHAR")
-  field(NELM, "256")
-  field(SCAN, "I/O Intr")
-}
-
-record(waveform, "$(P)$(R)DataIP")
-{
-  field(PINI, "YES")
-  field(DTYP, "asynOctetWrite")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DATA_IP")
-  field(FTVL, "CHAR")
-  field(NELM, "256")
-}
-
-record(waveform, "$(P)$(R)DataIP_RBV")
-{
-  field(PINI, "YES")
-  field(DTYP, "asynOctetRead")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DATA_IP")
-  field(FTVL, "CHAR")
-  field(NELM, "256")
-  field(SCAN, "I/O Intr")
-}
-
-record(waveform, "$(P)$(R)DataMAC")
-{
-  field(PINI, "YES")
-  field(DTYP, "asynOctetWrite")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DATA_MAC")
-  field(FTVL, "CHAR")
-  field(NELM, "256")
-}
-
-record(waveform, "$(P)$(R)DataMAC_RBV")
-{
-  field(PINI, "YES")
-  field(DTYP, "asynOctetRead")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DATA_MAC")
-  field(FTVL, "CHAR")
-  field(NELM, "256")
-  field(SCAN, "I/O Intr")
-}
-
-#
 # Records for uploading files
 #
 
@@ -674,6 +650,78 @@ record(bi, "$(P)$(R)ClockUpload_RBV") {
    field(SCAN, "I/O Intr")
 }
 
+record(busy, "$(P)$(R)BiasUpload") {
+   field(DTYP, "asynInt32")
+   field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_UPLOAD")
+   field(ZNAM, "Done")
+   field(ONAM, "Uploading")
+   field(VAL,  "0")
+}
+
+record(bi, "$(P)$(R)BiasUpload_RBV") {
+   field(DTYP, "asynInt32")
+   field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_UPLOAD")
+   field(ZNAM, "Done")
+   field(ZSV,  "NO_ALARM")
+   field(ONAM, "Uploading")
+   field(OSV,  "MINOR")
+   field(SCAN, "I/O Intr")
+}
+
+#
+# Versioning Information
+#
+
+record(stringin, "$(P)$(R)LibCinVersion_RBV"){
+	field(DTYP, "asynOctetRead")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))LIBCINVER")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)BoardID_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BOARD_ID")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)SerialNum_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SERIAL_NUM")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)FPGAVer_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FPGA_VER")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)LastFrame_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))LAST_FRAME")
+    field(SCAN, "I/O Intr")
+}
+
+#
+# Data Stats
+#
+
+record(longin, "$(P)$(R)DroppedPck_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DROPPED_PCK")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)BadPck_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BAD_PCK")
+    field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)ResetStats"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))RESET_STATS")
+}
 #
 # Records for power
 #
@@ -683,40 +731,40 @@ record(bo, "$(P)$(R)Power")
   #field(PINI, "YES")
   field(DTYP, "asynInt32")
   field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CIN_POWER")
-  field(ZNAM, "Off")
-  field(ONAM, "On")
+  field(ZNAM, "OFF")
+  field(ONAM, "ON")
 }
 
 record(bi, "$(P)$(R)Power_RBV")
 {
   field(DTYP, "asynInt32")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))CIN_POWER")
-  field(ZNAM, "Off")
-  field(ONAM, "On")
+  field(ZNAM, "OFF")
+  field(ONAM, "ON")
   field(OSV,  "NO_ALARM")
-  field(ZSV,  "MINOR")
+  field(ZSV,  "MAJOR")
   field(SCAN, "I/O Intr")
 }
 
-#record(bo, "$(P)$(R)FPPower")
-#{
-#  field(DTYP, "asynInt32")
-#  field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))FP_POWER")
-#  field(ZNAM, "Off")
-#  field(ONAM, "On")
-#  #field(PINI, "YES")
-#}
-#
-#record(bi, "$(P)$(R)FPPower_RBV")
-#{
-#  field(DTYP, "asynInt32")
-#  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FP_POWER")
-#  field(ZNAM, "Off")
-#  field(ONAM, "On")
-#  field(OSV,  "NO_ALARM")
-#  field(ZSV,  "MINOR")
-#  field(SCAN, "I/O Intr")
-#}
+record(bo, "$(P)$(R)FPPower")
+{
+  #field(PINI, "YES")
+  field(DTYP, "asynInt32")
+  field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CIN_FP_POWER")
+  field(ZNAM, "OFF")
+  field(ONAM, "ON")
+}
+
+record(bi, "$(P)$(R)FPPower_RBV")
+{
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))CIN_FP_POWER")
+  field(ZNAM, "OFF")
+  field(ONAM, "ON")
+  field(OSV,  "NO_ALARM")
+  field(ZSV,  "MAJOR")
+  field(SCAN, "I/O Intr")
+}
 
 #
 # Records in ADBase that do not apply to the fCCD

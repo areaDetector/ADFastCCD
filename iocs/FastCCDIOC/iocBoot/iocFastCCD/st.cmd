@@ -4,12 +4,14 @@
 epicsEnvSet("ADCORE", "$(AREA_DETECTOR)/ADCore")
 
 errlogInit(20000)
-epicsEnvSet(EPICS_CA_MAX_ARRAY_BYTES,4432896)
+epicsEnvSet("EPICS_CA_AUTO_ADDR_LIST" , "NO")
+epicsEnvSet("EPICS_CA_ADDR_LIST"      , "10.23.0.255")
+epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES", "10000000")
 
 dbLoadDatabase("$(ADFASTCCD)/dbd/FastCCDApp.dbd")
 FastCCDApp_registerRecordDeviceDriver(pdbbase) 
 
-epicsEnvSet("PREFIX", "XF:23ID1-ES{Det-CCD}")
+epicsEnvSet("PREFIX", "XF:23ID1-ES{Dif-Cam:FCCD}")
 epicsEnvSet("PORT",   "FASTCCD")
 epicsEnvSet("QSIZE",  "20")
 epicsEnvSet("XSIZE",  "2048")
@@ -17,9 +19,10 @@ epicsEnvSet("YSIZE",  "2048")
 epicsEnvSet("NCHANS", "2048")
 
 # FastCCDConfig(const char *portName, int maxBuffers, size_t maxMemory, 
-#               int priority, int stackSize, int packetBuffer, int imageBuffer)
+#               int priority, int stackSize, int packetBuffer, int imageBuffer,
+#				const char *baseIP, const char *fabricIP, const char *fabricMAC))
 
-FastCCDConfig("$(PORT)", 0, 0, 0, 100000, 2000, 200)
+FastCCDConfig("$(PORT)", 0, 0, 0, 100000, 2000, 200, "", "10.23.5.127", "")
 
 # Load Records
 
@@ -47,3 +50,6 @@ iocInit()
 # save things every thirty seconds
 create_monitor_set("auto_settings.req", 30,"P=$(PREFIX),D=cam1:")
 #asynSetTraceMask($(PORT), 0, 255)
+
+dbl > /cf-update/xf23id1-ioc2.es-fccd.dbl
+

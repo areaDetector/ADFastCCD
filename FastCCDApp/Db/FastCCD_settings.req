@@ -3,7 +3,3 @@ $(P)$(R)Mux2
 $(P)$(R)FirmwarePath
 $(P)$(R)ClockPath
 $(P)$(R)BiasPath
-$(P)$(R)FrameIP
-$(P)$(R)FrameMAC
-$(P)$(R)DataIP
-$(P)$(R)DataMAC

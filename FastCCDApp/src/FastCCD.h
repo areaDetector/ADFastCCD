@@ -26,15 +26,25 @@
 #define FastCCDBiasUploadString                 "BIAS_UPLOAD"
 
 #define FastCCDPowerString                      "CIN_POWER"
-#define FastCCDFPPowerStatusString              "FPPWR_STATUS"
+#define FastCCDFPPowerString                    "CIN_FP_POWER"
 
 #define FastCCDFPGAStatusString                 "FPGA_STATUS"
 #define FastCCDDCMStatusString                  "DCM_STATUS"
 
-#define FastCCDFrameIPAddrString                "FRAME_IP"
-#define FastCCDFrameMACAddrString               "FRAME_MAC"
-#define FastCCDDataIPAddrString                 "DATA_IP"
-#define FastCCDDataMACAddrString                "DATA_MAC"
+#define FastCCDBiasString						            "BIAS"
+#define FastCCDClockString						          "CLOCK"
+
+#define FastCCDLibCinVersionString              "LIBCINVER"
+#define FastCCDBoardIDString                    "BOARD_ID"
+#define FastCCDSerialNumString                  "SERIAL_NUM"
+#define FastCCDFPGAVersionString                "FPGA_VER"
+
+#define FastCCDStatusHBString                   "STATUS_HB"
+
+#define FastCCDBadPckString                     "BAD_PCK"
+#define FastCCDDroppedPckString                 "DROPPED_PCK"
+#define FastCCDLastFrameString                  "LAST_FRAME"
+#define FastCCDResetStatsString                 "RESET_STATS"
 
 #define FastCCDVBus12V0String                   "VBUS_12V0"
 #define FastCCDVMgmt3v3String                   "VMGMT_3V3"
@@ -64,6 +74,7 @@
 
 //C Function prototypes to tie in with EPICS
 static void FastCCDStatusTaskC(void *drvPvt);
+static void FastCCDDataStatsTaskC(void *drvPvt);
 static void exitHandler(void *drvPvt);
 static void allocateImageC(cin_data_frame_t *frame);
 static void processImageC(cin_data_frame_t *frame);
@@ -75,7 +86,8 @@ static void processImageC(cin_data_frame_t *frame);
 class FastCCD : public ADDriver {
  public:
   FastCCD(const char *portName, int maxBuffers, size_t maxMemory, 
-          int priority, int stackSize, int packetBuffer, int imageBuffer);
+          int priority, int stackSize, int packetBuffer, int imageBuffer,
+		  const char *baseIP, const char *fabricIP, const char *fabricMAC);
 
   ~FastCCD();
 
@@ -96,6 +108,7 @@ class FastCCD : public ADDriver {
 
   // Should be private, but are called from C so must be public
   void statusTask(void);
+  void dataStatsTask(void);
   
   void allocateImage(cin_data_frame_t *frame);
   void processImage(cin_data_frame_t *frame);  
@@ -117,15 +130,33 @@ class FastCCD : public ADDriver {
 
   // Power Status
   int FastCCDPower;
-  int FastCCDFPPowerStatus;
+  int FastCCDFPPower;
 
   // Frame FPGA
   int FastCCDFPGAStatus;
   int FastCCDDCMStatus;
-  int FastCCDFrameIPAddr;
-  int FastCCDFrameMACAddr;
-  int FastCCDDataIPAddr;
-  int FastCCDDataMACAddr;
+
+  // Bias Power
+  int FastCCDBias;
+
+  // Clock Power
+  int FastCCDClock;
+
+  // Versioning Info
+  int FastCCDLibCinVersion;
+  int FastCCDBoardID;
+  int FastCCDSerialNum;
+  int FastCCDFPGAVersion;
+
+  // Status HB
+  int FastCCDStatusHB;
+
+  // Data packet stats
+
+  int FastCCDBadPck;
+  int FastCCDDroppedPck;
+  int FastCCDLastFrame;
+  int FastCCDResetStats;
 
   // Power monitor Variables
   int FastCCDPwrBus12V;
@@ -161,6 +192,10 @@ class FastCCD : public ADDriver {
   int cinPacketBuffer;
   int cinImageBuffer;
 
+  char cinBaseIP[20];
+  char cinFabricIP[20];
+  char cinFabricMAC[20];
+
   // Connect / Disconnect
 
   asynStatus disconnectCamera();
@@ -169,9 +204,11 @@ class FastCCD : public ADDriver {
   asynStatus setupAcquisition();
 
   epicsEventId statusEvent;
+  epicsEventId dataStatsEvent;
   epicsEventId dataEvent;
 
-  double mPollingPeriod;
+  double statusPollingPeriod;
+  double dataStatsPollingPeriod;
  
   int framesRemaining;
 
