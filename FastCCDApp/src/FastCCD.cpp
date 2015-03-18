@@ -725,7 +725,7 @@ void FastCCD::dataStatsTask(void)
     setIntegerParam(FastCCDDroppedPck, (int)stats.dropped_packets);
     setIntegerParam(FastCCDBadPck, (int)stats.mallformed_packets);
     setIntegerParam(FastCCDLastFrame, stats.last_frame);
-    setDoubleParam(FastCCDDataRate, stats.datarate);
+    //setDoubleParam(FastCCDDataRate, stats.datarate);
     
     this->lock();
     callParamCallbacks();
