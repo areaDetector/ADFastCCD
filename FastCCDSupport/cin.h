@@ -56,6 +56,7 @@ extern const char *cin_build_version;
 #define CIN_CTL_FCLK_125                   0x0000
 #define CIN_CTL_FCLK_200                   0x0001
 #define CIN_CTL_FCLK_250                   0x0002
+#define CIN_CTL_FCLK_180                   0x0003
 
 #define CIN_CTL_FPGA_STS_CFG               0x8000
 #define CIN_CTL_FPGA_STS_FP_PWR            0x0008
@@ -122,8 +123,8 @@ extern const char *cin_build_version;
 // We include 20 more rows
 //
 #define CIN_DATA_MAX_FRAME_X               1152 // Columns
-#define CIN_DATA_MAX_FRAME_Y               2000 // Rows
-#define CIN_DATA_MAX_STREAM                2304000
+#define CIN_DATA_MAX_FRAME_Y               2050 // Rows
+#define CIN_DATA_MAX_STREAM                2400000
 #define CIN_DATA_CCD_COLS                  96
 #define CIN_DATA_CCD_COLS_PER_CHAN         10
 #define CIN_DATA_PIPELINE_FLUSH            1344 // 7 converts * 2 * 96 cols
@@ -321,6 +322,7 @@ int cin_ctl_load_config(struct cin_port* cp,char *filename);
 int cin_ctl_load_firmware(struct cin_port* cp,struct cin_port* dcp, char *filename);
 int cin_ctl_set_fclk(struct cin_port* cp, int clkfreq);
 int cin_ctl_get_fclk(struct cin_port* cp, int *clkfreq);
+int cin_ctl_set_dco(struct cin_port* cp, int freeze);
 int cin_ctl_get_cfg_fpga_status(struct cin_port* cp, uint16_t *_val);
 int cin_ctl_get_id(struct cin_port *cp, cin_ctl_id_t *_val);
 void cin_ctl_display_id(FILE *out, cin_ctl_id_t val);
@@ -427,7 +429,7 @@ void cin_data_stop_monitor_output(void);
 int cin_data_send_magic(void);
 
 int cin_data_set_descramble_params(int rows, int overscan);
-int cin_data_get_descramble_params(int *rows, int *overscan);
+int cin_data_get_descramble_params(int *rows, int *overscan, int *xsize, int *ysize);
 
 #ifdef __cplusplus
 }

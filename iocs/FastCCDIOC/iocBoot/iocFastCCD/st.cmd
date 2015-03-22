@@ -11,7 +11,7 @@ epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES", "10000000")
 dbLoadDatabase("$(ADFASTCCD)/dbd/FastCCDApp.dbd")
 FastCCDApp_registerRecordDeviceDriver(pdbbase) 
 
-epicsEnvSet("PREFIX", "XF:23ID1-ES{Dif-Cam:FCCD}")
+epicsEnvSet("PREFIX", "XF:23ID1-ES{FCCD}")
 epicsEnvSet("PORT",   "FASTCCD")
 epicsEnvSet("QSIZE",  "20")
 epicsEnvSet("XSIZE",  "2048")
@@ -34,7 +34,7 @@ dbLoadRecords("NDFile.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT
 
 # Create a standard arrays plugin
 NDStdArraysConfigure("Image1", 5, 0, "$(PORT)", 0, 0)
-dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,NDARRAY_PORT=$(PORT),ADDR=0,TIMEOUT=1,TYPE=Int32,FTVL=LONG,NELEMENTS=2220000")
+dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,NDARRAY_PORT=$(PORT),ADDR=0,TIMEOUT=1,TYPE=Int32,FTVL=LONG,NELEMENTS=2361600")
 
 # Load all other plugins using commonPlugins.cmd
 < $(ADCORE)/iocBoot/commonPlugins.cmd
@@ -50,7 +50,6 @@ iocInit()
 
 # save things every thirty seconds
 create_monitor_set("auto_settings.req", 30,"P=$(PREFIX),D=cam1:")
-#asynSetTraceMask($(PORT), 0, 255)
 
 dbl > /cf-update/xf23id1-ioc2.es-fccd.dbl
 

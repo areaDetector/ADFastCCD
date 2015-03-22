@@ -48,6 +48,8 @@
 
 #define FastCCDOverscanString                   "OVERSCAN"
 
+#define FastCCDFclkString                       "FCLK"
+
 #define FastCCDVBus12V0String                   "VBUS_12V0"
 #define FastCCDVMgmt3v3String                   "VMGMT_3V3"
 #define FastCCDVMgmt2v5String                   "VMGMT_2V5"
@@ -127,6 +129,9 @@ class FastCCD : public ADDriver {
 
   // Overscan
   int FastCCDOverscan;
+
+  // FCLK
+  int FastCCDFclk;
 
   // File upload
   int FastCCDFirmwareUpload;

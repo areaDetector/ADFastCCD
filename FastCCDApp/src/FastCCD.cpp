@@ -184,8 +184,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   strncpy(cinFabricMAC, fabricMAC, 20);
 
   //Define the polling periods for the status thread.
-  statusPollingPeriod = 1; //seconds
-  dataStatsPollingPeriod = 0.5; //seconds
+  statusPollingPeriod = 10; //seconds
+  dataStatsPollingPeriod = 0.2; //seconds
   
   /* Create an EPICS exit handler */
   epicsAtExit(exitHandler, this);
@@ -211,6 +211,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDClockString,               asynParamInt32,    &FastCCDClock);
 
   createParam(FastCCDOverscanString,            asynParamInt32,    &FastCCDOverscan);
+
+  createParam(FastCCDFclkString,                asynParamInt32,    &FastCCDFclk);
 
   createParam(FastCCDVBus12V0String,            asynParamFloat64,  &FastCCDVBus12V0);
   createParam(FastCCDVMgmt3v3String,            asynParamFloat64,  &FastCCDVMgmt3v3);
@@ -329,6 +331,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setStringParam(FastCCDClockPath, "");
 
   status |= setIntegerParam(FastCCDOverscan, 2);
+
+  status |= setIntegerParam(FastCCDFclk, 0);
 
   status |= setDoubleParam(FastCCDVBus12V0, 0);
   status |= setDoubleParam(FastCCDVMgmt3v3, 0);
@@ -639,37 +643,37 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
     {
       status = ADDriver::writeInt32(pasynUser, value);
     }
-    else if (function == FastCCDMux1)
+    else if ((function == FastCCDMux1) || (function == FastCCDMux2))
     {
-      int _val;
-      getIntegerParam(FastCCDMux2, &_val);
-      _val = (_val << 4) | value;
+      int _val, _val1, _val2;
+      getIntegerParam(FastCCDMux1, &_val1);
+      getIntegerParam(FastCCDMux2, &_val2);
+      _val = (_val2 << 4) | _val1;
       _status = cin_ctl_set_mux(&cin_ctl_port, _val);   
-    }
-    else if (function == FastCCDMux2)
-    {
-      int _val;
-      getIntegerParam(FastCCDMux1, &_val);
-      _val = _val | (value << 4);
-      _status = cin_ctl_set_mux(&cin_ctl_port, _val);
     }
     else if (function == FastCCDResetStats)
     {
       cin_data_reset_stats();
     }
-    else if (function == ADSizeY)
+    else if ((function == ADSizeY) || (function == FastCCDOverscan))
     {
       // The Y size changed, change the descramble routine
-      int _val;
-      _val = getIntegerParam(FastCCDOverscan, &_val);
-      _status = cin_data_set_descramble_params(value, _val);
+      int _val1, _val2;
+      getIntegerParam(ADSizeY, &_val1);
+      getIntegerParam(FastCCDOverscan, &_val2);
+      _status = cin_data_set_descramble_params(_val1, _val2);
+
+      // Read back to check all OK
+
+      int _x, _y;
+      cin_data_get_descramble_params(&_val1, &_val2, &_x, &_y);
+      setIntegerParam(ADSizeX, _x);
+      setIntegerParam(ADSizeY, _y);
+
     }
-    else if (function == FastCCDOverscan)
+    else if (function == FastCCDFclk)
     {
-      // The Y size changed, change the descramble routine
-      int _val;
-      getIntegerParam(ADSizeY, &_val);
-      _status = cin_data_set_descramble_params(_val, value);
+      _status = cin_ctl_set_fclk(&cin_ctl_port, value);
     }
 
     /* Do callbacks so higher layers see any changes */
@@ -779,23 +783,31 @@ void FastCCD::statusTask(void)
         setIntegerParam(FastCCDBoardID, id.board_id);
         setIntegerParam(FastCCDSerialNum, id.serial_no);
         setIntegerParam(FastCCDFPGAVersion, id.fpga_ver);
+        setParamStatus(FastCCDBoardID, asynSuccess);
+        setParamStatus(FastCCDSerialNum, asynSuccess);
+        setParamStatus(FastCCDFPGAVersion, asynSuccess);
       }
 
       // If sucsessful, don't run again
 
       if(!cin_status){
         run_once = 1;
+      } else {
+        setParamStatus(FastCCDBoardID, asynDisconnected);
+        setParamStatus(FastCCDSerialNum, asynDisconnected);
+        setParamStatus(FastCCDFPGAVersion, asynDisconnected);
       }
     }
 
     cin_status = cin_ctl_get_power_status(&cin_ctl_port, &pwr, &pwr_value);
-
     if(!cin_status){
       // Power Status
       if(pwr){
         setIntegerParam(FastCCDPower, 1);
         if(pwr == 2){
           setIntegerParam(FastCCDFPPower, 1);
+        } else {
+          setIntegerParam(FastCCDFPPower, 0);
         }
        
         // Voltage Values
@@ -812,6 +824,18 @@ void FastCCD::statusTask(void)
         setDoubleParam(FastCCDV61v0,    pwr_value.v6_1v0.v);
         setDoubleParam(FastCCDV62v5,    pwr_value.v6_2v5.v);
         setDoubleParam(FastCCDVFp,      pwr_value.fp.v);
+        setParamStatus(FastCCDVBus12V0, asynSuccess);
+        setParamStatus(FastCCDVMgmt3v3, asynSuccess);
+        setParamStatus(FastCCDVMgmt2v5, asynSuccess);
+        setParamStatus(FastCCDVMgmt1v2, asynSuccess);
+        setParamStatus(FastCCDVEnet1v0, asynSuccess);
+        setParamStatus(FastCCDVS3E3v3,  asynSuccess);
+        setParamStatus(FastCCDVGen3v3,  asynSuccess);
+        setParamStatus(FastCCDVGen2v5,  asynSuccess);
+        setParamStatus(FastCCDV60v9,    asynSuccess);
+        setParamStatus(FastCCDV61v0,    asynSuccess);
+        setParamStatus(FastCCDV62v5,    asynSuccess);
+        setParamStatus(FastCCDVFp,      asynSuccess);
 
         // Current Values
 
@@ -827,43 +851,58 @@ void FastCCD::statusTask(void)
         setDoubleParam(FastCCDI61v0,    pwr_value.v6_1v0.i);
         setDoubleParam(FastCCDI62v5,    pwr_value.v6_2v5.i);
         setDoubleParam(FastCCDIFp,      pwr_value.fp.i);
+        setParamStatus(FastCCDIBus12V0, asynSuccess);
+        setParamStatus(FastCCDIMgmt3v3, asynSuccess);
+        setParamStatus(FastCCDIMgmt2v5, asynSuccess);
+        setParamStatus(FastCCDIMgmt1v2, asynSuccess);
+        setParamStatus(FastCCDIEnet1v0, asynSuccess);
+        setParamStatus(FastCCDIS3E3v3,  asynSuccess);
+        setParamStatus(FastCCDIGen3v3,  asynSuccess);
+        setParamStatus(FastCCDIGen2v5,  asynSuccess);
+        setParamStatus(FastCCDI60v9,    asynSuccess);
+        setParamStatus(FastCCDI61v0,    asynSuccess);
+        setParamStatus(FastCCDI62v5,    asynSuccess);
+        setParamStatus(FastCCDIFp,      asynSuccess);
 
       } else {
         setIntegerParam(FastCCDPower, 0);
         setIntegerParam(FastCCDFPPower, 0);
-
-        // Voltage Values
-
-        setDoubleParam(FastCCDVBus12V0, 0);
-        setDoubleParam(FastCCDVMgmt3v3, 0);
-        setDoubleParam(FastCCDVMgmt2v5, 0);
-        setDoubleParam(FastCCDVMgmt1v2, 0);
-        setDoubleParam(FastCCDVEnet1v0, 0);
-        setDoubleParam(FastCCDVS3E3v3,  0);
-        setDoubleParam(FastCCDVGen3v3,  0);
-        setDoubleParam(FastCCDVGen2v5,  0);
-        setDoubleParam(FastCCDV60v9,    0);
-        setDoubleParam(FastCCDV61v0,    0);
-        setDoubleParam(FastCCDV62v5,    0);
-        setDoubleParam(FastCCDVFp,      0);
-
-
-        // Current Values
-
-        setDoubleParam(FastCCDIBus12V0, 0);
-        setDoubleParam(FastCCDIMgmt3v3, 0);
-        setDoubleParam(FastCCDIMgmt2v5, 0);
-        setDoubleParam(FastCCDIMgmt1v2, 0);
-        setDoubleParam(FastCCDIEnet1v0, 0);
-        setDoubleParam(FastCCDIS3E3v3,  0);
-        setDoubleParam(FastCCDIGen3v3,  0);
-        setDoubleParam(FastCCDIGen2v5,  0);
-        setDoubleParam(FastCCDI60v9,    0);
-        setDoubleParam(FastCCDI61v0,    0);
-        setDoubleParam(FastCCDI62v5,    0);
-        setDoubleParam(FastCCDIFp,      0);
-
       }
+
+      setParamStatus(FastCCDPower, asynSuccess);
+      setParamStatus(FastCCDFPPower, asynSuccess);
+    }
+
+    if(cin_status || !pwr){
+      // Voltage Values
+
+      setParamStatus(FastCCDVBus12V0, asynDisconnected);
+      setParamStatus(FastCCDVMgmt3v3, asynDisconnected);
+      setParamStatus(FastCCDVMgmt2v5, asynDisconnected);
+      setParamStatus(FastCCDVMgmt1v2, asynDisconnected);
+      setParamStatus(FastCCDVEnet1v0, asynDisconnected);
+      setParamStatus(FastCCDVS3E3v3,  asynDisconnected);
+      setParamStatus(FastCCDVGen3v3,  asynDisconnected);
+      setParamStatus(FastCCDVGen2v5,  asynDisconnected);
+      setParamStatus(FastCCDV60v9,    asynDisconnected);
+      setParamStatus(FastCCDV61v0,    asynDisconnected);
+      setParamStatus(FastCCDV62v5,    asynDisconnected);
+      setParamStatus(FastCCDVFp,      asynDisconnected);
+
+      // Current Values
+
+      setParamStatus(FastCCDIBus12V0, asynDisconnected);
+      setParamStatus(FastCCDIMgmt3v3, asynDisconnected);
+      setParamStatus(FastCCDIMgmt2v5, asynDisconnected);
+      setParamStatus(FastCCDIMgmt1v2, asynDisconnected);
+      setParamStatus(FastCCDIEnet1v0, asynDisconnected);
+      setParamStatus(FastCCDIS3E3v3,  asynDisconnected);
+      setParamStatus(FastCCDIGen3v3,  asynDisconnected);
+      setParamStatus(FastCCDIGen2v5,  asynDisconnected);
+      setParamStatus(FastCCDI60v9,    asynDisconnected);
+      setParamStatus(FastCCDI61v0,    asynDisconnected);
+      setParamStatus(FastCCDI62v5,    asynDisconnected);
+      setParamStatus(FastCCDIFp,      asynDisconnected);
     }
 
     // Status
@@ -873,13 +912,18 @@ void FastCCD::statusTask(void)
 	  cin_status = cin_ctl_get_cfg_fpga_status(&cin_ctl_port, &fpga_status);
     if(!cin_status){
       setUIntDigitalParam(FastCCDFPGAStatus, fpga_status, 0xFFFF);
-      //setIntegerParam(FastCCDFPPower, (fpga_status & CIN_CTL_FPGA_STS_FP_PWR));
+      setParamStatus(FastCCDFPGAStatus, asynSuccess);
+    } else {
+      setParamStatus(FastCCDFPGAStatus, asynDisconnected);
     }
     
 	  cin_status = cin_ctl_get_dcm_status(&cin_ctl_port, &dcm_status);
       if(!cin_status){
 	    setUIntDigitalParam(FastCCDDCMStatus, dcm_status, 0xFFFF);
-	  }
+      setParamStatus(FastCCDDCMStatus, asynSuccess);
+	  } else {
+      setParamStatus(FastCCDDCMStatus, asynDisconnected);
+    }
 
     /* Are we powered up and configured? */
 
@@ -891,11 +935,17 @@ void FastCCD::statusTask(void)
       cin_status = cin_ctl_get_bias(&cin_ctl_port, &bias);
       if(!cin_status){
         setIntegerParam(FastCCDBias, bias);
+        setParamStatus(FastCCDBias, asynSuccess);
+      } else {
+        setParamStatus(FastCCDBias, asynDisconnected);
       }
-
+   
       cin_status = cin_ctl_get_clocks(&cin_ctl_port, &clock);
       if(!cin_status){
         setIntegerParam(FastCCDClock, clock);
+        setParamStatus(FastCCDClock, asynSuccess);
+      } else {
+        setParamStatus(FastCCDClock, asynDisconnected);
       }
 
       // Get Mux Settings
@@ -903,9 +953,49 @@ void FastCCD::statusTask(void)
       int mux;
       cin_status = cin_ctl_get_mux(&cin_ctl_port, &mux);
       if(!cin_status){
-        setIntegerParam(FastCCDMux1, (mux & 0xF));
-        setIntegerParam(FastCCDMux2, (mux & 0xF0) >> 4);
+        setIntegerParam(FastCCDMux1, (mux & 0x000F));
+        setIntegerParam(FastCCDMux2, (mux & 0x00F0) >> 4);
+        setParamStatus(FastCCDMux1, asynSuccess);
+        setParamStatus(FastCCDMux2, asynSuccess);
+      } else {
+        setParamStatus(FastCCDMux1, asynDisconnected);
+        setParamStatus(FastCCDMux2, asynDisconnected);
       }
+
+
+      // Get FCLK Settings
+
+      int fclk;
+      cin_status = cin_ctl_get_fclk(&cin_ctl_port, &fclk);
+      if(!cin_status){
+        switch(fclk){
+          case CIN_CTL_FCLK_125:
+            setIntegerParam(FastCCDFclk, 0);
+            break;
+          case CIN_CTL_FCLK_200:
+            setIntegerParam(FastCCDFclk, 1);
+            break;
+          case CIN_CTL_FCLK_250:
+            setIntegerParam(FastCCDFclk, 2);
+            break;
+        }
+
+        setParamStatus(FastCCDFclk, asynSuccess);
+
+      } else {
+        setParamStatus(FastCCDFclk, asynDisconnected);
+      }
+
+
+    } else {
+      // Set the Comm Error 
+      
+      setParamStatus(FastCCDBias, asynDisconnected);
+      setParamStatus(FastCCDClock, asynDisconnected);
+      setParamStatus(FastCCDMux1, asynDisconnected);
+      setParamStatus(FastCCDMux2, asynDisconnected);
+      setParamStatus(FastCCDFclk, asynDisconnected);
+
     }
 
     /* Call the callbacks to update any changes */

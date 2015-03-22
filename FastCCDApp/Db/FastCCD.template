@@ -13,17 +13,32 @@ record(ai, "$(P)$(R)Gain_RBV"){
 	field(SCAN, "I/O Intr")
 }
 
-# record(longout, "$(P)$(R)Overscan"){
-# 	field(DTYP, "asynInt32")
-# 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OVERSCAN")
-# }
-# 
-# record(longin, "$(P)$(R)Overscan_RBV"){
-# 	field(DTYP, "asynInt32")
-# 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OVERSCAN")
-# 	field(SCAN, "I/O Intr")
-#}
+record(mbbo, "$(P)$(R)FClk"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FCLK")
+	field(ZRST, "125 MHz")
+	field(ONST, "200 MHz")
+	field(TWST, "250 MHz")
+	field(THST, "180 MHz")
+    field(ZRVL, "0")
+    field(ONVL, "1")
+    field(TWVL, "2")
+    field(THVL, "3")
+}
 
+record(mbbi, "$(P)$(R)FClk_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FCLK")
+	field(SCAN, "I/O Intr")
+	field(ZRST, "125 MHz")
+	field(ONST, "200 MHz")
+	field(TWST, "250 MHz")
+	field(THST, "180 MHz")
+    field(ZRVL, "0")
+    field(ONVL, "1")
+    field(TWVL, "2")
+    field(THVL, "3")
+}
 
 record(longin, "$(P)$(R)StatusHB_RBV"){
   field(DTYP, "asynInt32")
