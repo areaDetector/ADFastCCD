@@ -103,8 +103,10 @@ void FastCCD::processImage(cin_data_frame_t *frame)
 
   // Process Timestamps.
   
-  // Frame timestamp is a timespec
+  // Frame timestamp is a timespec always trust driver becuase it is correct!
   pImage->timeStamp = frame->timestamp.tv_sec + 1e-9 * frame->timestamp.tv_nsec;
+  pImage->epicsTS.secPastEpoch = frame->timestamp.tv_sec;
+  pImage->epicsTS.nsec = frame->timestamp.tv_nsec;
   updateTimeStamp(&pImage->epicsTS);
   
   // Get any attributes for the driver
