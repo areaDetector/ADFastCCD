@@ -102,11 +102,8 @@ class FastCCD : public ADDriver {
 
   /* These are the methods that we override from ADDriver */
   asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
-  //asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
-  //virtual asynStatus readEnum(asynUser *pasynUser, char *strings[], 
-  //                            int values[], int severities[], 
-  //                            size_t nElements, size_t *nIn);
-
+  asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
+  
   // Filename to report driver info
   void report(FILE *fp, int details);
 

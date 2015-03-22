@@ -467,6 +467,39 @@ void FastCCD::report(FILE *fp, int details)
   ADDriver::report(fp, details);
 }
 
+asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value){
+    int function = pasynUser->reason;
+    asynStatus status = asynSuccess;
+    const char *paramName;
+    static const char *functionName = "writeFloat64";
+
+    getParamName(function, &paramName);
+
+    status = setDoubleParam(function, value);
+
+    if(function == ADAcquireTime){
+      if(cin_ctl_set_exposure_time(&cin_ctl_port, (float)value)){
+        status = asynError;
+      }
+    } else if (function == ADAcquirePeriod) {
+      if(cin_ctl_set_cycle_time(&cin_ctl_port, (float)value)){
+        status = asynError;
+      }
+    }
+
+    if(status){
+        asynPrint(pasynUser, ASYN_TRACE_ERROR,
+              "%s:%s: error, status=%d function=%d, value=%f\n",
+              driverName, functionName, status, function, value);
+    } else {
+        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s:%s: function=%d, value=%f\n",
+              driverName, functionName, function, value);
+    }
+    return status;
+
+}
+
 
 /** Called when asyn clients call pasynInt32->write().
   * This function performs actions for some parameters, including ADAcquire, ADBinX, etc.
@@ -476,14 +509,12 @@ void FastCCD::report(FILE *fp, int details)
 asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 {
     int function = pasynUser->reason;
-    epicsInt32 oldValue;
 
     asynStatus status = asynSuccess;
     static const char *functionName = "writeInt32";
 
     //Set in param lib so the user sees a readback straight away. Save a backup in case of errors.
-    getIntegerParam(function, &oldValue);
-    status = setIntegerParam(function, value);
+    setIntegerParam(function, value);
 
     int _status = 0; // For return of cin functions
 
@@ -493,15 +524,10 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       {
          // Send the hardware a start trigger command
          int n_images, t_mode, i_mode;
-         double t_exp, t_cycle; 
-         getIntegerParam(ADTriggerMode, &t_mode);
-         getIntegerParam(ADNumImages, &n_images);
-         getIntegerParam(ADImageMode, &i_mode);
-         getDoubleParam(ADAcquireTime, &t_exp);
-         getDoubleParam(ADAcquirePeriod, &t_cycle);
 
-         cin_ctl_set_exposure_time(&cin_ctl_port, (float)t_exp);
-         cin_ctl_set_cycle_time(&cin_ctl_port, (float)t_cycle);
+         getIntegerParam(ADTriggerMode, &t_mode);
+         getIntegerParam(ADImageMode, &i_mode);
+         getIntegerParam(ADNumImages, &n_images);
 
          switch(i_mode) {
            case ADImageSingle:
