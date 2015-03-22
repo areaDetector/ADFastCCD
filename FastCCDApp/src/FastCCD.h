@@ -46,6 +46,8 @@
 #define FastCCDLastFrameString                  "LAST_FRAME"
 #define FastCCDResetStatsString                 "RESET_STATS"
 
+#define FastCCDOverscanString                   "OVERSCAN"
+
 #define FastCCDVBus12V0String                   "VBUS_12V0"
 #define FastCCDVMgmt3v3String                   "VMGMT_3V3"
 #define FastCCDVMgmt2v5String                   "VMGMT_2V5"
@@ -122,6 +124,9 @@ class FastCCD : public ADDriver {
   int FastCCDFirmwarePath;
   int FastCCDBiasPath;
   int FastCCDClockPath;
+
+  // Overscan
+  int FastCCDOverscan;
 
   // File upload
   int FastCCDFirmwareUpload;

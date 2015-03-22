@@ -65,13 +65,12 @@ void FastCCD::allocateImage(cin_data_frame_t *frame)
   size_t dims[2];
   int nDims = 2;
    
-  dims[0] = CIN_DATA_FRAME_WIDTH;
-  dims[1] = CIN_DATA_FRAME_HEIGHT;
+  dims[0] = CIN_DATA_MAX_FRAME_X;
+  dims[1] = CIN_DATA_MAX_FRAME_Y;
   NDDataType_t dataType = NDUInt16; 
   
   while(!(pImage = this->pNDArrayPool->alloc(nDims, dims, dataType, 
-                                        0, NULL)))
-  {
+                                             0, NULL))) {
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
               "Unable to allocate array from pool....\n");
     sleep(1);
@@ -95,8 +94,18 @@ void FastCCD::processImage(cin_data_frame_t *frame)
 
   // Set the unique ID
   pImage->uniqueId = frame->number;
+  pImage->dims[0].size = frame->size_x;
+  pImage->dims[0].offset = 0;
+  pImage->dims[0].binning = 1;
+  pImage->dims[1].size = frame->size_y;
+  pImage->dims[1].offset = 0;
+  pImage->dims[1].binning = 1;
 
-  // TODO : Do timestamp processing using cin_data_frame
+  // Process Timestamps.
+  
+  // Frame timestamp is a timespec
+  pImage->timeStamp = frame->timestamp.tv_sec + 1e-9 * frame->timestamp.tv_nsec;
+  updateTimeStamp(&pImage->epicsTS);
   
   // Get any attributes for the driver
   this->getAttributes(pImage->pAttributeList);
@@ -130,7 +139,6 @@ void FastCCD::processImage(cin_data_frame_t *frame)
               driverName, functionName, frame->number);
 
   // Release the frame as we are done with it!
-  // SBW Not sure we should do this!!!!!!
   pImage->release();
 
   /* Update any changed parameters */
@@ -176,7 +184,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   strncpy(cinFabricMAC, fabricMAC, 20);
 
   //Define the polling periods for the status thread.
-  statusPollingPeriod = 5; //seconds
+  statusPollingPeriod = 1; //seconds
   dataStatsPollingPeriod = 0.5; //seconds
   
   /* Create an EPICS exit handler */
@@ -201,6 +209,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
 
   createParam(FastCCDBiasString,                asynParamInt32,    &FastCCDBias);
   createParam(FastCCDClockString,               asynParamInt32,    &FastCCDClock);
+
+  createParam(FastCCDOverscanString,            asynParamInt32,    &FastCCDOverscan);
 
   createParam(FastCCDVBus12V0String,            asynParamFloat64,  &FastCCDVBus12V0);
   createParam(FastCCDVMgmt3v3String,            asynParamFloat64,  &FastCCDVMgmt3v3);
@@ -271,8 +281,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
     return;
   }
 
-  sizeX = CIN_DATA_FRAME_WIDTH;
-  sizeY = CIN_DATA_FRAME_HEIGHT;
+  sizeX = CIN_DATA_MAX_FRAME_X;
+  sizeY = CIN_DATA_MAX_FRAME_Y;
 
   /* Set some default values for parameters */
   status =  setStringParam(ADManufacturer, "Berkeley Laboratory");
@@ -285,10 +295,12 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setIntegerParam(ADMinY, 0);
   status |= setIntegerParam(ADMaxSizeX, sizeX);
   status |= setIntegerParam(ADMaxSizeY, sizeY);  
+  status |= setIntegerParam(ADReverseX, 0);  
+  status |= setIntegerParam(ADReverseY, 0);  
   status |= setIntegerParam(ADImageMode, ADImageSingle);
   status |= setIntegerParam(ADTriggerMode, 1);
-  status |= setDoubleParam (ADAcquireTime, 0.005);
-  status |= setDoubleParam (ADAcquirePeriod, 1.0);
+  status |= setDoubleParam(ADAcquireTime, 0.005);
+  status |= setDoubleParam(ADAcquirePeriod, 1.0);
   status |= setIntegerParam(ADNumImages, 1);
   status |= setIntegerParam(ADNumExposures, 1);
   status |= setIntegerParam(NDArraySizeX, sizeX);
@@ -315,6 +327,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setStringParam(FastCCDFirmwarePath, "");
   status |= setStringParam(FastCCDBiasPath, "");
   status |= setStringParam(FastCCDClockPath, "");
+
+  status |= setIntegerParam(FastCCDOverscan, 2);
 
   status |= setDoubleParam(FastCCDVBus12V0, 0);
   status |= setDoubleParam(FastCCDVMgmt3v3, 0);
@@ -467,7 +481,7 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
     getIntegerParam(function, &oldValue);
     status = setIntegerParam(function, value);
 
-    int _status ; // For return of cin functions
+    int _status = 0; // For return of cin functions
 
     if (function == ADAcquire) 
     {
@@ -534,14 +548,14 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 	  
       setStringParam(ADStatusMessage, "Powering CIN OFF");
       callParamCallbacks();
-      cin_ctl_pwr(&cin_ctl_port, 0);
+      _status = cin_ctl_pwr(&cin_ctl_port, 0);
       sleep(2);
 	  
       // Power on the cin
 	  
       setStringParam(ADStatusMessage, "Powering CIN ON");
       callParamCallbacks();
-      cin_ctl_pwr(&cin_ctl_port, 1);
+      _status = cin_ctl_pwr(&cin_ctl_port, 1);
       sleep(2);
 
       setStringParam(ADStatusMessage, "Uploading Firmware");
@@ -554,6 +568,7 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
         _status |= cin_data_send_magic();
       }
       setIntegerParam(FastCCDFirmwareUpload, 0);
+
       char msg[256];
       sprintf(msg, "Set Fabric Ip to %s", cinFabricIP);
       setStringParam(ADStatusMessage, msg);
@@ -629,22 +644,40 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       int _val;
       getIntegerParam(FastCCDMux2, &_val);
       _val = (_val << 4) | value;
-      cin_ctl_set_mux(&cin_ctl_port, value);   
+      _status = cin_ctl_set_mux(&cin_ctl_port, _val);   
     }
     else if (function == FastCCDMux2)
     {
       int _val;
       getIntegerParam(FastCCDMux1, &_val);
       _val = _val | (value << 4);
-      cin_ctl_set_mux(&cin_ctl_port, _val);
+      _status = cin_ctl_set_mux(&cin_ctl_port, _val);
     }
     else if (function == FastCCDResetStats)
     {
       cin_data_reset_stats();
     }
+    else if (function == ADSizeY)
+    {
+      // The Y size changed, change the descramble routine
+      int _val;
+      _val = getIntegerParam(FastCCDOverscan, &_val);
+      _status = cin_data_set_descramble_params(value, _val);
+    }
+    else if (function == FastCCDOverscan)
+    {
+      // The Y size changed, change the descramble routine
+      int _val;
+      getIntegerParam(ADSizeY, &_val);
+      _status = cin_data_set_descramble_params(_val, value);
+    }
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
+
+    if(_status){
+      status = asynError;
+    }
 
     if (status)
     {
@@ -658,42 +691,6 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
     }
     return status;
 }
-
-/** Called when asyn clients call pasynFloat64->write().
-  * This function performs actions for some parameters.
-  * For all parameters it sets the value in the parameter library and calls any registered callbacks.
-  * \param[in] pasynUser pasynUser structure that encodes the reason and address.
-  * \param[in] value Value to write. */
-//asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
-//{
-//    int function = pasynUser->reason;
-//    asynStatus status = asynSuccess;
-//    static const char *functionName = "writeFloat64";
-//
-//    /* Set the parameter and readback in the parameter library.  */
-//    status = setDoubleParam(function, value);
-//
-//    {
-//      status = ADDriver::writeFloat64(pasynUser, value);
-//    }
-//
-//    /* Do callbacks so higher layers see any changes */
-//    callParamCallbacks();
-//
-//    if(status)
-//    {
-//        asynPrint(pasynUser, ASYN_TRACE_ERROR,
-//              "%s:%s: error, status=%d function=%d, value=%f\n",
-//              driverName, functionName, status, function, value);
-//    }
-//    else
-//    {
-//        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
-//              "%s:%s: function=%d, value=%f\n",
-//              driverName, functionName, function, value);
-//    }
-//    return status;
-//}
 
 void FastCCD::dataStatsTask(void)
 {
@@ -899,6 +896,15 @@ void FastCCD::statusTask(void)
       cin_status = cin_ctl_get_clocks(&cin_ctl_port, &clock);
       if(!cin_status){
         setIntegerParam(FastCCDClock, clock);
+      }
+
+      // Get Mux Settings
+      
+      int mux;
+      cin_status = cin_ctl_get_mux(&cin_ctl_port, &mux);
+      if(!cin_status){
+        setIntegerParam(FastCCDMux1, (mux & 0xF));
+        setIntegerParam(FastCCDMux2, (mux & 0xF0) >> 4);
       }
     }
 

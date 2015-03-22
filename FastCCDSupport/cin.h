@@ -119,12 +119,14 @@ extern const char *cin_build_version;
 // If we overscan the columns, then you get 960 x 1.2 columns
 // which is 1152 columns. 
 // 
-#define CIN_DATA_FRAME_HEIGHT              1920
-#define CIN_DATA_FRAME_WIDTH               1152
-#define CIN_DATA_MAX_STREAM                2300000
-#define CIN_DATA_CCD_COLS               96
-#define CIN_DATA_CCD_COLS_PER_CHAN      10
-#define CIN_DATA_PIPELINE_FLUSH         1344 // 7 converts * 2 * 96 cols
+// We include 20 more rows
+//
+#define CIN_DATA_MAX_FRAME_X               1152 // Columns
+#define CIN_DATA_MAX_FRAME_Y               2000 // Rows
+#define CIN_DATA_MAX_STREAM                2304000
+#define CIN_DATA_CCD_COLS                  96
+#define CIN_DATA_CCD_COLS_PER_CHAN         10
+#define CIN_DATA_PIPELINE_FLUSH            1344 // 7 converts * 2 * 96 cols
 
 /* -------------------------------------------------------------------------------
  *
@@ -211,7 +213,7 @@ typedef struct cin_port {
 typedef struct cin_data_frame {
   uint16_t *data;
   uint16_t number;
-  struct timeval timestamp;
+  struct timespec timestamp;
   int size_x;
   int size_y;
   void *usr_ptr; // User container
@@ -223,8 +225,6 @@ typedef struct cin_data_stats {
   int last_frame;
   double framerate;
   double datarate;
-  double av_datarate;
-  double av_framerate;
 
   // FIFO data
   
@@ -360,6 +360,7 @@ int cin_ctl_set_trigger_delay(struct cin_port* cp,float t_time);
 int cin_ctl_set_cycle_time(struct cin_port* cp,float ftime);
 int cin_ctl_frame_count_reset(struct cin_port* cp);
 int cin_ctl_set_mux(struct cin_port *cp, int setting);
+int cin_ctl_get_mux(struct cin_port *cp, int *setting);
 
 /*------------------------
  * CIN TCP/IP Settings
@@ -424,6 +425,9 @@ void cin_data_start_monitor_output(void);
 void cin_data_stop_monitor_output(void);
 
 int cin_data_send_magic(void);
+
+int cin_data_set_descramble_params(int rows, int overscan);
+int cin_data_get_descramble_params(int *rows, int *overscan);
 
 #ifdef __cplusplus
 }

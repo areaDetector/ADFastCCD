@@ -5,6 +5,7 @@ include $(TOP)/configure/CONFIG
 
 LIBRARY_IOC_Linux += FastCCD
 LIB_SRCS += FastCCD.cpp
+#LIB_SRCS += NDPluginFastCCD.cpp
 LIB_LIBS += cin
 
 DBD += FastCCDSupport.dbd
