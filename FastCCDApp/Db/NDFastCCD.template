@@ -1,0 +1,84 @@
+#=================================================================#
+# Template file: NDFastCCD.template
+
+include "NDPluginBase.template"
+
+record(longout, "$(P)$(R)Offset0"){
+	field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))OFFSET_0")
+	field(PINI, "1")
+}
+
+record(longin, "$(P)$(R)Offset0_RBV"){
+	field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))OFFSET_0")
+	field(SCAN, "I/O Intr")
+}
+
+record(longout, "$(P)$(R)Offset1"){
+	field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))OFFSET_1")
+	field(PINI, "1")
+}
+
+record(longin, "$(P)$(R)Offset1_RBV"){
+	field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))OFFSET_1")
+	field(SCAN, "I/O Intr")
+}
+
+record(longout, "$(P)$(R)Offset2"){
+	field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))OFFSET_2")
+	field(PINI, "1")
+}
+
+record(longin, "$(P)$(R)Offset2_RBV"){
+	field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))OFFSET_2")
+	field(SCAN, "I/O Intr")
+}
+
+record(longout, "$(P)$(R)DPValue"){
+	field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DP_VAL")
+	field(PINI, "1")
+}
+
+record(longin, "$(P)$(R)DPValue_RBV"){
+	field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DP_VAL")
+	field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)Enable"){
+	field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE")
+	field(ZNAM, "Disabled")
+	field(ONAM, "Enabled")
+	field(PINI, "1")
+}
+
+record(bi, "$(P)$(R)Enable_RBV"){
+	field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE")
+	field(ZNAM, "Disabled")
+	field(ONAM, "Enabled")
+	field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)EnableData"){
+	field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_DATA")
+	field(ZNAM, "Disabled")
+	field(ONAM, "Enabled")
+	field(PINI, "1")
+}
+
+record(bi, "$(P)$(R)EnableData_RBV"){
+	field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_DATA")
+	field(ZNAM, "Disabled")
+	field(ONAM, "Enabled")
+	field(SCAN, "I/O Intr")
+}

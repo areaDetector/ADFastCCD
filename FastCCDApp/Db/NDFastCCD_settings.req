@@ -1,0 +1,7 @@
+$(P)$(R)Offset0
+$(P)$(R)Offset1
+$(P)$(R)Offset2
+$(P)$(R)DPValue
+$(P)$(R)Enable
+$(P)$(R)EnableData
+file "NDPluginBase_settings.req", P=$(P), R=$(R)

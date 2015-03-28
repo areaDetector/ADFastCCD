@@ -334,7 +334,7 @@ void cin_ctl_display_dcm_status(FILE *out, uint16_t *_val);
 
 
 double cin_ctl_current_calc(uint16_t val);
-int cin_ctl_get_power_status(struct cin_port* cp, int *pwr, cin_ctl_pwr_mon_t *values);
+int cin_ctl_get_power_status(struct cin_port* cp, int full, int *pwr, cin_ctl_pwr_mon_t *values);
 void cin_ctl_display_pwr(FILE *out, cin_ctl_pwr_mon_t *values);
 void cin_ctl_display_pwr_line(FILE *out,const char* msg, cin_ctl_pwr_val_t val);
 int cin_ctl_calc_vi_status(struct cin_port* cp, 
@@ -345,6 +345,8 @@ int cin_ctl_calc_vi_status(struct cin_port* cp,
  * CIN Control
  *------------------------*/
 
+int cin_ctl_get_camera_pwr(struct cin_port* cp, int *val);
+int cin_ctl_set_camera_pwr(struct cin_port* cp, int val);
 int cin_ctl_set_bias(struct cin_port* cp,int val);
 int cin_ctl_get_bias(struct cin_port* cp, int *val);
 int cin_ctl_set_clocks(struct cin_port* cp,int val);
@@ -353,6 +355,7 @@ int cin_ctl_set_trigger(struct cin_port* cp,int val);
 int cin_ctl_get_trigger(struct cin_port* cp, int *val);
 int cin_ctl_set_focus(struct cin_port* cp, int val);
 int cin_ctl_get_focus(struct cin_port* cp, int *val);
+int cin_ctl_get_triggering(struct cin_port *cp, int *trigger);
 int cin_ctl_int_trigger_start(struct cin_port* cp, int nimages);
 int cin_ctl_int_trigger_stop(struct cin_port* cp);
 int cin_ctl_ext_trigger_start(struct cin_port* cp, int trigger_mode);

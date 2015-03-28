@@ -269,14 +269,24 @@ record(mbbi, "$(P)$(R)Mux2_RBV")
 }
 
 #
-# Bias / Clock Controls
+# Bias / Clock Controls (Camera Power)
 #
 
-record(bo, "$(P)$(R)Bias") {
+record(bo, "$(P)$(R)CameraPwr") {
    field(DTYP, "asynInt32")
-   field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS")
+   field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CAMERA_POWER")
    field(ZNAM, "OFF")
    field(ONAM, "ON")
+}
+
+record(bi, "$(P)$(R)CameraPwr_RBV") {
+   field(DTYP, "asynInt32")
+   field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CAMERA_POWER")
+   field(ZNAM, "OFF")
+   field(OSV,  "NO_ALARM")
+   field(ONAM, "ON")
+   field(ZSV,  "MINOR")
+   field(SCAN, "I/O Intr")
 }
 
 record(bi, "$(P)$(R)Bias_RBV") {
@@ -289,23 +299,15 @@ record(bi, "$(P)$(R)Bias_RBV") {
    field(SCAN, "I/O Intr")
 }
 
-record(bo, "$(P)$(R)Clock") {
+record(bi, "$(P)$(R)Clocks_RBV") {
    field(DTYP, "asynInt32")
-   field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CLOCK")
-   field(ZNAM, "OFF")
-   field(ONAM, "ON")
-}
-
-record(bi, "$(P)$(R)Clock_RBV") {
-   field(DTYP, "asynInt32")
-   field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CLOCK")
+   field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CLOCKS")
    field(ZNAM, "OFF")
    field(OSV,  "NO_ALARM")
    field(ONAM, "ON")
    field(ZSV,  "MINOR")
    field(SCAN, "I/O Intr")
 }
-
 #
 # Power monitoring records
 #
@@ -408,7 +410,7 @@ record(ai, "$(P)$(R)E:S3E-I")
 record(ai, "$(P)$(R)I:S3E-I")
 {
   field(DTYP, "asynFloat64")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VS3E_3V3")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IS3E_3V3")
   field(EGU,  "A")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -652,6 +654,25 @@ record(waveform, "$(P)$(R)ClockPath_RBV")
   field(SCAN, "I/O Intr")
 }
 
+record(waveform, "$(P)$(R)FCRICPath")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetWrite")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FCRIC_PATH")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+}
+
+record(waveform, "$(P)$(R)FCRICPath_RBV")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FCRIC_PATH")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+  field(SCAN, "I/O Intr")
+}
+
 #
 # Records for uploading files
 #
@@ -703,6 +724,24 @@ record(busy, "$(P)$(R)BiasUpload") {
 record(bi, "$(P)$(R)BiasUpload_RBV") {
    field(DTYP, "asynInt32")
    field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_UPLOAD")
+   field(ZNAM, "Done")
+   field(ZSV,  "NO_ALARM")
+   field(ONAM, "Uploading")
+   field(OSV,  "MINOR")
+   field(SCAN, "I/O Intr")
+}
+
+record(busy, "$(P)$(R)FCRICUpload") {
+   field(DTYP, "asynInt32")
+   field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))FCRIC_UPLOAD")
+   field(ZNAM, "Done")
+   field(ONAM, "Uploading")
+   field(VAL,  "0")
+}
+
+record(bi, "$(P)$(R)FCRICUpload_RBV") {
+   field(DTYP, "asynInt32")
+   field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))FCRIC_UPLOAD")
    field(ZNAM, "Done")
    field(ZSV,  "NO_ALARM")
    field(ONAM, "Uploading")

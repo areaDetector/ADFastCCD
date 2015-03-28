@@ -20,19 +20,22 @@
 #define FastCCDFirmwarePathString               "FIRMWARE_PATH"
 #define FastCCDBiasPathString                   "BIAS_PATH"
 #define FastCCDClockPathString                  "CLOCK_PATH"
+#define FastCCDFCRICPathString                  "FCRIC_PATH"
 
 #define FastCCDFirmwareUploadString             "FIRMWARE_UPLOAD"
 #define FastCCDClockUploadString                "CLOCK_UPLOAD"
 #define FastCCDBiasUploadString                 "BIAS_UPLOAD"
+#define FastCCDFCRICUploadString                "FCRIC_UPLOAD"
 
 #define FastCCDPowerString                      "CIN_POWER"
 #define FastCCDFPPowerString                    "CIN_FP_POWER"
+#define FastCCDCameraPowerString					      "CAMERA_POWER"
+
+#define FastCCDBiasString					              "BIAS"
+#define FastCCDClocksString					            "CLOCKS"
 
 #define FastCCDFPGAStatusString                 "FPGA_STATUS"
 #define FastCCDDCMStatusString                  "DCM_STATUS"
-
-#define FastCCDBiasString						            "BIAS"
-#define FastCCDClockString						          "CLOCK"
 
 #define FastCCDLibCinVersionString              "LIBCINVER"
 #define FastCCDBoardIDString                    "BOARD_ID"
@@ -123,6 +126,7 @@ class FastCCD : public ADDriver {
   int FastCCDFirmwarePath;
   int FastCCDBiasPath;
   int FastCCDClockPath;
+  int FastCCDFCRICPath;
 
   // Overscan
   int FastCCDOverscan;
@@ -134,20 +138,20 @@ class FastCCD : public ADDriver {
   int FastCCDFirmwareUpload;
   int FastCCDBiasUpload;
   int FastCCDClockUpload;
+  int FastCCDFCRICUpload;
 
   // Power Status
   int FastCCDPower;
   int FastCCDFPPower;
+  int FastCCDCameraPower; 
+
+  // Bias and Clocks
+  int FastCCDBias;
+  int FastCCDClocks;
 
   // Frame FPGA
   int FastCCDFPGAStatus;
   int FastCCDDCMStatus;
-
-  // Bias Power
-  int FastCCDBias;
-
-  // Clock Power
-  int FastCCDClock;
 
   // Versioning Info
   int FastCCDLibCinVersion;
@@ -218,6 +222,10 @@ class FastCCD : public ADDriver {
   double dataStatsPollingPeriod;
  
   int framesRemaining;
+
+  void getCameraStatus();
+  int uploadConfig(int status, int path);
+  int uploadFirmware(void);
 
 protected:
   NDArray *pImage;
