@@ -467,9 +467,11 @@ int FastCCD::uploadConfig(int status, int path){
 
   setIntegerParam(status, 0);
   if(!_status){
-    setStringParam(ADStatusMessage, "DONE");
+    setStringParam(ADStatusMessage, "Config Uploaded to CIN");
+    setParamStatus(path, asynSuccess);
   } else {
-    setStringParam(ADStatusMessage, "ERROR");
+    setStringParam(ADStatusMessage, "ERROR Uploading Config to CIN");
+    setParamStatus(path, asynError);
   }
 
   return _status;
@@ -489,7 +491,9 @@ int FastCCD::uploadFirmware(void){
   if(cin_ctl_pwr(&cin_ctl_port, 0)){
     goto error;
   }
-  sleep(2);
+
+  sleep(5);
+  getCameraStatus();
 
   // Power on the cin
 
@@ -498,9 +502,11 @@ int FastCCD::uploadFirmware(void){
   if(cin_ctl_pwr(&cin_ctl_port, 1)){
     goto error;
   }
-  sleep(2);
 
-  setStringParam(ADStatusMessage, "Uploading Firmware");
+  sleep(5);
+  getCameraStatus();
+
+  setStringParam(ADStatusMessage, "Uploading Firmware to CIN");
   callParamCallbacks();
   _status |= cin_ctl_load_firmware(&cin_ctl_port, 
                                   &cin_ctl_port_stream, path);
@@ -515,9 +521,9 @@ int FastCCD::uploadFirmware(void){
 error:
 
   if(_status){
-    setStringParam(ADStatusMessage, "ERROR");
+    setStringParam(ADStatusMessage, "ERROR Uploading Firmware");
   } else {
-    setStringParam(ADStatusMessage, "DONE");
+    setStringParam(ADStatusMessage, "Firmware uploaded to CIN");
   }
 
   return _status;
