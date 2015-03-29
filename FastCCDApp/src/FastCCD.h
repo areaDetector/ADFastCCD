@@ -14,6 +14,8 @@
 
 #define MAX_ENUM_STRING_SIZE 26
 
+#define FastCCDPollingPeriodString              "POLL_PERIOD"
+
 #define FastCCDMux1String                       "FCCD_MUX1"
 #define FastCCDMux2String                       "FCCD_MUX2"
 
@@ -106,6 +108,7 @@ class FastCCD : public ADDriver {
   /* These are the methods that we override from ADDriver */
   asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
   asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
+  asynStatus writeOctet(asynUser *pasynUser, const char *value, size_t nc, size_t *na);
   
   // Filename to report driver info
   void report(FILE *fp, int details);
@@ -122,11 +125,9 @@ class FastCCD : public ADDriver {
   int FastCCDMux1;
   #define FIRST_FASTCCD_PARAM FastCCDMux1
   int FastCCDMux2;
-  
-  int FastCCDFirmwarePath;
-  int FastCCDBiasPath;
-  int FastCCDClockPath;
-  int FastCCDFCRICPath;
+
+  // Driver Parameters
+  int FastCCDPollingPeriod;
 
   // Overscan
   int FastCCDOverscan;
@@ -139,6 +140,10 @@ class FastCCD : public ADDriver {
   int FastCCDBiasUpload;
   int FastCCDClockUpload;
   int FastCCDFCRICUpload;
+  int FastCCDFirmwarePath;
+  int FastCCDBiasPath;
+  int FastCCDClockPath;
+  int FastCCDFCRICPath;
 
   // Power Status
   int FastCCDPower;

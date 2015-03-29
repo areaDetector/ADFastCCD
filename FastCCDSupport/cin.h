@@ -32,6 +32,7 @@ extern const char *cin_build_version;
 
 #define CIN_CTL_MAX_READ_TRIES             10
 #define CIN_CTL_MAX_WRITE_TRIES            5
+#define CIN_CTL_WRITE_SLEEP                2000 // microsecs
 
 #define CIN_CTL_POWER_ENABLE               0x001F
 #define CIN_CTL_POWER_DISABLE              0x0000
@@ -56,7 +57,10 @@ extern const char *cin_build_version;
 #define CIN_CTL_FCLK_125                   0x0000
 #define CIN_CTL_FCLK_200                   0x0001
 #define CIN_CTL_FCLK_250                   0x0002
-#define CIN_CTL_FCLK_180                   0x0003
+#define CIN_CTL_FCLK_125_C                 0x0003
+#define CIN_CTL_FCLK_200_C                 0x0004
+#define CIN_CTL_FCLK_250_C                 0x0005
+#define CIN_CTL_FCLK_180_C                 0x0006
 
 #define CIN_CTL_FPGA_STS_CFG               0x8000
 #define CIN_CTL_FPGA_STS_FP_PWR            0x0008
@@ -110,6 +114,9 @@ extern const char *cin_build_version;
 #define CIN_DATA_TAIL_MAGIC_PACKET_MASK    UINT64_C(0xFFFFFFFFFFFFFFFF)
 #define CIN_DATA_DROPPED_PACKET_VAL        0x2000
 #define CIN_DATA_DATA_MASK                 0x1FFF
+#define CIN_DATA_GAIN_8                    0xC000
+#define CIN_DATA_GAIN_4                    0x4000
+#define CIN_DATA_OFFSET                    0x1000
 #define CIN_DATA_PACKET_LEN                8184
 #define CIN_DATA_MAX_PACKETS               542
 #define CIN_DATA_RCVBUF                    100  // Mb 
@@ -303,7 +310,7 @@ int cin_ctl_close_port(struct cin_port* cp);
  *------------------------*/
 
 int cin_ctl_read(struct cin_port* cp, uint16_t reg, uint16_t *val);
-int cin_ctl_write(struct cin_port* cp, uint16_t reg, uint16_t val);
+int cin_ctl_write(struct cin_port* cp, uint16_t reg, uint16_t val, int wait);
 int cin_ctl_stream_write(struct cin_port* cp, char* val,int size);
 int cin_ctl_write_with_readback(struct cin_port* cp, uint16_t reg, uint16_t val);
 

@@ -78,21 +78,21 @@ void NDPluginFastCCD::processCallbacks(NDArray *pArray)
 
       for(size_t i=0; i<pOutput->dims[1].size; i++){
         for(size_t j=0; j<pOutput->dims[0].size; j++){
-          ctrl = *data & 0xE000;
+          ctrl = *data & ~CIN_DATA_DATA_MASK;
           if(dataen){
-            *data = *data & ~0xE000;
-            if((ctrl & 0xC000) == 0xC000){
+            *data = *data & CIN_DATA_DATA_MASK;
+            if((ctrl & CIN_DATA_GAIN_8) == CIN_DATA_GAIN_8){
               // Minimum Gain
-              *data = 0x1000 + 8 * (*data - (epicsUInt16)offset2);
-            } else if ((ctrl & 0x4000) == 0x4000) {
+              *data = CIN_DATA_OFFSET + 8 * (*data - (epicsUInt16)offset2);
+            } else if ((ctrl & CIN_DATA_GAIN_4) == CIN_DATA_GAIN_4) {
               // Gain
-              *data = 0x1000 + 4 * (*data - (epicsUInt16)offset1);
-            } else if ((ctrl & 0x2000) == 0x2000) {
+              *data = CIN_DATA_OFFSET + 4 * (*data - (epicsUInt16)offset1);
+            } else if ((ctrl & CIN_DATA_DROPPED_PACKET_VAL) == CIN_DATA_DROPPED_PACKET_VAL) {
               // Dropped Packet
               *data = (epicsUInt16)dpval;
             } else {
               // Maximum gain
-              *data = 0x1000 + *data - (epicsUInt16)offset0;
+              *data = CIN_DATA_OFFSET + *data - (epicsUInt16)offset0;
             } 
           } else {
             *data = ctrl;

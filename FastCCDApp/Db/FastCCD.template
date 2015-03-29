@@ -1,10 +1,29 @@
 #
+# Polling Period for the camera
+record(ao, "$(P)$(R)PollPeriod"){
+	field(DTYP, "asynFloat64")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))POLL_PERIOD")
+	field(EGU, "Sec")
+	field(PREC, "1")
+	field(PINI, "1")
+}
+
+record(ai, "$(P)$(R)PollPeriod_RBV"){
+	field(DTYP, "asynFloat64")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))POLL_PERIOD")
+	field(SCAN, "I/O Intr")
+	field(EGU,  "Sec")
+	field(PREC, "1")
+}
+
+#
 # Overload the gain parameter to reprosent the overscan
 #
 
 record(ao, "$(P)$(R)Gain"){
 	field(DTYP, "asynInt32")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OVERSCAN")
+	field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)Gain_RBV"){
@@ -19,11 +38,15 @@ record(mbbo, "$(P)$(R)FClk"){
 	field(ZRST, "125 MHz")
 	field(ONST, "200 MHz")
 	field(TWST, "250 MHz")
-	field(THST, "180 MHz")
+	field(THST, "125 MHz Cust")
+	field(FRST, "200 MHz Cust")
+	field(FVST, "250 MHz Cust")
     field(ZRVL, "0")
     field(ONVL, "1")
     field(TWVL, "2")
     field(THVL, "3")
+	field(FRVL, "4")
+	field(FVVL, "5")
 }
 
 record(mbbi, "$(P)$(R)FClk_RBV"){
@@ -33,11 +56,15 @@ record(mbbi, "$(P)$(R)FClk_RBV"){
 	field(ZRST, "125 MHz")
 	field(ONST, "200 MHz")
 	field(TWST, "250 MHz")
-	field(THST, "180 MHz")
+	field(THST, "125 MHz Cust")
+	field(FRST, "200 MHz Cust")
+	field(FVST, "250 MHz Cust")
     field(ZRVL, "0")
     field(ONVL, "1")
     field(TWVL, "2")
     field(THVL, "3")
+	field(FRVL, "4")
+	field(FVVL, "5")
 }
 
 record(longin, "$(P)$(R)StatusHB_RBV"){

@@ -8,6 +8,7 @@
 #include <string.h>
 #include <string>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include <epicsTime.h>
 #include <epicsThread.h>
@@ -165,7 +166,7 @@ void FastCCD::processImage(cin_data_frame_t *frame)
   */
 FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory, 
                  int priority, int stackSize, int packetBuffer, int imageBuffer,
-		         const char *baseIP, const char *fabricIP, const char *fabricMAC)
+		             const char *baseIP, const char *fabricIP, const char *fabricMAC)
 
   : ADDriver(portName, 1, NUM_FastCCD_DET_PARAMS, maxBuffers, maxMemory, 
              asynUInt32DigitalMask, asynUInt32DigitalMask,
@@ -196,6 +197,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   
   /* Create an EPICS exit handler */
   epicsAtExit(exitHandler, this);
+
+  createParam(FastCCDPollingPeriodString,       asynParamFloat64,  &FastCCDPollingPeriod);
 
   createParam(FastCCDMux1String,                asynParamInt32,    &FastCCDMux1);
   createParam(FastCCDMux2String,                asynParamInt32,    &FastCCDMux2);
@@ -297,7 +300,10 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   sizeY = CIN_DATA_MAX_FRAME_Y;
 
   /* Set some default values for parameters */
-  status =  setStringParam(ADManufacturer, "Berkeley Laboratory");
+  status =  asynSuccess;
+  status |= setDoubleParam(FastCCDPollingPeriod, statusPollingPeriod);
+
+  status |= setStringParam(ADManufacturer, "Berkeley Laboratory");
   status |= setStringParam(ADModel, "1k x 2k FastCCD");
   status |= setIntegerParam(ADSizeX, sizeX);
   status |= setIntegerParam(ADSizeY, sizeY);
@@ -549,21 +555,41 @@ void FastCCD::report(FILE *fp, int details)
 asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value){
     int function = pasynUser->reason;
     asynStatus status = asynSuccess;
+    int _status = 0;
+
     const char *paramName;
     static const char *functionName = "writeFloat64";
 
     getParamName(function, &paramName);
 
     status = setDoubleParam(function, value);
+    if(status != asynSuccess){
+      return status;
+    }
 
     if(function == ADAcquireTime){
-      if(cin_ctl_set_exposure_time(&cin_ctl_port, (float)value)){
-        status = asynError;
-      }
+
+      _status = cin_ctl_set_exposure_time(&cin_ctl_port, (float)value);
+
     } else if (function == ADAcquirePeriod) {
-      if(cin_ctl_set_cycle_time(&cin_ctl_port, (float)value)){
-        status = asynError;
-      }
+
+      _status = cin_ctl_set_cycle_time(&cin_ctl_port, (float)value);
+      
+    } else if (function == FastCCDPollingPeriod){
+
+      // Set the new polling period and poll
+      statusPollingPeriod = value;
+      epicsEventSignal(statusEvent);
+
+    } else {
+
+      ADDriver::writeFloat64(pasynUser, value);
+
+    }
+
+    if(_status){
+      setParamStatus(function, asynError);
+      status = asynError;
     }
 
     if(status){
@@ -597,16 +623,18 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
     int _status = 0; // For return of cin functions
 
-    if (function == ADAcquire) 
-    {
-      if (value) // User clicked 'Start' button
-      {
+    if(function == ADAcquire){
+      if(value){ // User clicked 'Start' button
+
          // Send the hardware a start trigger command
          int n_images, t_mode, i_mode;
+         double t_exp, t_period;
 
          getIntegerParam(ADTriggerMode, &t_mode);
          getIntegerParam(ADImageMode, &i_mode);
          getIntegerParam(ADNumImages, &n_images);
+         getDoubleParam(ADAcquireTime, &t_exp);
+         getDoubleParam(ADAcquirePeriod, &t_period);
 
          switch(i_mode) {
            case ADImageSingle:
@@ -623,19 +651,28 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
          }
 
          if(t_mode == 0){
-           if(!cin_ctl_int_trigger_start(&cin_ctl_port, n_images)){
-             setIntegerParam(ADAcquire, 1);
-             setIntegerParam(ADStatus, ADStatusAcquire);
+           _status |= cin_ctl_set_cycle_time(&cin_ctl_port, (float)t_period);
+           _status |= cin_ctl_set_exposure_time(&cin_ctl_port, (float)t_exp);
+           if(!_status){
+             _status |= cin_ctl_int_trigger_start(&cin_ctl_port, n_images);
            }
          } else {
-           if(!cin_ctl_ext_trigger_start(&cin_ctl_port, t_mode)){
-             setIntegerParam(ADStatus, ADStatusAcquire);
-             setIntegerParam(ADAcquire, 1);
-           }
+           _status |= cin_ctl_ext_trigger_start(&cin_ctl_port, t_mode);
          }
-      }
-      else // User clicked 'Stop' Button
-      {
+
+         if(!_status){
+           setIntegerParam(ADAcquire, 1);
+           setIntegerParam(ADStatus, ADStatusAcquire);
+           setParamStatus(ADAcquire, asynSuccess);
+           setParamStatus(ADStatus, asynSuccess);
+         } else {
+           setIntegerParam(ADAcquire, 1);
+           setIntegerParam(ADStatus, ADStatusIdle);
+           setParamStatus(ADAcquire, asynError);
+           setParamStatus(ADStatus, asynError);
+         }
+
+      } else {
          // Send the hardware a stop trigger command
          if(!cin_ctl_int_trigger_stop(&cin_ctl_port)){
            setIntegerParam(ADStatus, ADStatusIdle);
@@ -739,21 +776,67 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       setParamStatus(function, asynSuccess);
     }
 
-    if (status)
-    {
-        asynPrint(pasynUser, ASYN_TRACE_ERROR,
-              "%s:%s: error, status=%d function=%d, value=%d\n",
-              driverName, functionName, status, function, value);
+    if (status) {
+      asynPrint(pasynUser, ASYN_TRACE_ERROR,
+            "%s:%s: error, status=%d function=%d, value=%d\n",
+            driverName, functionName, status, function, value);
     } else {
-        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
-              "%s:%s: function=%d, value=%d\n",
-              driverName, functionName, function, value);
+      asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+            "%s:%s: function=%d, value=%d\n",
+            driverName, functionName, function, value);
     }
 
     /* Do callbacks so higher layers see any changes */
     callParamCallbacks();
 
     return status;
+}
+
+asynStatus FastCCD::writeOctet(asynUser *pasynUser, const char *value, size_t nc, size_t *na){
+  int function = pasynUser->reason;
+  int addr = 0;
+  asynStatus status = asynSuccess;
+  const char *paramName;
+  static const char *functionName = "writeOctet";
+
+  status = getAddress(pasynUser, &addr);
+  if(status != asynSuccess){
+    return(status);
+  }
+  status = (asynStatus)setStringParam(addr, function, (char *)value);
+  if(status != asynSuccess){
+    return(status);
+  }
+
+  if(function == FastCCDFirmwarePath || function == FastCCDClockPath ||
+     function == FastCCDFCRICPath    || function == FastCCDBiasPath ){
+    struct stat s;
+    int _status = stat(value, &s);
+    if(_status){
+      setParamStatus(function, asynError);
+    } else {
+      setParamStatus(function, asynSuccess);
+    }
+  } else {
+    // Call base class to handle strings
+    status = ADDriver::writeOctet(pasynUser, value, nc, na);
+  }
+
+  if (status) {
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+          "%s:%s: error, status=%d function=%d, value=%s\n",
+          driverName, functionName, status, function, value);
+  } else {
+    asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+          "%s:%s: function=%d, value=%s\n",
+          driverName, functionName, function, value);
+  }
+
+
+  /* Do callbacks so higher layers see any changes */
+  callParamCallbacks();
+
+  return status;
 }
 
 void FastCCD::dataStatsTask(void)
@@ -1011,20 +1094,8 @@ void FastCCD::getCameraStatus(void){
     int fclk;
     cin_status = cin_ctl_get_fclk(&cin_ctl_port, &fclk);
     if(!cin_status){
-      switch(fclk){
-        case CIN_CTL_FCLK_125:
-          setIntegerParam(FastCCDFclk, 0);
-          break;
-        case CIN_CTL_FCLK_200:
-          setIntegerParam(FastCCDFclk, 1);
-          break;
-        case CIN_CTL_FCLK_250:
-          setIntegerParam(FastCCDFclk, 2);
-          break;
-      }
-
+      setIntegerParam(FastCCDFclk, fclk);
       setParamStatus(FastCCDFclk, asynSuccess);
-
     } else {
       setParamStatus(FastCCDFclk, asynDisconnected);
     }
@@ -1069,8 +1140,6 @@ void FastCCD::statusTask(void)
   unsigned int status = 0;
   double timeout = 0.0;
   static const char *functionName = "statusTask";
-
-  int cin_status;
 
   while(1) {
 

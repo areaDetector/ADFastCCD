@@ -4,3 +4,4 @@ $(P)$(R)FirmwarePath
 $(P)$(R)ClockPath
 $(P)$(R)BiasPath
 $(P)$(R)FCRICPath
+$(P)$(R)PollPeriod
