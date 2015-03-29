@@ -802,7 +802,6 @@ asynStatus FastCCD::writeOctet(asynUser *pasynUser, const char *value, size_t nc
   int function = pasynUser->reason;
   int addr = 0;
   asynStatus status = asynSuccess;
-  const char *paramName;
   static const char *functionName = "writeOctet";
 
   status = getAddress(pasynUser, &addr);
