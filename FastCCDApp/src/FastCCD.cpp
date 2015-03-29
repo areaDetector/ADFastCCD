@@ -1071,7 +1071,6 @@ void FastCCD::statusTask(void)
   static const char *functionName = "statusTask";
 
   int cin_status;
-  int ticktock = 0;
 
   while(1) {
 
@@ -1094,14 +1093,18 @@ void FastCCD::statusTask(void)
 
     // Update the ticktock
     
-    ticktock += 1;
-    setIntegerParam(FastCCDStatusHB, ticktock);
-
+    setIntegerParam(FastCCDStatusHB, 1);
+    this->lock();
+    callParamCallbacks();
+    this->unlock();
 
     // Do a single poll of the detector
     getCameraStatus();
 
     /* Call the callbacks to update any changes */
+
+    setIntegerParam(FastCCDStatusHB, 0);
+
     this->lock();
     callParamCallbacks();
     this->unlock();
