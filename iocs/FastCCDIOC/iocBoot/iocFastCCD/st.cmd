@@ -1,4 +1,4 @@
-#!../../../../bin/linux-x86_64/FastCCDApp
+#!../../bin/linux-x86_64/FastCCDApp
 < envPaths
 
 epicsEnvSet("ADCORE", "$(AREA_DETECTOR)/ADCore")
@@ -9,7 +9,7 @@ epicsEnvSet("EPICS_CA_AUTO_ADDR_LIST" , "NO")
 epicsEnvSet("EPICS_CA_ADDR_LIST"      , "10.23.0.255")
 epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES", "10000000")
 
-dbLoadDatabase("$(ADFASTCCD)/dbd/FastCCDApp.dbd")
+dbLoadDatabase("$(TOP)/dbd/FastCCDApp.dbd")
 FastCCDApp_registerRecordDeviceDriver(pdbbase) 
 
 epicsEnvSet("PREFIX", "XF:23ID1-ES{FCCD}")
