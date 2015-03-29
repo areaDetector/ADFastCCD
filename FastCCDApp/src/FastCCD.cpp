@@ -835,7 +835,9 @@ asynStatus FastCCD::writeOctet(asynUser *pasynUser, const char *value, size_t nc
 
   /* Do callbacks so higher layers see any changes */
   callParamCallbacks();
-
+ 
+  // Set the number of characters written
+  *na = nc;
   return status;
 }
 
