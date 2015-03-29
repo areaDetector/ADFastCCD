@@ -24,7 +24,6 @@
 
 #include "cin.h"
 
-static const char *driverName="NDPluginFastCCD";
 
 /** Callback function that is called by the NDArray driver with new NDArray data.
   * Draws overlays on top of the array.
@@ -145,7 +144,7 @@ NDPluginFastCCD::NDPluginFastCCD(const char *portName, int queueSize, int blocki
                    asynGenericPointerMask,
                    ASYN_MULTIDEVICE, 1, priority, stackSize)
 {
-    static const char *functionName = "NDPluginFastCCD";
+    //static const char *functionName = "NDPluginFastCCD";
 
 
     createParam(NDPluginFastCCDOffset0String,    asynParamInt32,  &NDPluginFastCCDOffset0);
