@@ -49,12 +49,9 @@ dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image2:,PORT=Image2,NDARRAY
 < $(ADCORE)/iocBoot/commonPlugins.cmd
 
 set_requestfile_path("$(ADFASTCCD)/FastCCDApp/Db")
-
-#asynSetTraceMask("$(PORT)",0,0x10)
-#asynSetTraceIOMask("$(PORT)",0,1)
+set_requestfile_path("$(ADFASTCCD)/FastCCDPlugin/Db")
 
 iocInit()
-
 
 # save things every thirty seconds
 create_monitor_set("auto_settings.req", 30,"P=$(PREFIX),D=cam1:")
