@@ -877,7 +877,10 @@ record(bi, "$(P)$(R)FPPower_RBV")
 #
 # Records in ADBase that do not apply to the fCCD
 #
-
+record(longout, "$(P)$(R)NumExposures")
+{
+    field(DISA, "1")
+}
 record(mbbo, "$(P)$(R)ColorMode")
 {
     field(DISA, "1")
