@@ -50,10 +50,15 @@
 #define FastCCDDroppedPckString                 "DROPPED_PCK"
 #define FastCCDLastFrameString                  "LAST_FRAME"
 #define FastCCDResetStatsString                 "RESET_STATS"
+#define FastCCDPacketBufferString               "PACKET_BUFFER"
+#define FastCCDFrameBufferString                "FRAME_BUFFER"
+#define FastCCDImageBufferString                "IMAGE_BUFFER"
 
 #define FastCCDOverscanString                   "OVERSCAN"
 
 #define FastCCDFclkString                       "FCLK"
+
+#define FastCCDFCRICGainString                  "FCRIC_GAIN"
 
 #define FastCCDVBus12V0String                   "VBUS_12V0"
 #define FastCCDVMgmt3v3String                   "VMGMT_3V3"
@@ -134,6 +139,7 @@ class FastCCD : public ADDriver {
 
   // FCLK
   int FastCCDFclk;
+  int FastCCDFCRICGain;
 
   // File upload
   int FastCCDFirmwareUpload;
@@ -173,6 +179,9 @@ class FastCCD : public ADDriver {
   int FastCCDDroppedPck;
   int FastCCDLastFrame;
   int FastCCDResetStats;
+  int FastCCDPacketBuffer;
+  int FastCCDFrameBuffer;
+  int FastCCDImageBuffer;
 
   // Power monitor Variables
   int FastCCDPwrBus12V;

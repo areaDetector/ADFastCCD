@@ -114,9 +114,10 @@ extern const char *cin_build_version;
 #define CIN_DATA_TAIL_MAGIC_PACKET_MASK    UINT64_C(0xFFFFFFFFFFFFFFFF)
 #define CIN_DATA_DROPPED_PACKET_VAL        0x2000
 #define CIN_DATA_DATA_MASK                 0x1FFF
+#define CIN_DATA_CTRL_MASK                 0xE000
+#define CIN_DATA_SIGN_MASK                 0x1000
 #define CIN_DATA_GAIN_8                    0xC000
 #define CIN_DATA_GAIN_4                    0x4000
-#define CIN_DATA_OFFSET                    0x1000
 #define CIN_DATA_PACKET_LEN                8184
 #define CIN_DATA_MAX_PACKETS               542
 #define CIN_DATA_RCVBUF                    100  // Mb 
@@ -242,6 +243,9 @@ typedef struct cin_data_stats {
   long int packet_overruns;
   long int frame_overruns;
   long int image_overruns;
+  long int packet_used;
+  long int frame_used;
+  long int image_used;
 
   // Packet stats
   
@@ -373,6 +377,7 @@ int cin_ctl_set_cycle_time(struct cin_port* cp,float ftime);
 int cin_ctl_frame_count_reset(struct cin_port* cp);
 int cin_ctl_set_mux(struct cin_port *cp, int setting);
 int cin_ctl_get_mux(struct cin_port *cp, int *setting);
+int cin_ctl_set_fcric_gain(struct cin_port *cp, int gain);
 
 /*------------------------
  * CIN TCP/IP Settings

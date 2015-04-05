@@ -1,5 +1,7 @@
 #
 # Polling Period for the camera
+#
+
 record(ao, "$(P)$(R)PollPeriod"){
 	field(DTYP, "asynFloat64")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))POLL_PERIOD")
@@ -14,6 +16,33 @@ record(ai, "$(P)$(R)PollPeriod_RBV"){
 	field(SCAN, "I/O Intr")
 	field(EGU,  "Sec")
 	field(PREC, "1")
+}
+
+# 
+# FCRIC Gain Settings
+#
+
+record(mbbo, "$(P)$(R)FCRICGain"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FCRIC_GAIN")
+	field(ZRST, "Auto")
+	field(ONST, "x2")
+	field(TWST, "x1")
+    field(ZRVL, "0")
+    field(ONVL, "2")
+    field(TWVL, "3")
+}
+
+record(mbbi, "$(P)$(R)FCRICGain_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FCRIC_GAIN")
+	field(ZRST, "Auto")
+	field(ONST, "x2")
+	field(TWST, "x1")
+    field(ZRVL, "0")
+    field(ONVL, "2")
+    field(TWVL, "3")
+	field(SCAN, "I/O Intr")
 }
 
 #
@@ -67,7 +96,7 @@ record(mbbi, "$(P)$(R)FClk_RBV"){
 	field(FVVL, "5")
 }
 
-record(longin, "$(P)$(R)StatusHB_RBV"){
+record(ai, "$(P)$(R)StatusHB_RBV"){
   field(DTYP, "asynInt32")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))STATUS_HB")
   field(SCAN, "I/O Intr")
@@ -582,10 +611,10 @@ record(mbbo, "$(P)$(R)DataType")
    field(PINI, "YES")
    field(DTYP, "asynInt32")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DATA_TYPE")
-   field(ZRST, "UInt16")
-   field(ZRVL, "3")
-   field(ONST, "")
-   field(ONVL, "")
+   field(ZRST, "Int16")
+   field(ZRVL, "2")
+   field(ONST, "UInt16")
+   field(ONVL, "3")
    field(TWST, "")
    field(TWVL, "")
    field(THST, "")
@@ -602,10 +631,10 @@ record(mbbo, "$(P)$(R)DataType")
 
 record(mbbi, "$(P)$(R)DataType_RBV")
 {
-   field(ZRST, "UInt16")
-   field(ZRVL, "3")
-   field(ONST, "")
-   field(ONVL, "")
+   field(ZRST, "Int16")
+   field(ZRVL, "2")
+   field(ONST, "UInt16")
+   field(ONVL, "3")
    field(TWST, "")
    field(TWVL, "")
    field(THST, "")
@@ -786,25 +815,25 @@ record(stringin, "$(P)$(R)LibCinVersion_RBV"){
     field(SCAN, "I/O Intr")
 }
 
-record(longin, "$(P)$(R)BoardID_RBV"){
+record(ai, "$(P)$(R)BoardID_RBV"){
 	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BOARD_ID")
     field(SCAN, "I/O Intr")
 }
 
-record(longin, "$(P)$(R)SerialNum_RBV"){
+record(ai, "$(P)$(R)SerialNum_RBV"){
 	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SERIAL_NUM")
     field(SCAN, "I/O Intr")
 }
 
-record(longin, "$(P)$(R)FPGAVer_RBV"){
+record(ai, "$(P)$(R)FPGAVer_RBV"){
 	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FPGA_VER")
     field(SCAN, "I/O Intr")
 }
 
-record(longin, "$(P)$(R)LastFrame_RBV"){
+record(ai, "$(P)$(R)LastFrame_RBV"){
 	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))LAST_FRAME")
     field(SCAN, "I/O Intr")
@@ -814,13 +843,13 @@ record(longin, "$(P)$(R)LastFrame_RBV"){
 # Data Stats
 #
 
-record(longin, "$(P)$(R)DroppedPck_RBV"){
+record(ai, "$(P)$(R)DroppedPck_RBV"){
 	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))DROPPED_PCK")
     field(SCAN, "I/O Intr")
 }
 
-record(longin, "$(P)$(R)BadPck_RBV"){
+record(ai, "$(P)$(R)BadPck_RBV"){
 	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BAD_PCK")
     field(SCAN, "I/O Intr")
@@ -830,6 +859,25 @@ record(bo, "$(P)$(R)ResetStats"){
 	field(DTYP, "asynInt32")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))RESET_STATS")
 }
+
+record(ai, "$(P)$(R)FrameBuffer_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FRAME_BUFFER")
+	field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)PacketBuffer_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PACKET_BUFFER")
+	field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)ImageBuffer_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IMAGE_BUFFER")
+	field(SCAN, "I/O Intr")
+}
+
 #
 # Records for power
 #

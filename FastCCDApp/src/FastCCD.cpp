@@ -65,12 +65,14 @@ void FastCCD::allocateImage(cin_data_frame_t *frame)
 {
   size_t dims[2];
   int nDims = 2;
+
+  int dataType;
+  getIntegerParam(NDDataType, &dataType);
    
   dims[0] = CIN_DATA_MAX_FRAME_X;
   dims[1] = CIN_DATA_MAX_FRAME_Y;
-  NDDataType_t dataType = NDUInt16; 
   
-  while(!(pImage = this->pNDArrayPool->alloc(nDims, dims, dataType, 
+  while(!(pImage = this->pNDArrayPool->alloc(nDims, dims, (NDDataType_t)dataType, 
                                              0, NULL))) {
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
               "Unable to allocate array from pool....\n");
@@ -190,7 +192,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
 
   //Define the polling periods for the status thread.
   statusPollingPeriod = 20; //seconds
-  dataStatsPollingPeriod = 1; //seconds
+  dataStatsPollingPeriod = 0.1; //seconds
 
   // Assume we are in continuous mode
   framesRemaining = -1;
@@ -226,6 +228,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDOverscanString,            asynParamInt32,    &FastCCDOverscan);
 
   createParam(FastCCDFclkString,                asynParamInt32,    &FastCCDFclk);
+
+  createParam(FastCCDFCRICGainString,           asynParamInt32,    &FastCCDFCRICGain);
 
   createParam(FastCCDVBus12V0String,            asynParamFloat64,  &FastCCDVBus12V0);
   createParam(FastCCDVMgmt3v3String,            asynParamFloat64,  &FastCCDVMgmt3v3);
@@ -264,6 +268,9 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDDroppedPckString,          asynParamInt32,    &FastCCDDroppedPck);
   createParam(FastCCDLastFrameString,           asynParamInt32,    &FastCCDLastFrame);
   createParam(FastCCDResetStatsString,          asynParamInt32,    &FastCCDResetStats);
+  createParam(FastCCDPacketBufferString,        asynParamInt32,    &FastCCDPacketBuffer);
+  createParam(FastCCDFrameBufferString,         asynParamInt32,    &FastCCDFrameBuffer);
+  createParam(FastCCDImageBufferString,         asynParamInt32,    &FastCCDImageBuffer);
 
   // Create the epicsEvent for signaling to the status task when parameters should have changed.
   // This will cause it to do a poll immediately, rather than wait for the poll time period.
@@ -353,6 +360,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setIntegerParam(FastCCDOverscan, 2);
 
   status |= setIntegerParam(FastCCDFclk, 0);
+
+  status |= setIntegerParam(FastCCDFCRICGain, 0);
 
   status |= setDoubleParam(FastCCDVBus12V0, 0);
   status |= setDoubleParam(FastCCDVMgmt3v3, 0);
@@ -771,6 +780,10 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       _status |= cin_ctl_set_fclk(&cin_ctl_port, value);
       epicsEventSignal(statusEvent);
 
+    } else if (function == FastCCDFCRICGain){
+
+      _status |= cin_ctl_set_fcric_gain(&cin_ctl_port, value);
+
     } else {
       status = ADDriver::writeInt32(pasynUser, value);
     }
@@ -876,6 +889,10 @@ void FastCCD::dataStatsTask(void)
     setIntegerParam(FastCCDDroppedPck, (int)stats.dropped_packets);
     setIntegerParam(FastCCDBadPck, (int)stats.mallformed_packets);
     setIntegerParam(FastCCDLastFrame, stats.last_frame);
+    setIntegerParam(FastCCDPacketBuffer, stats.packet_used);
+    setIntegerParam(FastCCDFrameBuffer, stats.frame_used);
+    setIntegerParam(FastCCDImageBuffer, stats.image_used);
+
     //setDoubleParam(FastCCDDataRate, stats.datarate);
     
     this->lock();

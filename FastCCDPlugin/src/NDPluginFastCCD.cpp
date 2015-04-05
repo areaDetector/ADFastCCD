@@ -68,30 +68,30 @@ void NDPluginFastCCD::processCallbacks(NDArray *pArray)
      * that other threads can access. */
     this->unlock();
 
-    if((pOutput->dataType == NDUInt16) && enabled){
+    if(((pOutput->dataType == NDUInt16) || (pOutput->dataType == NDInt16)) && enabled){
       // We can only process NDUnit16 images just pass if not. 
 
       // Get the data pointer
-      epicsUInt16 *data = (epicsUInt16 *)pOutput->pData;
-      epicsUInt16 ctrl;
+      epicsInt16 *data = (epicsInt16 *)pOutput->pData;
+      epicsInt16 ctrl, sign;
 
       for(size_t i=0; i<pOutput->dims[1].size; i++){
         for(size_t j=0; j<pOutput->dims[0].size; j++){
-          ctrl = *data & ~CIN_DATA_DATA_MASK;
+          ctrl = *data & CIN_DATA_CTRL_MASK;
           if(dataen){
             *data = *data & CIN_DATA_DATA_MASK;
             if((ctrl & CIN_DATA_GAIN_8) == CIN_DATA_GAIN_8){
-              // Minimum Gain
-              *data = CIN_DATA_OFFSET + 8 * (*data - (epicsUInt16)offset2);
+              // Minimum Gain just left shift 3 times
+              *data = (*data << 3) - (epicsInt16)(offset2 << 3);
             } else if ((ctrl & CIN_DATA_GAIN_4) == CIN_DATA_GAIN_4) {
               // Gain
-              *data = CIN_DATA_OFFSET + 4 * (*data - (epicsUInt16)offset1);
+              *data = (*data << 2) - (epicsInt16)(offset1 << 2);
             } else if ((ctrl & CIN_DATA_DROPPED_PACKET_VAL) == CIN_DATA_DROPPED_PACKET_VAL) {
               // Dropped Packet
               *data = (epicsUInt16)dpval;
             } else {
               // Maximum gain
-              *data = CIN_DATA_OFFSET + *data - (epicsUInt16)offset0;
+              *data = *data - (epicsInt16)offset0;
             } 
           } else {
             *data = ctrl;
