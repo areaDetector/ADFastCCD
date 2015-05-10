@@ -272,6 +272,27 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDFrameBufferString,         asynParamInt32,    &FastCCDFrameBuffer);
   createParam(FastCCDImageBufferString,         asynParamInt32,    &FastCCDImageBuffer);
 
+  createParam(FastCCDBiasPosHString,            asynParamInt32,    &FastCCDBiasPosH);
+  createParam(FastCCDBiasNegHString,            asynParamInt32,    &FastCCDBiasNegH);
+  createParam(FastCCDBiasPosRGString,           asynParamInt32,    &FastCCDBiasPosRG);
+  createParam(FastCCDBiasNegRGString,           asynParamInt32,    &FastCCDBiasNegRG);
+  createParam(FastCCDBiasPosSWString,           asynParamInt32,    &FastCCDBiasPosSW);
+  createParam(FastCCDBiasNegSWString,           asynParamInt32,    &FastCCDBiasNegSW);
+  createParam(FastCCDBiasPosVString,            asynParamInt32,    &FastCCDBiasPosV);
+  createParam(FastCCDBiasNegVString,            asynParamInt32,    &FastCCDBiasNegV);
+  createParam(FastCCDBiasPosTGString,           asynParamInt32,    &FastCCDBiasPosTG);
+  createParam(FastCCDBiasNegTGString,           asynParamInt32,    &FastCCDBiasNegTG);
+  createParam(FastCCDBiasPosVFString,           asynParamInt32,    &FastCCDBiasPosVF);
+  createParam(FastCCDBiasNegVFString,           asynParamInt32,    &FastCCDBiasNegVF);
+  createParam(FastCCDBiasNEDGEString,           asynParamInt32,    &FastCCDBiasNEDGE);
+  createParam(FastCCDBiasOTGString,             asynParamInt32,    &FastCCDBiasOTG);
+  createParam(FastCCDBiasVDDRString,            asynParamInt32,    &FastCCDBiasVDDR);
+  createParam(FastCCDBiasVDDOutString,          asynParamInt32,    &FastCCDBiasVDDOut);
+  createParam(FastCCDBiasBufBaseString,         asynParamInt32,    &FastCCDBiasBufBase);
+  createParam(FastCCDBiasBufDeltaString,        asynParamInt32,    &FastCCDBiasBufDelta);
+  createParam(FastCCDBiasSpare1String,          asynParamInt32,    &FastCCDBiasSpare1);
+  createParam(FastCCDBiasSpare2String,          asynParamInt32,    &FastCCDBiasSpare2);
+
   // Create the epicsEvent for signaling to the status task when parameters should have changed.
   // This will cause it to do a poll immediately, rather than wait for the poll time period.
   this->statusEvent = epicsEventMustCreate(epicsEventEmpty);
