@@ -545,7 +545,7 @@ int FastCCD::uploadFirmware(void){
     goto error;
   }
 
-  sleep(5);
+  sleep(3);
   getCameraStatus();
 
   // Power on the cin
@@ -556,7 +556,7 @@ int FastCCD::uploadFirmware(void){
     goto error;
   }
 
-  sleep(5);
+  sleep(3);
   getCameraStatus();
 
   setStringParam(ADStatusMessage, "Uploading Firmware to CIN");
@@ -777,6 +777,8 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       } else {
         _status |= cin_ctl_fp_pwr(&cin_ctl_port, 0);
       }
+
+      sleep(3);
 
       epicsEventSignal(statusEvent);
 
