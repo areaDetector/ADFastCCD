@@ -107,6 +107,8 @@
 #define FastCCDBiasSpare1String     "BIAS_SPARE1"
 #define FastCCDBiasSpare2String     "BIAS_SPARE2"
 
+#define FastCCDBiasWriteVString     "BIAS_WRITEV"
+
 
 //C Function prototypes to tie in with EPICS
 static void FastCCDStatusTaskC(void *drvPvt);
@@ -206,26 +208,27 @@ class FastCCD : public ADDriver {
   int FastCCDImageBuffer;
 
   // Bias Settings
-  int  FastCCDBiasPosH;       
-  int  FastCCDBiasNegH;       
-  int  FastCCDBiasPosRG;      
-  int  FastCCDBiasNegRG;      
-  int  FastCCDBiasPosSW;      
-  int  FastCCDBiasNegSW;      
-  int  FastCCDBiasPosV;       
-  int  FastCCDBiasNegV;       
-  int  FastCCDBiasPosTG;      
-  int  FastCCDBiasNegTG;      
-  int  FastCCDBiasPosVF;      
-  int  FastCCDBiasNegVF;      
-  int  FastCCDBiasNEDGE;      
-  int  FastCCDBiasOTG;        
-  int  FastCCDBiasVDDR;       
-  int  FastCCDBiasVDDOut;     
-  int  FastCCDBiasBufBase;    
-  int  FastCCDBiasBufDelta;
-  int  FastCCDBiasSpare1;     
-  int  FastCCDBiasSpare2;     
+  int FastCCDBiasPosH;       
+  int FastCCDBiasNegH;       
+  int FastCCDBiasPosRG;      
+  int FastCCDBiasNegRG;      
+  int FastCCDBiasPosSW;      
+  int FastCCDBiasNegSW;      
+  int FastCCDBiasPosV;       
+  int FastCCDBiasNegV;       
+  int FastCCDBiasPosTG;      
+  int FastCCDBiasNegTG;      
+  int FastCCDBiasPosVF;      
+  int FastCCDBiasNegVF;      
+  int FastCCDBiasNEDGE;      
+  int FastCCDBiasOTG;        
+  int FastCCDBiasVDDR;       
+  int FastCCDBiasVDDOut;     
+  int FastCCDBiasBufBase;    
+  int FastCCDBiasBufDelta;
+  int FastCCDBiasSpare1;     
+  int FastCCDBiasSpare2;     
+  int FastCCDBiasWriteV;
 
   // Power monitor Variables
   int FastCCDPwrBus12V;

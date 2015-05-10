@@ -292,6 +292,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDBiasBufDeltaString,        asynParamFloat64,  &FastCCDBiasBufDelta);
   createParam(FastCCDBiasSpare1String,          asynParamFloat64,  &FastCCDBiasSpare1);
   createParam(FastCCDBiasSpare2String,          asynParamFloat64,  &FastCCDBiasSpare2);
+  
+  createParam(FastCCDBiasWriteVString,          asynParamInt32,    &FastCCDBiasWriteV);
 
   // Create the epicsEvent for signaling to the status task when parameters should have changed.
   // This will cause it to do a poll immediately, rather than wait for the poll time period.
