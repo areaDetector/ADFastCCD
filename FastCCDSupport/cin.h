@@ -427,8 +427,8 @@ int cin_ctl_reg_dump(struct cin_port *cp, FILE *fp);
  * CIN Bias Voltages
  *------------------------*/
 
-int cin_ctl_read_bias_voltages(struct cin_port *cp, float *voltage);
-int cin_ctl_write_bias_voltages(struct cin_port *cp, float *voltage);
+int cin_ctl_get_bias_voltages(struct cin_port *cp, float *voltage);
+int cin_ctl_set_bias_voltages(struct cin_port *cp, float *voltage);
 
 /* ---------------------------------------------------------------------
  *

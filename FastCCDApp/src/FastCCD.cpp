@@ -272,26 +272,26 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDFrameBufferString,         asynParamInt32,    &FastCCDFrameBuffer);
   createParam(FastCCDImageBufferString,         asynParamInt32,    &FastCCDImageBuffer);
 
-  createParam(FastCCDBiasPosHString,            asynParamInt32,    &FastCCDBiasPosH);
-  createParam(FastCCDBiasNegHString,            asynParamInt32,    &FastCCDBiasNegH);
-  createParam(FastCCDBiasPosRGString,           asynParamInt32,    &FastCCDBiasPosRG);
-  createParam(FastCCDBiasNegRGString,           asynParamInt32,    &FastCCDBiasNegRG);
-  createParam(FastCCDBiasPosSWString,           asynParamInt32,    &FastCCDBiasPosSW);
-  createParam(FastCCDBiasNegSWString,           asynParamInt32,    &FastCCDBiasNegSW);
-  createParam(FastCCDBiasPosVString,            asynParamInt32,    &FastCCDBiasPosV);
-  createParam(FastCCDBiasNegVString,            asynParamInt32,    &FastCCDBiasNegV);
-  createParam(FastCCDBiasPosTGString,           asynParamInt32,    &FastCCDBiasPosTG);
-  createParam(FastCCDBiasNegTGString,           asynParamInt32,    &FastCCDBiasNegTG);
-  createParam(FastCCDBiasPosVFString,           asynParamInt32,    &FastCCDBiasPosVF);
-  createParam(FastCCDBiasNegVFString,           asynParamInt32,    &FastCCDBiasNegVF);
-  createParam(FastCCDBiasNEDGEString,           asynParamInt32,    &FastCCDBiasNEDGE);
-  createParam(FastCCDBiasOTGString,             asynParamInt32,    &FastCCDBiasOTG);
-  createParam(FastCCDBiasVDDRString,            asynParamInt32,    &FastCCDBiasVDDR);
-  createParam(FastCCDBiasVDDOutString,          asynParamInt32,    &FastCCDBiasVDDOut);
-  createParam(FastCCDBiasBufBaseString,         asynParamInt32,    &FastCCDBiasBufBase);
-  createParam(FastCCDBiasBufDeltaString,        asynParamInt32,    &FastCCDBiasBufDelta);
-  createParam(FastCCDBiasSpare1String,          asynParamInt32,    &FastCCDBiasSpare1);
-  createParam(FastCCDBiasSpare2String,          asynParamInt32,    &FastCCDBiasSpare2);
+  createParam(FastCCDBiasPosHString,            asynParamFloat64,  &FastCCDBiasPosH);
+  createParam(FastCCDBiasNegHString,            asynParamFloat64,  &FastCCDBiasNegH);
+  createParam(FastCCDBiasPosRGString,           asynParamFloat64,  &FastCCDBiasPosRG);
+  createParam(FastCCDBiasNegRGString,           asynParamFloat64,  &FastCCDBiasNegRG);
+  createParam(FastCCDBiasPosSWString,           asynParamFloat64,  &FastCCDBiasPosSW);
+  createParam(FastCCDBiasNegSWString,           asynParamFloat64,  &FastCCDBiasNegSW);
+  createParam(FastCCDBiasPosVString,            asynParamFloat64,  &FastCCDBiasPosV);
+  createParam(FastCCDBiasNegVString,            asynParamFloat64,  &FastCCDBiasNegV);
+  createParam(FastCCDBiasPosTGString,           asynParamFloat64,  &FastCCDBiasPosTG);
+  createParam(FastCCDBiasNegTGString,           asynParamFloat64,  &FastCCDBiasNegTG);
+  createParam(FastCCDBiasPosVFString,           asynParamFloat64,  &FastCCDBiasPosVF);
+  createParam(FastCCDBiasNegVFString,           asynParamFloat64,  &FastCCDBiasNegVF);
+  createParam(FastCCDBiasNEDGEString,           asynParamFloat64,  &FastCCDBiasNEDGE);
+  createParam(FastCCDBiasOTGString,             asynParamFloat64,  &FastCCDBiasOTG);
+  createParam(FastCCDBiasVDDRString,            asynParamFloat64,  &FastCCDBiasVDDR);
+  createParam(FastCCDBiasVDDOutString,          asynParamFloat64,  &FastCCDBiasVDDOut);
+  createParam(FastCCDBiasBufBaseString,         asynParamFloat64,  &FastCCDBiasBufBase);
+  createParam(FastCCDBiasBufDeltaString,        asynParamFloat64,  &FastCCDBiasBufDelta);
+  createParam(FastCCDBiasSpare1String,          asynParamFloat64,  &FastCCDBiasSpare1);
+  createParam(FastCCDBiasSpare2String,          asynParamFloat64,  &FastCCDBiasSpare2);
 
   // Create the epicsEvent for signaling to the status task when parameters should have changed.
   // This will cause it to do a poll immediately, rather than wait for the poll time period.
@@ -409,6 +409,27 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setDoubleParam(FastCCDI61v0, 0);
   status |= setDoubleParam(FastCCDI62v5, 0);
   status |= setDoubleParam(FastCCDIFp, 0);
+
+  status |= setDoubleParam(FastCCDBiasPosH, 0);
+  status |= setDoubleParam(FastCCDBiasNegH, 0);
+  status |= setDoubleParam(FastCCDBiasPosRG, 0);
+  status |= setDoubleParam(FastCCDBiasNegRG, 0);
+  status |= setDoubleParam(FastCCDBiasPosSW, 0);
+  status |= setDoubleParam(FastCCDBiasNegSW, 0);
+  status |= setDoubleParam(FastCCDBiasPosV, 0);
+  status |= setDoubleParam(FastCCDBiasNegV, 0);
+  status |= setDoubleParam(FastCCDBiasPosTG, 0);
+  status |= setDoubleParam(FastCCDBiasNegTG, 0);
+  status |= setDoubleParam(FastCCDBiasPosVF, 0);
+  status |= setDoubleParam(FastCCDBiasNegVF, 0);
+  status |= setDoubleParam(FastCCDBiasNEDGE, 0);
+  status |= setDoubleParam(FastCCDBiasOTG, 0);
+  status |= setDoubleParam(FastCCDBiasVDDR, 0);
+  status |= setDoubleParam(FastCCDBiasVDDOut, 0);
+  status |= setDoubleParam(FastCCDBiasBufBase, 0);
+  status |= setDoubleParam(FastCCDBiasBufDelta, 0);
+  status |= setDoubleParam(FastCCDBiasSpare1, 0);
+  status |= setDoubleParam(FastCCDBiasSpare2, 0);
 
   status |= setStringParam(FastCCDLibCinVersion, (char *)cin_build_version);
 
@@ -1163,6 +1184,52 @@ void FastCCD::getCameraStatus(void){
       setParamStatus(ADStatus, asynDisconnected);
     }
 
+    // Poll for the BIAS Settings
+    
+    float bias_voltage[NUM_BIAS_VOLTAGE];
+    cin_status = cin_ctl_get_bias_voltages(&cin_ctl_port, bias_voltage);
+
+    setDoubleParam(FastCCDBiasPosH, bias_voltage[pt_posH]);
+    setDoubleParam(FastCCDBiasNegH, bias_voltage[pt_negH]);
+    setDoubleParam(FastCCDBiasPosRG, bias_voltage[pt_posRG]);
+    setDoubleParam(FastCCDBiasNegRG, bias_voltage[pt_negRG]);
+    setDoubleParam(FastCCDBiasPosSW, bias_voltage[pt_posSW]);
+    setDoubleParam(FastCCDBiasNegSW, bias_voltage[pt_negSW]);
+    setDoubleParam(FastCCDBiasPosV, bias_voltage[pt_posV]);
+    setDoubleParam(FastCCDBiasNegV, bias_voltage[pt_negV]);
+    setDoubleParam(FastCCDBiasPosTG, bias_voltage[pt_posTG]);
+    setDoubleParam(FastCCDBiasNegTG, bias_voltage[pt_negTG]);
+    setDoubleParam(FastCCDBiasPosVF, bias_voltage[pt_posVF]);
+    setDoubleParam(FastCCDBiasNegVF, bias_voltage[pt_negVF]);
+    setDoubleParam(FastCCDBiasNEDGE, bias_voltage[pt_NEDGE]);
+    setDoubleParam(FastCCDBiasOTG, bias_voltage[pt_OTG]);
+    setDoubleParam(FastCCDBiasVDDR, bias_voltage[pt_VDDR]);
+    setDoubleParam(FastCCDBiasVDDOut, bias_voltage[pt_VDD_OUT]);
+    setDoubleParam(FastCCDBiasBufBase, bias_voltage[pt_BUF_Base]);
+    setDoubleParam(FastCCDBiasBufDelta, bias_voltage[pt_BUF_Delta]);
+    setDoubleParam(FastCCDBiasSpare1, bias_voltage[pt_Spare1]);
+    setDoubleParam(FastCCDBiasSpare2, bias_voltage[pt_Spare2]);
+
+    setParamStatus(FastCCDBiasPosH, asynSuccess);
+    setParamStatus(FastCCDBiasNegH, asynSuccess);
+    setParamStatus(FastCCDBiasPosRG, asynSuccess);
+    setParamStatus(FastCCDBiasNegRG, asynSuccess);
+    setParamStatus(FastCCDBiasPosSW, asynSuccess);
+    setParamStatus(FastCCDBiasNegSW, asynSuccess);
+    setParamStatus(FastCCDBiasPosV, asynSuccess);
+    setParamStatus(FastCCDBiasNegV, asynSuccess);
+    setParamStatus(FastCCDBiasPosTG, asynSuccess);
+    setParamStatus(FastCCDBiasNegTG, asynSuccess);
+    setParamStatus(FastCCDBiasPosVF, asynSuccess);
+    setParamStatus(FastCCDBiasNegVF, asynSuccess);
+    setParamStatus(FastCCDBiasNEDGE, asynSuccess);
+    setParamStatus(FastCCDBiasOTG, asynSuccess);
+    setParamStatus(FastCCDBiasVDDR, asynSuccess);
+    setParamStatus(FastCCDBiasVDDOut, asynSuccess);
+    setParamStatus(FastCCDBiasBufBase, asynSuccess);
+    setParamStatus(FastCCDBiasBufDelta, asynSuccess);
+    setParamStatus(FastCCDBiasSpare1, asynSuccess);
+    setParamStatus(FastCCDBiasSpare2, asynSuccess);
 
   } else {
     // Set the Comm Error 
@@ -1174,6 +1241,26 @@ void FastCCD::getCameraStatus(void){
     setParamStatus(FastCCDMux2, asynDisconnected);
     setParamStatus(FastCCDFclk, asynDisconnected);
 
+    setParamStatus(FastCCDBiasPosH, asynDisconnected);
+    setParamStatus(FastCCDBiasNegH, asynDisconnected);
+    setParamStatus(FastCCDBiasPosRG, asynDisconnected);
+    setParamStatus(FastCCDBiasNegRG, asynDisconnected);
+    setParamStatus(FastCCDBiasPosSW, asynDisconnected);
+    setParamStatus(FastCCDBiasNegSW, asynDisconnected);
+    setParamStatus(FastCCDBiasPosV, asynDisconnected);
+    setParamStatus(FastCCDBiasNegV, asynDisconnected);
+    setParamStatus(FastCCDBiasPosTG, asynDisconnected);
+    setParamStatus(FastCCDBiasNegTG, asynDisconnected);
+    setParamStatus(FastCCDBiasPosVF, asynDisconnected);
+    setParamStatus(FastCCDBiasNegVF, asynDisconnected);
+    setParamStatus(FastCCDBiasNEDGE, asynDisconnected);
+    setParamStatus(FastCCDBiasOTG, asynDisconnected);
+    setParamStatus(FastCCDBiasVDDR, asynDisconnected);
+    setParamStatus(FastCCDBiasVDDOut, asynDisconnected);
+    setParamStatus(FastCCDBiasBufBase, asynDisconnected);
+    setParamStatus(FastCCDBiasBufDelta, asynDisconnected);
+    setParamStatus(FastCCDBiasSpare1, asynDisconnected);
+    setParamStatus(FastCCDBiasSpare2, asynDisconnected);
   }
 }
 
@@ -1207,8 +1294,8 @@ void FastCCD::statusTask(void)
 
     // Update the ticktock
     
-    setIntegerParam(FastCCDStatusHB, 1);
     this->lock();
+    setIntegerParam(FastCCDStatusHB, 1);
     callParamCallbacks();
     this->unlock();
 
@@ -1217,9 +1304,8 @@ void FastCCD::statusTask(void)
 
     /* Call the callbacks to update any changes */
 
-    setIntegerParam(FastCCDStatusHB, 0);
-
     this->lock();
+    setIntegerParam(FastCCDStatusHB, 0);
     callParamCallbacks();
     this->unlock();
         
