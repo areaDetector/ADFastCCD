@@ -284,7 +284,7 @@ class FastCCD : public ADDriver {
  
   int framesRemaining;
 
-  void getCameraStatus();
+  void getCameraStatus(int first_run);
   int uploadConfig(int status, int path);
   int uploadFirmware(void);
 
