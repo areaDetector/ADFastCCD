@@ -32,10 +32,10 @@ asynStatus FastCCD::connectCamera(){
   if(cin_data_init_port(&cin_data_port, NULL, 0, (char *)cinFabricIP, 0, 500)) {
     return asynError;
   }
-  if(cin_ctl_init_port(&cin_ctl_port, NULL, 0, 0)) {
+  if(cin_ctl_init_port(&cin_ctl_port, (char *)cinBaseIP, 0, 0)) {
     return asynError;
   }
-  if(cin_ctl_init_port(&cin_ctl_port_stream, NULL, 49202, 50202)) {
+  if(cin_ctl_init_port(&cin_ctl_port_stream, (char *)cinBaseIP, 49202, 50202)) {
     return asynError;
   }
   if(cin_data_init(CIN_DATA_MODE_CALLBACK, cinPacketBuffer, cinImageBuffer,
@@ -93,6 +93,12 @@ static void processImageC(cin_data_frame_t *frame)
 void FastCCD::processImage(cin_data_frame_t *frame)
 {
   const char* functionName = "processImage";
+
+  if(firstFrameFlag){
+    firstFrameFlag = 0;
+    return;
+  }
+
   this->lock();
 
   // Set the unique ID
@@ -186,9 +192,9 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
 
   /* Store the network information */
 
-  strncpy(cinBaseIP, baseIP, 20);
-  strncpy(cinFabricIP, fabricIP, 20);
-  strncpy(cinFabricMAC, fabricMAC, 20);
+  strncpy(cinBaseIP, baseIP, 128);
+  strncpy(cinFabricIP, fabricIP, 128);
+  strncpy(cinFabricMAC, fabricMAC, 128);
 
   //Define the polling periods for the status thread.
   statusPollingPeriod = 20; //seconds
@@ -196,6 +202,9 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
 
   // Assume we are in continuous mode
   framesRemaining = -1;
+
+  // Set the first frame flag
+  firstFrameFlag = 0;
   
   /* Create an EPICS exit handler */
   epicsAtExit(exitHandler, this);
@@ -584,12 +593,21 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value){
 
     if(function == ADAcquireTime){
 
-      _status = cin_ctl_set_exposure_time(&cin_ctl_port, (float)value);
+      // TODO Add variable for framestore mode
+      if(1){
+        _status = cin_ctl_set_cycle_time(&cin_ctl_port, (float)value);
+      } else {
+        _status = cin_ctl_set_exposure_time(&cin_ctl_port, (float)value);
+      }
 
     } else if (function == ADAcquirePeriod) {
 
-      _status = cin_ctl_set_cycle_time(&cin_ctl_port, (float)value);
-      
+      if(1){
+        setParamStatus(function, asynDisconnected);
+      } else {
+        _status = cin_ctl_set_cycle_time(&cin_ctl_port, (float)value);
+      }
+
     } else if (function == FastCCDPollingPeriod){
 
       // Set the new polling period and poll
@@ -658,6 +676,10 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
              break;
            case ADImageMultiple:
              this->framesRemaining = n_images;
+             // TODO : Set Framestore Flag
+             if(1){
+               n_images++;
+             }
              break;
            case ADImageContinuous:
              this->framesRemaining = -1;
@@ -666,9 +688,17 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
          }
 
          if(t_mode == 0){
-           _status |= cin_ctl_set_cycle_time(&cin_ctl_port, (float)t_period);
-           _status |= cin_ctl_set_exposure_time(&cin_ctl_port, (float)t_exp);
+           // TODO : Set Framestore Flag
+           if(1) {
+             _status |= cin_ctl_set_cycle_time(&cin_ctl_port, (float)t_exp);
+             _status |= cin_ctl_set_exposure_time(&cin_ctl_port, 0.001);
+             setParamStatus(ADAcquirePeriod, asynError);
+           } else {
+             _status |= cin_ctl_set_exposure_time(&cin_ctl_port, (float)t_exp);
+             _status |= cin_ctl_set_cycle_time(&cin_ctl_port, (float)t_period);
+           }
            if(!_status){
+             firstFrameFlag = 1;
              _status |= cin_ctl_int_trigger_start(&cin_ctl_port, n_images);
            }
          } else {

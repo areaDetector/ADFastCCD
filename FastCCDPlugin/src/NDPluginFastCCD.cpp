@@ -82,16 +82,13 @@ void NDPluginFastCCD::processCallbacks(NDArray *pArray)
             *data = *data & CIN_DATA_DATA_MASK;
             if((ctrl & CIN_DATA_GAIN_8) == CIN_DATA_GAIN_8){
               // Minimum Gain just left shift 3 times
-              *data = (*data << 3) - (epicsInt16)(offset2 << 3);
+              *data = ((*data - offset0) << 3) + (epicsInt16)(offset2 << 3);
             } else if ((ctrl & CIN_DATA_GAIN_4) == CIN_DATA_GAIN_4) {
               // Gain
-              *data = (*data << 2) - (epicsInt16)(offset1 << 2);
+              *data = ((*data - offset0) << 2) + (epicsInt16)(offset1 << 2);
             } else if ((ctrl & CIN_DATA_DROPPED_PACKET_VAL) == CIN_DATA_DROPPED_PACKET_VAL) {
               // Dropped Packet
               *data = (epicsUInt16)dpval;
-            } else {
-              // Maximum gain
-              *data = *data - (epicsInt16)offset0;
             } 
           } else {
             *data = ctrl;

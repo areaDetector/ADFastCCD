@@ -217,9 +217,11 @@ class FastCCD : public ADDriver {
   int cinPacketBuffer;
   int cinImageBuffer;
 
-  char cinBaseIP[20];
-  char cinFabricIP[20];
-  char cinFabricMAC[20];
+  char cinBaseIP[128];
+  char cinFabricIP[128];
+  char cinFabricMAC[128];
+
+  int firstFrameFlag;
 
   // Connect / Disconnect
 
