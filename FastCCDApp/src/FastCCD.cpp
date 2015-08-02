@@ -293,6 +293,27 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDBiasSpare1String,          asynParamFloat64,  &FastCCDBiasSpare1);
   createParam(FastCCDBiasSpare2String,          asynParamFloat64,  &FastCCDBiasSpare2);
   
+  //createParam(FastCCDBiasPosHIString,           asynParamFloat64,  &FastCCDBiasPosHI);
+  //createParam(FastCCDBiasNegHIString,           asynParamFloat64,  &FastCCDBiasNegHI);
+  //createParam(FastCCDBiasPosRGIString,          asynParamFloat64,  &FastCCDBiasPosRGI);
+  //createParam(FastCCDBiasNegRGIString,          asynParamFloat64,  &FastCCDBiasNegRGI);
+  //createParam(FastCCDBiasPosSWIString,          asynParamFloat64,  &FastCCDBiasPosSWI);
+  //createParam(FastCCDBiasNegSWIString,          asynParamFloat64,  &FastCCDBiasNegSWI);
+  //createParam(FastCCDBiasPosVIString,           asynParamFloat64,  &FastCCDBiasPosVI);
+  //createParam(FastCCDBiasNegVIString,           asynParamFloat64,  &FastCCDBiasNegVI);
+  //createParam(FastCCDBiasPosTGIString,          asynParamFloat64,  &FastCCDBiasPosTGI);
+  //createParam(FastCCDBiasNegTGIString,          asynParamFloat64,  &FastCCDBiasNegTGI);
+  //createParam(FastCCDBiasPosVFIString,          asynParamFloat64,  &FastCCDBiasPosVFI);
+  //createParam(FastCCDBiasNegVFIString,          asynParamFloat64,  &FastCCDBiasNegVFI);
+  //createParam(FastCCDBiasNEDGEIString,          asynParamFloat64,  &FastCCDBiasNEDGEI);
+  //createParam(FastCCDBiasOTGIString,            asynParamFloat64,  &FastCCDBiasOTGI);
+  //createParam(FastCCDBiasVDDRIString,           asynParamFloat64,  &FastCCDBiasVDDRI);
+  //createParam(FastCCDBiasVDDOutIString,         asynParamFloat64,  &FastCCDBiasVDDOutI);
+  //createParam(FastCCDBiasBufBaseIString,        asynParamFloat64,  &FastCCDBiasBufBaseI);
+  //createParam(FastCCDBiasBufDeltaIString,       asynParamFloat64,  &FastCCDBiasBufDeltaI);
+  //createParam(FastCCDBiasSpare1IString,         asynParamFloat64,  &FastCCDBiasSpare1I);
+  //createParam(FastCCDBiasSpare2IString,         asynParamFloat64,  &FastCCDBiasSpare2I);
+
   createParam(FastCCDBiasWriteVString,          asynParamInt32,    &FastCCDBiasWriteV);
 
   // Create the epicsEvent for signaling to the status task when parameters should have changed.

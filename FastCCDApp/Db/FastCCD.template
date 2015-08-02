@@ -64,6 +64,7 @@ record(ao, "$(P)$(R)E:BiasPosH-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSH")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasNegH-RB")
@@ -81,6 +82,7 @@ record(ao, "$(P)$(R)E:BiasNegH-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGH")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasPosRG-RB")
@@ -98,6 +100,7 @@ record(ao, "$(P)$(R)E:BiasPosRG-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSRG")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasNegRG-RB")
@@ -115,6 +118,7 @@ record(ao, "$(P)$(R)E:BiasNegRG-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGRGG")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasPosSW-RB")
@@ -132,6 +136,7 @@ record(ao, "$(P)$(R)E:BiasPosSW-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSSW")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasNegSW-RB")
@@ -149,6 +154,7 @@ record(ao, "$(P)$(R)E:BiasNegSW-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGSW")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasPosV-RB")
@@ -166,6 +172,7 @@ record(ao, "$(P)$(R)E:BiasPosV-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSV")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasNegV-RB")
@@ -183,6 +190,7 @@ record(ao, "$(P)$(R)E:BiasNegV-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGV")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasPosTG-RB")
@@ -200,6 +208,7 @@ record(ao, "$(P)$(R)E:BiasPosTG-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSTG")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasNegTG-RB")
@@ -217,6 +226,7 @@ record(ao, "$(P)$(R)E:BiasNegTG-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGTG")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasPosVF-RB")
@@ -234,6 +244,7 @@ record(ao, "$(P)$(R)E:BiasPosVF-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSVF")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasNegVF-RB")
@@ -251,6 +262,7 @@ record(ao, "$(P)$(R)E:BiasNegVF-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGVF")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasNEdge-RB")
@@ -268,6 +280,7 @@ record(ao, "$(P)$(R)E:BiasNEdge-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEDGE")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasOTG-RB")
@@ -285,6 +298,7 @@ record(ao, "$(P)$(R)E:BiasOTG-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_OTG")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasVDDR-RB")
@@ -302,6 +316,7 @@ record(ao, "$(P)$(R)E:BiasVDDR-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_VDDR")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasVDDOut-RB")
@@ -319,6 +334,7 @@ record(ao, "$(P)$(R)E:BiasVDDOut-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_VDDOUT")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasBase-RB")
@@ -336,6 +352,7 @@ record(ao, "$(P)$(R)E:BiasBase-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_BUFBASE")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasDelta-RB")
@@ -353,6 +370,7 @@ record(ao, "$(P)$(R)E:BiasDelta-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_BUFDELTA")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasSpare1-RB")
@@ -370,6 +388,7 @@ record(ao, "$(P)$(R)E:BiasSpare1-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_SPARE1")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 record(ai, "$(P)$(R)E:BiasSpare2-RB")
@@ -387,6 +406,7 @@ record(ao, "$(P)$(R)E:BiasSpare2-SP")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_SPARE2")
   field(EGU,  "V")
   field(PREC, "4")
+  field(PINI, "1")
 }
 
 #
