@@ -96,6 +96,12 @@ void FastCCD::processImage(cin_data_frame_t *frame)
 
   if(firstFrameFlag){
     firstFrameFlag = 0;
+    this->lock();
+    pImage->release();
+    this->unlock();
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+                             "Dropped frame %d as first framesore frame\n",
+                             frame->number);
     return;
   }
 
@@ -210,6 +216,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   epicsAtExit(exitHandler, this);
 
   createParam(FastCCDPollingPeriodString,       asynParamFloat64,  &FastCCDPollingPeriod);
+
+  createParam(FastCCDFramestoreString,          asynParamInt32,    &FastCCDFramestore);
 
   createParam(FastCCDMux1String,                asynParamInt32,    &FastCCDMux1);
   createParam(FastCCDMux2String,                asynParamInt32,    &FastCCDMux2);
@@ -580,11 +588,14 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value){
     int function = pasynUser->reason;
     asynStatus status = asynSuccess;
     int _status = 0;
+    int _framestore = 0;
 
     const char *paramName;
     static const char *functionName = "writeFloat64";
 
     getParamName(function, &paramName);
+
+    getIntegerParam(FastCCDFramestore, &_framestore);
 
     status = setDoubleParam(function, value);
     if(status != asynSuccess){
@@ -593,8 +604,7 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value){
 
     if(function == ADAcquireTime){
 
-      // TODO Add variable for framestore mode
-      if(1){
+      if(_framestore){
         _status = cin_ctl_set_cycle_time(&cin_ctl_port, (float)value);
       } else {
         _status = cin_ctl_set_exposure_time(&cin_ctl_port, (float)value);
@@ -602,8 +612,8 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value){
 
     } else if (function == ADAcquirePeriod) {
 
-      if(1){
-        setParamStatus(function, asynDisconnected);
+      if(_framestore){
+        setParamStatus(function, asynError);
       } else {
         _status = cin_ctl_set_cycle_time(&cin_ctl_port, (float)value);
       }
@@ -662,7 +672,9 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
          // Send the hardware a start trigger command
          int n_images, t_mode, i_mode;
          double t_exp, t_period;
+         int _framestore;
 
+         getIntegerParam(FastCCDFramestore, &_framestore);
          getIntegerParam(ADTriggerMode, &t_mode);
          getIntegerParam(ADImageMode, &i_mode);
          getIntegerParam(ADNumImages, &n_images);
@@ -676,8 +688,7 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
              break;
            case ADImageMultiple:
              this->framesRemaining = n_images;
-             // TODO : Set Framestore Flag
-             if(1){
+             if(_framestore){
                n_images++;
              }
              break;
@@ -688,17 +699,18 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
          }
 
          if(t_mode == 0){
-           // TODO : Set Framestore Flag
-           if(1) {
+           if(_framestore) {
              _status |= cin_ctl_set_cycle_time(&cin_ctl_port, (float)t_exp);
              _status |= cin_ctl_set_exposure_time(&cin_ctl_port, 0.001);
              setParamStatus(ADAcquirePeriod, asynError);
+             firstFrameFlag = 1;
            } else {
              _status |= cin_ctl_set_exposure_time(&cin_ctl_port, (float)t_exp);
              _status |= cin_ctl_set_cycle_time(&cin_ctl_port, (float)t_period);
+             setParamStatus(ADAcquirePeriod, asynSuccess);
+             firstFrameFlag = 0;
            }
            if(!_status){
-             firstFrameFlag = 1;
              _status |= cin_ctl_int_trigger_start(&cin_ctl_port, n_images);
            }
          } else {

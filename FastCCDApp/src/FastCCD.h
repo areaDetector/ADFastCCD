@@ -16,6 +16,8 @@
 
 #define FastCCDPollingPeriodString              "POLL_PERIOD"
 
+#define FastCCDFramestoreString                 "FRAMESTORE"
+
 #define FastCCDMux1String                       "FCCD_MUX1"
 #define FastCCDMux2String                       "FCCD_MUX2"
 
@@ -133,6 +135,9 @@ class FastCCD : public ADDriver {
 
   // Driver Parameters
   int FastCCDPollingPeriod;
+
+  // Framestore Flag
+  int FastCCDFramestore;
 
   // Overscan
   int FastCCDOverscan;
