@@ -3,82 +3,371 @@
 
 include "NDPluginBase.template"
 
-record(longout, "$(P)$(R)Offset0"){
-	field(DTYP, "asynInt32")
-    field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))OFFSET_0")
-	field(PINI, "1")
+record(mbbo, "$(P)$(R)DataTypeOut")
+{
+    field(PINI, "YES")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PROCESS_DATA_TYPE")
+    field(ZRST, "Int8")
+    field(ZRVL, "0")
+    field(ONST, "UInt8")
+    field(ONVL, "1")
+    field(TWST, "Int16")
+    field(TWVL, "2")
+    field(THST, "UInt16")
+    field(THVL, "3")
+    field(FRST, "Int32")
+    field(FRVL, "4")
+    field(FVST, "UInt32")
+    field(FVVL, "5")
+    field(SXST, "Float32")
+    field(SXVL, "6")
+    field(SVST, "Float64")
+    field(SVVL, "7")
+    field(VAL,  "6")
+    info(autosaveFields, "VAL")
 }
 
-record(longin, "$(P)$(R)Offset0_RBV"){
-	field(DTYP, "asynInt32")
-    field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))OFFSET_0")
-	field(SCAN, "I/O Intr")
+record(mbbi, "$(P)$(R)DataTypeOut_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PROCESS_DATA_TYPE")
+    field(ZRST, "Int8")
+    field(ZRVL, "0")
+    field(ONST, "UInt8")
+    field(ONVL, "1")
+    field(TWST, "Int16")
+    field(TWVL, "2")
+    field(THST, "UInt16")
+    field(THVL, "3")
+    field(FRST, "Int32")
+    field(FRVL, "4")
+    field(FVST, "UInt32")
+    field(FVVL, "5")
+    field(SXST, "Float32")
+    field(SXVL, "6")
+    field(SVST, "Float64")
+    field(SVVL, "7")
+    field(SCAN, "I/O Intr")
 }
 
-record(longout, "$(P)$(R)Offset1"){
-	field(DTYP, "asynInt32")
-    field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))OFFSET_1")
-	field(PINI, "1")
+record(bo, "$(P)$(R)EnableBackground")
+{
+    field(PINI, "YES")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_BACKGROUND")
+    field(ZNAM, "Disable")
+    field(ONAM, "Enable")
+    info(autosaveFields, "VAL")
 }
 
-record(longin, "$(P)$(R)Offset1_RBV"){
-	field(DTYP, "asynInt32")
-    field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))OFFSET_1")
-	field(SCAN, "I/O Intr")
+record(bi, "$(P)$(R)EnableBackground_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_BACKGROUND")
+    field(ZNAM, "Disable")
+    field(ONAM, "Enable")
+    field(ZSV,  "NO_ALARM")
+    field(OSV,  "MINOR")
+    field(SCAN, "I/O Intr")
 }
 
-record(longout, "$(P)$(R)Offset2"){
-	field(DTYP, "asynInt32")
-    field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))OFFSET_2")
-	field(PINI, "1")
+record(bi, "$(P)$(R)ValidBackground_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VALID_BACKGROUND")
+    field(ZNAM, "Invalid")
+    field(ONAM, "Valid")
+    field(SCAN, "I/O Intr")
 }
 
-record(longin, "$(P)$(R)Offset2_RBV"){
-	field(DTYP, "asynInt32")
-    field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))OFFSET_2")
-	field(SCAN, "I/O Intr")
+record(bi, "$(P)$(R)ValidBackground2_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VALID_BACKGROUND_2")
+    field(ZNAM, "Invalid")
+    field(ONAM, "Valid")
+    field(SCAN, "I/O Intr")
 }
 
-record(longout, "$(P)$(R)DPValue"){
-	field(DTYP, "asynInt32")
+record(bi, "$(P)$(R)ValidBackground1_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VALID_BACKGROUND_1")
+    field(ZNAM, "Invalid")
+    field(ONAM, "Valid")
+    field(SCAN, "I/O Intr")
+}
+
+record(bi, "$(P)$(R)ValidBackground0_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VALID_BACKGROUND_0")
+    field(ZNAM, "Invalid")
+    field(ONAM, "Valid")
+    field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)DPValue"){
+	field(DTYP, "asynFloat64")
     field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DP_VAL")
 	field(PINI, "1")
 }
 
-record(longin, "$(P)$(R)DPValue_RBV"){
-	field(DTYP, "asynInt32")
+record(ai, "$(P)$(R)DPValue_RBV"){
+	field(DTYP, "asynFloat64")
     field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))DP_VAL")
 	field(SCAN, "I/O Intr")
 }
 
-record(bo, "$(P)$(R)Enable"){
-	field(DTYP, "asynInt32")
-    field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE")
-	field(ZNAM, "Disabled")
-	field(ONAM, "Enabled")
+record(ao, "$(P)$(R)Gain0"){
+	field(DTYP, "asynFloat64")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))GAIN_0")
 	field(PINI, "1")
 }
 
-record(bi, "$(P)$(R)Enable_RBV"){
-	field(DTYP, "asynInt32")
-    field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE")
-	field(ZNAM, "Disabled")
-	field(ONAM, "Enabled")
+record(ai, "$(P)$(R)Gain0_RBV"){
+	field(DTYP, "asynFloat64")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))GAIN_0")
 	field(SCAN, "I/O Intr")
 }
 
-record(bo, "$(P)$(R)EnableData"){
-	field(DTYP, "asynInt32")
-    field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_DATA")
-	field(ZNAM, "Disabled")
-	field(ONAM, "Enabled")
+record(ao, "$(P)$(R)Gain1"){
+	field(DTYP, "asynFloat64")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))GAIN_1")
 	field(PINI, "1")
 }
 
-record(bi, "$(P)$(R)EnableData_RBV"){
-	field(DTYP, "asynInt32")
-    field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_DATA")
-	field(ZNAM, "Disabled")
-	field(ONAM, "Enabled")
+record(ai, "$(P)$(R)Gain1_RBV"){
+	field(DTYP, "asynFloat64")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))GAIN_1")
 	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)Gain2"){
+	field(DTYP, "asynFloat64")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))GAIN_2")
+	field(PINI, "1")
+}
+
+record(ai, "$(P)$(R)Gain2_RBV"){
+	field(DTYP, "asynFloat64")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))GAIN_2")
+	field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)SaveBackground0")
+{
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SAVE_BACKGROUND_0")
+    field(VAL,  "1")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+}
+
+record(bi, "$(P)$(R)SaveBackground0_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SAVE_BACKGROUND_0")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+    field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)SaveBackground1")
+{
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SAVE_BACKGROUND_1")
+    field(VAL,  "1")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+}
+
+record(bi, "$(P)$(R)SaveBackground1_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SAVE_BACKGROUND_1")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+    field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)SaveBackground2")
+{
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SAVE_BACKGROUND_2")
+    field(VAL,  "1")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+}
+
+record(bi, "$(P)$(R)SaveBackground2_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SAVE_BACKGROUND_2")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+    field(SCAN, "I/O Intr")
+}
+
+record(waveform, "$(P)$(R)BgFilePath0")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetWrite")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND0_PATH")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+}
+
+record(waveform, "$(P)$(R)BgFilePath0_RBV")
+{
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND0_PATH")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+  field(SCAN, "I/O Intr")
+}
+
+record(waveform, "$(P)$(R)BgFilePath1")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetWrite")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND1_PATH")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+}
+
+record(waveform, "$(P)$(R)BgFilePath1_RBV")
+{
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND1_PATH")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+  field(SCAN, "I/O Intr")
+}
+
+record(waveform, "$(P)$(R)BgFilePath2")
+{
+  field(PINI, "YES")
+  field(DTYP, "asynOctetWrite")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND2_PATH")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+}
+
+record(waveform, "$(P)$(R)BgFilePath2_RBV")
+{
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND2_PATH")
+  field(FTVL, "CHAR")
+  field(NELM, "256")
+  field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)SaveBgFile0")
+{
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND0_SAVE_FILE")
+    field(VAL,  "1")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+}
+
+record(bi, "$(P)$(R)SaveBgFile0_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND0_SAVE_FILE")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+    field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)SaveBgFile1")
+{
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND1_SAVE_FILE")
+    field(VAL,  "1")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+}
+
+record(bi, "$(P)$(R)SaveBgFile1_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND1_SAVE_FILE")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+    field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)SaveBgFile2")
+{
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND2_SAVE_FILE")
+    field(VAL,  "1")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+}
+
+record(bi, "$(P)$(R)SaveBgFile2_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND2_SAVE_FILE")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+    field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)LoadBgFile0")
+{
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND0_LOAD_FILE")
+    field(VAL,  "1")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+}
+
+record(bi, "$(P)$(R)LoadBgFile0_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND0_LOAD_FILE")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+    field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)LoadBgFile1")
+{
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND1_LOAD_FILE")
+    field(VAL,  "1")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+}
+
+record(bi, "$(P)$(R)LoadBgFile1_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND1_LOAD_FILE")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+    field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)LoadBgFile2")
+{
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND2_LOAD_FILE")
+    field(VAL,  "1")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+}
+
+record(bi, "$(P)$(R)LoadBgFile2_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BACKGROUND2_LOAD_FILE")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+    field(SCAN, "I/O Intr")
 }

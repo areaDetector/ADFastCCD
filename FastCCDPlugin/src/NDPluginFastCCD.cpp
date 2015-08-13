@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+#include <sys/stat.h>
 
 #include <epicsString.h>
 #include <epicsMutex.h>
@@ -22,92 +23,337 @@
 #include "NDPluginDriver.h"
 #include "NDPluginFastCCD.h"
 
+#include "tiffio.h"
+
 #include "cin.h"
 
+static const char *driverName="NDPluginFastCCD";
 
 /** Callback function that is called by the NDArray driver with new NDArray data.
-  * Draws overlays on top of the array.
   * \param[in] pArray  The NDArray from the callback.
   */
 void NDPluginFastCCD::processCallbacks(NDArray *pArray)
 {
     /* This function does the actual operations
-     * It is called with the mutex already locked.  It unlocks it during long calculations when private
+     * It is called with the mutex already locked.  
+     * It unlocks it during long calculations when private
      * structures don't need to be protected.
      */
 
-    NDArray *pOutput;
+    NDArray *pArrayOut = NULL;
+    NDArray *pScratch = NULL;
 
     /* Call the base class method */
     NDPluginDriver::processCallbacks(pArray);
 
-    /* We always keep the last array so read() can use it.
-     * Release previous one. */
-    if (this->pArrays[0]) {
-        this->pArrays[0]->release();
-    }
-
-    /* Copy the input array format but not the data */
-    this->pArrays[0] = this->pNDArrayPool->copy(pArray, NULL, 1);
-    pOutput = this->pArrays[0];
-    
-    /* Get information about the array needed later */
-    pOutput->getInfo(&this->arrayInfo);
-
     /* Get paraemeters which we need for processing the image */
-    int offset0, offset1, offset2, enabled, dpval, dataen;
-    getIntegerParam(NDPluginFastCCDOffset0, &offset0);
-    getIntegerParam(NDPluginFastCCDOffset1, &offset1);
-    getIntegerParam(NDPluginFastCCDOffset2, &offset2);
-    getIntegerParam(NDPluginFastCCDEnable, &enabled);
-    getIntegerParam(NDPluginFastCCDEnableData, &dataen);
-    getIntegerParam(NDPluginFastCCDDPVal, &dpval);
+    double gain0, gain1, gain2, dpval;
+    int dataType, enableBackground;
+
+    getIntegerParam(NDPluginFastCCDDataType,            &dataType);
+    getIntegerParam(NDPluginFastCCDEnableBackground,    &enableBackground);
+
+    getDoubleParam(NDPluginFastCCDGain0, &gain0);
+    getDoubleParam(NDPluginFastCCDGain1, &gain1);
+    getDoubleParam(NDPluginFastCCDGain2, &gain2);
+    getDoubleParam(NDPluginFastCCDDPVal, &dpval);
 
     /* This function is called with the lock taken, and it must be set when we exit.
      * The following code can be exected without the mutex because we are not accessing memory
      * that other threads can access. */
     this->unlock();
 
-    if(((pOutput->dataType == NDUInt16) || (pOutput->dataType == NDInt16)) && enabled){
-      // We can only process NDUnit16 images just pass if not. 
+    pArray->getInfo(&arrayInfo);
+    size_t nElements = arrayInfo.nElements;
 
-      // Get the data pointer
-      epicsInt16 *data = (epicsInt16 *)pOutput->pData;
-      epicsInt16 ctrl, sign;
+    /* Make a copy of the array converted to NDFloat64 (Double) */
+    
+    int validBackground0 = 0;
+    int validBackground1 = 0;
+    int validBackground2 = 0;
 
-      for(size_t i=0; i<pOutput->dims[1].size; i++){
-        for(size_t j=0; j<pOutput->dims[0].size; j++){
-          ctrl = *data & CIN_DATA_CTRL_MASK;
-          if(dataen){
-            *data = *data & CIN_DATA_DATA_MASK;
-            if((ctrl & CIN_DATA_GAIN_8) == CIN_DATA_GAIN_8){
-              // Minimum Gain just left shift 3 times
-              *data = ((*data - offset0) << 3) + (epicsInt16)(offset2 << 3);
-            } else if ((ctrl & CIN_DATA_GAIN_4) == CIN_DATA_GAIN_4) {
-              // Gain
-              *data = ((*data - offset0) << 2) + (epicsInt16)(offset1 << 2);
-            } else if ((ctrl & CIN_DATA_DROPPED_PACKET_VAL) == CIN_DATA_DROPPED_PACKET_VAL) {
-              // Dropped Packet
-              *data = (epicsUInt16)dpval;
-            } 
-          } else {
-            *data = ctrl;
-          }
-          data++; // Advance the pointer
+    this->pNDArrayPool->convert(pArray, &pScratch, NDFloat64);
+    if (NULL == pScratch) {
+       asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
+                 "NDPluginFastCCD::processCallbacks() : Processing aborted; cannot allocate an NDArray for storage of temporary data.\n");
+       goto doCallbacks;
+    }
+
+    if (this->pBackground0 && (nElements == this->nBackground0Elements)){
+      validBackground0 = 1;
+    }
+    setIntegerParam(NDPluginFastCCDValidBackground0, validBackground0);
+
+    if (this->pBackground1 && (nElements == this->nBackground1Elements)){
+      validBackground1 = 1;
+    }
+    setIntegerParam(NDPluginFastCCDValidBackground1, validBackground1);
+
+    if (this->pBackground2 && (nElements == this->nBackground2Elements)){
+      validBackground2 = 1;
+    }
+    setIntegerParam(NDPluginFastCCDValidBackground2, validBackground2);
+
+    if (validBackground0 && validBackground1 && validBackground2 && enableBackground){
+      setIntegerParam(NDPluginFastCCDValidBackground, 1);
+
+      double *background0 = (double *)this->pBackground0->pData;
+      double *background1 = (double *)this->pBackground1->pData;
+      double *background2 = (double *)this->pBackground2->pData;
+      double *data = (double *)pScratch->pData;
+      epicsInt16 ctrl;
+
+      for(size_t i=0; i<nElements; i++){
+        ctrl = ((epicsInt16)data[i]) & CIN_DATA_CTRL_MASK;
+        data[i] = (epicsInt16)data[i] & CIN_DATA_DATA_MASK;
+        if((ctrl & CIN_DATA_GAIN_8) == CIN_DATA_GAIN_8){
+          // Unity gain
+          data[i] = (data[i] - background2[i]) * gain2;
+        } else if ((ctrl & CIN_DATA_GAIN_4) == CIN_DATA_GAIN_4) {
+          // Gain
+          data[i] = (data[i] - background1[i]) * gain1;
+        } else if ((ctrl & CIN_DATA_DROPPED_PACKET_VAL) == CIN_DATA_DROPPED_PACKET_VAL) {
+          // Dropped Packet
+          data[i] = dpval;
+        } else {
+          // Maximum gain
+          data[i] = (data[i] - background0[i]) * gain0;
         }
       }
     }
 
-    this->lock();
+doCallbacks:
 
-    /* Get the attributes for this driver */
-    this->getAttributes(this->pArrays[0]->pAttributeList);
-    /* Call any clients who have registered for NDArray callbacks */
-    this->unlock();
-    doCallbacksGenericPointer(this->pArrays[0], NDArrayData, 0);
+    this->pNDArrayPool->convert(pScratch, &pArrayOut, (NDDataType_t)dataType);
+
     this->lock();
+    if (pArrayOut != NULL) {
+        /* Get the attributes from this driver */
+        this->getAttributes(pArrayOut->pAttributeList);
+        /* Call any clients who have registered for NDArray callbacks */
+        this->unlock();
+        doCallbacksGenericPointer( pArrayOut, NDArrayData, 0);
+        this->lock();
+        if (this->pArrays[0] != NULL){
+          this->pArrays[0]->release();
+        }
+        this->pArrays[0] = pArrayOut;
+    }
+
+    if (NULL != pScratch) pScratch->release();
+
     callParamCallbacks();
 }
+
+int NDPluginFastCCD::readTiffBackground(char *filename, NDArray *array){
+
+  static const char *functionName = "readTiffBackground";
+  TIFF *tif;
+
+  if(array == NULL){
+    return -1;
+  }
+
+  if((tif = TIFFOpen(filename, "r")) == NULL){
+    asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
+              "%s:%s error opening file %s\n",
+              driverName, functionName, filename);
+    return -1;
+  }
+
+  
+
+  TIFFClose(tif);
+}
+
+int NDPluginFastCCD::writeTiffBackground(char *filename, NDArray *array){
+
+  static const char *functionName = "writeTiffBackground";
+  TIFF *tif;
+
+  if(array == NULL){
+    return -1;
+  }
+
+  if((tif = TIFFOpen(filename, "w")) == NULL){
+    asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
+              "%s:%s error opening file %s\n",
+              driverName, functionName, filename);
+    return -1;
+  }
+
+  if((array->ndims != 2) || (array->dataType != NDFloat64)){
+    asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
+              "%s:%s NDArray is not of correct type\n",
+              driverName, functionName);
+    return -1;
+  }
+
+  TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE,   64);
+  TIFFSetField(tif, TIFFTAG_SAMPLEFORMAT,    SAMPLEFORMAT_IEEEFP);
+  TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, 1);
+  TIFFSetField(tif, TIFFTAG_PLANARCONFIG,    PLANARCONFIG_CONTIG);
+  TIFFSetField(tif, TIFFTAG_IMAGEWIDTH,      (epicsUInt32)array->dims[0].size);
+  IFFSetField(tif, TIFFTAG_IMAGELENGTH,     (epicsUInt32)array->dims[1].size);
+  TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP,    (epicsUInt32)array->dims[1].size);
+
+  tsize_t stripSize = TIFFStripSize(tif);
+  size_t nwrite = TIFFWriteEncodedStrip(tif, 0, array->pData, stripSize);
+
+  TIFFClose(tif);
+
+}
+
+/** Called when asyn clients call pasynInt32->write().
+  * This function performs actions for some parameters.
+  * For all parameters it sets the value in the parameter library and calls any registered callbacks..
+  * \param[in] pasynUser pasynUser structure that encodes the reason and address.
+  * \param[in] value Value to write. */
+asynStatus NDPluginFastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
+{
+    int function = pasynUser->reason;
+    int addr=0;
+    NDArrayInfo arrayInfo;
+    asynStatus status = asynSuccess;
+    static const char *functionName = "writeInt32";
+
+    status = getAddress(pasynUser, &addr); if (status != asynSuccess) return(status);
+
+    /* Set the parameter in the parameter library. */
+    status = (asynStatus) setIntegerParam(addr, function, value);
+
+    if (function == NDPluginFastCCDSaveBackground0){
+        setIntegerParam(NDPluginFastCCDSaveBackground0, 0);
+        if (this->pBackground0) {
+          this->pBackground0->release();
+        }
+        this->pBackground0 = NULL;
+        if (this->pArrays[0]) {
+            /* Make a copy of the current array, converted to double type */
+            this->pNDArrayPool->convert(this->pArrays[0], &this->pBackground0, NDFloat64);
+            this->pBackground0->getInfo(&arrayInfo);
+            nBackground0Elements= arrayInfo.nElements;
+            setIntegerParam(NDPluginFastCCDValidBackground0, 1);
+        }
+    } else if (function == NDPluginFastCCDSaveBackground1){
+        setIntegerParam(NDPluginFastCCDSaveBackground1, 0);
+        if (this->pBackground1) {
+          this->pBackground1->release();
+        }
+        this->pBackground1 = NULL;
+
+        if (this->pArrays[0]) {
+            /* Make a copy of the current array, converted to double type */
+            this->pNDArrayPool->convert(this->pArrays[0], &this->pBackground1, NDFloat64);
+            this->pBackground1->getInfo(&arrayInfo);
+            nBackground1Elements= arrayInfo.nElements;
+            setIntegerParam(NDPluginFastCCDValidBackground1, 1);
+        }
+    } else if (function == NDPluginFastCCDSaveBackground2){
+        setIntegerParam(NDPluginFastCCDSaveBackground2, 0);
+        if (this->pBackground2) {
+          this->pBackground2->release();
+        }
+        this->pBackground2 = NULL;
+
+        if (this->pArrays[0]) {
+            /* Make a copy of the current array, converted to double type */
+            this->pNDArrayPool->convert(this->pArrays[0], &this->pBackground2, NDFloat64);
+            this->pBackground2->getInfo(&arrayInfo);
+            nBackground2Elements= arrayInfo.nElements;
+            setIntegerParam(NDPluginFastCCDValidBackground2, 1);
+        }
+    } else if(function == NDPluginFastCCDBackground0SaveFile){
+      setIntegerParam(NDPluginFastCCDBackground0SaveFile, 0);
+      char fn[256];
+      getStringParam(NDPluginFastCCDBackground0Path, sizeof(fn), fn);
+      if(writeTiffBackground(fn, this->pBackground0)){
+        status = asynError;
+      }
+    } else if(function == NDPluginFastCCDBackground1SaveFile){
+      setIntegerParam(NDPluginFastCCDBackground1SaveFile, 0);
+      char fn[256];
+      getStringParam(NDPluginFastCCDBackground1Path, sizeof(fn), fn);
+      if(writeTiffBackground(fn, this->pBackground1)){
+        status = asynError;
+      }
+    } else if(function == NDPluginFastCCDBackground2SaveFile){
+      setIntegerParam(NDPluginFastCCDBackground2SaveFile, 0);
+      char fn[256];
+      getStringParam(NDPluginFastCCDBackground2Path, sizeof(fn), fn);
+      if(writeTiffBackground(fn, this->pBackground2)){
+        status = asynError;
+      }
+    } else {
+        /* If this parameter belongs to a base class call its method */
+        if (function < FIRST_NDPLUGIN_FASTCCD_PARAM) {
+            status = NDPluginDriver::writeInt32(pasynUser, value);
+        }
+    }
+    
+    /* Do callbacks so higher layers see any changes */
+    status = (asynStatus) callParamCallbacks(addr);
+    
+    if (status) 
+        epicsSnprintf(pasynUser->errorMessage, pasynUser->errorMessageSize, 
+                  "%s:%s: status=%d, function=%d, value=%d", 
+                  driverName, functionName, status, function, value);
+    else        
+        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER, 
+              "%s:%s: function=%d, value=%d\n", 
+              driverName, functionName, function, value);
+    return status;
+}
+
+asynStatus NDPluginFastCCD::writeOctet(asynUser *pasynUser, const char *value, size_t nc, size_t *na){
+  int function = pasynUser->reason;
+  int addr = 0;
+  asynStatus status = asynSuccess;
+  static const char *functionName = "writeOctet";
+
+  status = getAddress(pasynUser, &addr);
+  if(status != asynSuccess){
+    return status;
+  }
+  status = (asynStatus)setStringParam(addr, function, (char *)value);
+  if(status != asynSuccess){
+    return status;
+  }
+
+  if((function == NDPluginFastCCDBackground0Path) ||
+     (function == NDPluginFastCCDBackground1Path) ||
+     (function == NDPluginFastCCDBackground2Path)) {
+    struct stat s;
+    int _status = stat(value, &s);
+    if(_status){
+      setParamStatus(function, asynError);
+    } else {
+      setParamStatus(function, asynSuccess);
+    }
+  } else {
+    // Call base class to handle strings
+    status = NDPluginDriver::writeOctet(pasynUser, value, nc, na);
+  }
+
+  if (status) {
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+          "%s:%s: error, status=%d function=%d, value=%s\n",
+          driverName, functionName, status, function, value);
+  } else {
+    asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+          "%s:%s: function=%d, value=%s\n",
+          driverName, functionName, function, value);
+  }
+
+
+  /* Do callbacks so higher layers see any changes */
+  callParamCallbacks();
+ 
+  // Set the number of characters written
+  *na = nc;
+  return status;
+}
+
 /** Constructor for NDPluginFastCCD; most parameters are simply passed to NDPluginDriver::NDPluginDriver.
 
   * After calling the base class constructor this method sets reasonable default values for all of the
@@ -143,22 +389,69 @@ NDPluginFastCCD::NDPluginFastCCD(const char *portName, int queueSize, int blocki
 {
     //static const char *functionName = "NDPluginFastCCD";
 
+    createParam(NDPluginFastCCDGain0String,      asynParamFloat64,  &NDPluginFastCCDGain0);
+    createParam(NDPluginFastCCDGain1String,      asynParamFloat64,  &NDPluginFastCCDGain1);
+    createParam(NDPluginFastCCDGain2String,      asynParamFloat64,  &NDPluginFastCCDGain2);
+    createParam(NDPluginFastCCDDPValString,      asynParamFloat64,  &NDPluginFastCCDDPVal);
+    createParam(NDPluginFastCCDEnableBackgroundString, asynParamInt32,  
+                &NDPluginFastCCDEnableBackground);
+    createParam(NDPluginFastCCDDataTypeString,   asynParamInt32,    &NDPluginFastCCDDataType);
+    createParam(NDPluginFastCCDValidBackgroundString,  asynParamInt32,    
+                &NDPluginFastCCDValidBackground);
+    createParam(NDPluginFastCCDValidBackground0String,  asynParamInt32,    
+                &NDPluginFastCCDValidBackground0);
+    createParam(NDPluginFastCCDValidBackground1String,  asynParamInt32,    
+                &NDPluginFastCCDValidBackground1);
+    createParam(NDPluginFastCCDValidBackground2String,  asynParamInt32,    
+                &NDPluginFastCCDValidBackground2);
+    createParam(NDPluginFastCCDSaveBackground0String,   asynParamInt32,    
+                &NDPluginFastCCDSaveBackground0);
+    createParam(NDPluginFastCCDSaveBackground1String,   asynParamInt32,    
+                &NDPluginFastCCDSaveBackground1);
+    createParam(NDPluginFastCCDSaveBackground2String,   asynParamInt32,    
+                &NDPluginFastCCDSaveBackground2);
+    createParam(NDPluginFastCCDBackground0PathString,   asynParamOctet,
+                &NDPluginFastCCDBackground0Path);
+    createParam(NDPluginFastCCDBackground1PathString,   asynParamOctet,
+                &NDPluginFastCCDBackground1Path);
+    createParam(NDPluginFastCCDBackground2PathString,   asynParamOctet,
+                &NDPluginFastCCDBackground2Path);
+    createParam(NDPluginFastCCDBackground0SaveFileString,   asynParamInt32,
+                &NDPluginFastCCDBackground0SaveFile);
+    createParam(NDPluginFastCCDBackground1SaveFileString,   asynParamInt32,
+                &NDPluginFastCCDBackground1SaveFile);
+    createParam(NDPluginFastCCDBackground2SaveFileString,   asynParamInt32,
+                &NDPluginFastCCDBackground2SaveFile);
+    createParam(NDPluginFastCCDBackground0LoadFileString,   asynParamInt32,
+                &NDPluginFastCCDBackground0LoadFile);
+    createParam(NDPluginFastCCDBackground1LoadFileString,   asynParamInt32,
+                &NDPluginFastCCDBackground1LoadFile);
+    createParam(NDPluginFastCCDBackground2LoadFileString,   asynParamInt32,
+                &NDPluginFastCCDBackground2LoadFile);
 
-    createParam(NDPluginFastCCDOffset0String,    asynParamInt32,  &NDPluginFastCCDOffset0);
-    createParam(NDPluginFastCCDOffset1String,    asynParamInt32,  &NDPluginFastCCDOffset1);
-    createParam(NDPluginFastCCDOffset2String,    asynParamInt32,  &NDPluginFastCCDOffset2);
-    createParam(NDPluginFastCCDDPValString,      asynParamInt32,  &NDPluginFastCCDDPVal);
-    createParam(NDPluginFastCCDEnableString,     asynParamInt32,  &NDPluginFastCCDEnable);
-    createParam(NDPluginFastCCDEnableDataString, asynParamInt32,  &NDPluginFastCCDEnableData);
+    setIntegerParam(NDPluginFastCCDGain0, 1);
+    setIntegerParam(NDPluginFastCCDGain1, 1);
+    setIntegerParam(NDPluginFastCCDGain2, 1);
+    setIntegerParam(NDPluginFastCCDDPVal, 0);
 
-    int offset = 0x1000;
+    setIntegerParam(NDPluginFastCCDValidBackground, 0);
+    setIntegerParam(NDPluginFastCCDValidBackground0, 0);
+    setIntegerParam(NDPluginFastCCDValidBackground1, 0);
+    setIntegerParam(NDPluginFastCCDValidBackground2, 0);
 
-    setIntegerParam(NDPluginFastCCDOffset0, offset);
-    setIntegerParam(NDPluginFastCCDOffset1, offset);
-    setIntegerParam(NDPluginFastCCDOffset2, offset);
-    setIntegerParam(NDPluginFastCCDDPVal, offset);
-    setIntegerParam(NDPluginFastCCDEnable, 0);
-    setIntegerParam(NDPluginFastCCDEnableData, 0);
+    setIntegerParam(NDPluginFastCCDEnableBackground, 0);
+    setIntegerParam(NDPluginFastCCDDataType, NDFloat64);
+
+    setStringParam(NDPluginFastCCDBackground0Path, "");
+    setStringParam(NDPluginFastCCDBackground1Path, "");
+    setStringParam(NDPluginFastCCDBackground2Path, "");
+
+    pBackground0 = NULL;
+    pBackground1 = NULL;
+    pBackground2 = NULL;
+    nBackground0Elements = 0;
+    nBackground1Elements = 0;
+    nBackground2Elements = 0;
 
     /* Set the plugin type string */
     setStringParam(NDPluginDriverPluginType, "NDPluginFastCCD");
