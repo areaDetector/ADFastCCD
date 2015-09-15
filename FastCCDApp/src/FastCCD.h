@@ -16,6 +16,8 @@
 
 #define FastCCDPollingPeriodString              "POLL_PERIOD"
 
+#define FastCCDFramestoreString                 "FRAMESTORE"
+
 #define FastCCDMux1String                       "FCCD_MUX1"
 #define FastCCDMux2String                       "FCCD_MUX2"
 
@@ -86,6 +88,50 @@
 #define FastCCDI62v5String                      "I6_2V5"
 #define FastCCDIFpString                        "IFP"
 
+#define FastCCDBiasPosHString                   "BIAS_POSH"
+#define FastCCDBiasNegHString                   "BIAS_NEGH"
+#define FastCCDBiasPosRGString                  "BIAS_POSRG"
+#define FastCCDBiasNegRGString                  "BIAS_NEGRG"
+#define FastCCDBiasPosSWString                  "BIAS_POSSW"
+#define FastCCDBiasNegSWString                  "BIAS_NEGSW"
+#define FastCCDBiasPosVString                   "BIAS_POSV"
+#define FastCCDBiasNegVString                   "BIAS_NEGV"
+#define FastCCDBiasPosTGString                  "BIAS_POSTG"
+#define FastCCDBiasNegTGString                  "BIAS_NEGTG"
+#define FastCCDBiasPosVFString                  "BIAS_POSVF"
+#define FastCCDBiasNegVFString                  "BIAS_NEGVF"
+#define FastCCDBiasNEDGEString                  "BIAS_NEDGE"
+#define FastCCDBiasOTGString                    "BIAS_OTG"
+#define FastCCDBiasVDDRString                   "BIAS_VDDR"
+#define FastCCDBiasVDDOutString                 "BIAS_VDDOUT"
+#define FastCCDBiasBufBaseString                "BIAS_BUFBASE"
+#define FastCCDBiasBufDeltaString               "BIAS_BUFDELTA"
+#define FastCCDBiasSpare1String                 "BIAS_SPARE1"
+#define FastCCDBiasSpare2String                 "BIAS_SPARE2"
+
+//#define FastCCDBiasPosHIString       "BIAS_POSH_I"
+//#define FastCCDBiasNegHIString       "BIAS_NEGH_I"
+//#define FastCCDBiasPosRGIString      "BIAS_POSRG_I"
+//#define FastCCDBiasNegRGIString      "BIAS_NEGRG_I"
+//#define FastCCDBiasPosSWIString      "BIAS_POSSW_I"
+//#define FastCCDBiasNegSWIString      "BIAS_NEGSW_I"
+//#define FastCCDBiasPosVIString       "BIAS_POSV_I"
+//#define FastCCDBiasNegVIString       "BIAS_NEGV_I"
+//#define FastCCDBiasPosTGIString      "BIAS_POSTG_I"
+//#define FastCCDBiasNegTGIString      "BIAS_NEGTG_I"
+//#define FastCCDBiasPosVFIString      "BIAS_POSVF_I"
+//#define FastCCDBiasNegVFIString      "BIAS_NEGVF_I"
+//#define FastCCDBiasNEDGEIString      "BIAS_NEDGE_I"
+//#define FastCCDBiasOTGIString        "BIAS_OTG_I"
+//#define FastCCDBiasVDDRIString       "BIAS_VDDR_I"
+//#define FastCCDBiasVDDOutIString     "BIAS_VDDOUT_I"
+//#define FastCCDBiasBufBaseIString    "BIAS_BUFBASE_I"
+//#define FastCCDBiasBufDeltaIString   "BIAS_BUFDELTA_I"
+//#define FastCCDBiasSpare1IString     "BIAS_SPARE1_I"
+//#define FastCCDBiasSpare2IString     "BIAS_SPARE2_I"
+
+#define FastCCDBiasWriteVString                  "BIAS_WRITEV"
+
 //C Function prototypes to tie in with EPICS
 static void FastCCDStatusTaskC(void *drvPvt);
 static void FastCCDDataStatsTaskC(void *drvPvt);
@@ -133,6 +179,9 @@ class FastCCD : public ADDriver {
 
   // Driver Parameters
   int FastCCDPollingPeriod;
+
+  // Framestore Flag
+  int FastCCDFramestore;
 
   // Overscan
   int FastCCDOverscan;
@@ -183,6 +232,50 @@ class FastCCD : public ADDriver {
   int FastCCDFrameBuffer;
   int FastCCDImageBuffer;
 
+  // Bias Settings
+  int FastCCDBiasPosH;       
+  int FastCCDBiasNegH;       
+  int FastCCDBiasPosRG;      
+  int FastCCDBiasNegRG;      
+  int FastCCDBiasPosSW;      
+  int FastCCDBiasNegSW;      
+  int FastCCDBiasPosV;       
+  int FastCCDBiasNegV;       
+  int FastCCDBiasPosTG;      
+  int FastCCDBiasNegTG;      
+  int FastCCDBiasPosVF;      
+  int FastCCDBiasNegVF;      
+  int FastCCDBiasNEDGE;      
+  int FastCCDBiasOTG;        
+  int FastCCDBiasVDDR;       
+  int FastCCDBiasVDDOut;     
+  int FastCCDBiasBufBase;    
+  int FastCCDBiasBufDelta;
+  int FastCCDBiasSpare1;     
+  int FastCCDBiasSpare2;     
+  int FastCCDBiasWriteV;
+
+  //int FastCCDBiasPosHI;
+  //int FastCCDBiasNegHI;
+  //int FastCCDBiasPosRGI;
+  //int FastCCDBiasNegRGI;
+  //int FastCCDBiasPosSWI;
+  //int FastCCDBiasNegSWI;
+  //int FastCCDBiasPosVI;
+  //int FastCCDBiasNegVI;
+  //int FastCCDBiasPosTGI;
+  //int FastCCDBiasNegTGI;
+  //int FastCCDBiasPosVFI;
+  //int FastCCDBiasNegVFI;
+  //int FastCCDBiasNEDGEI;
+  //int FastCCDBiasOTGI;
+  //int FastCCDBiasVDDRI;
+  //int FastCCDBiasVDDOutI;
+  //int FastCCDBiasBufBaseI;
+  //int FastCCDBiasBufDeltaI;
+  //int FastCCDBiasSpare1I;
+  //int FastCCDBiasSpare2I;
+
   // Power monitor Variables
   int FastCCDPwrBus12V;
   int FastCCDPwrMgmt2V3;
@@ -217,9 +310,11 @@ class FastCCD : public ADDriver {
   int cinPacketBuffer;
   int cinImageBuffer;
 
-  char cinBaseIP[20];
-  char cinFabricIP[20];
-  char cinFabricMAC[20];
+  char cinBaseIP[128];
+  char cinFabricIP[128];
+  char cinFabricMAC[128];
+
+  int firstFrameFlag;
 
   // Connect / Disconnect
 
@@ -237,7 +332,7 @@ class FastCCD : public ADDriver {
  
   int framesRemaining;
 
-  void getCameraStatus();
+  void getCameraStatus(int first_run);
   int uploadConfig(int status, int path);
   int uploadFirmware(void);
 

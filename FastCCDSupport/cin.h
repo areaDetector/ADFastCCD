@@ -147,6 +147,36 @@ extern const char *cin_build_version;
 #define CIN_DATA_MODE_CALLBACK          0x01
 #define CIN_DATA_MODE_DBL_BUFFER        0x02
 
+/* -------------------------------------------------------------------------------
+ *
+ * Definitions for CIN BIAS SETTINGS
+ *
+ * -------------------------------------------------------------------------------
+ */
+
+#define NUM_BIAS_VOLTAGE            20
+
+#define pt_posH                     0
+#define pt_negH                     1
+#define pt_posRG                    2
+#define pt_negRG                    3
+#define pt_posSW                    4
+#define pt_negSW                    5
+#define pt_posV                     6
+#define pt_negV                     7
+#define pt_posTG                    8
+#define pt_negTG                    9
+#define pt_posVF                    10
+#define pt_negVF                    11
+#define pt_NEDGE                    12
+#define pt_OTG                      13
+#define pt_VDDR                     14
+#define pt_VDD_OUT                  15
+#define pt_BUF_Base                 16
+#define pt_BUF_Delta                17
+#define pt_Spare1                   18
+#define pt_Spare2                   19
+
 /* ---------------------------------------------------------------------
  *
  * MACROS for debugging
@@ -296,6 +326,7 @@ typedef struct {
   cin_ctl_pwr_val_t fp;
 } cin_ctl_pwr_mon_t;
 
+
 /*------------------------
  * Reporting functions
  *------------------------*/
@@ -391,6 +422,13 @@ int cin_ctl_set_address(struct cin_port* cp, char *ip, uint16_t reg0, uint16_t r
  *------------------------*/
 
 int cin_ctl_reg_dump(struct cin_port *cp, FILE *fp);
+
+/*------------------------
+ * CIN Bias Voltages
+ *------------------------*/
+
+int cin_ctl_get_bias_voltages(struct cin_port *cp, float *voltage);
+int cin_ctl_set_bias_voltages(struct cin_port *cp, float *voltage);
 
 /* ---------------------------------------------------------------------
  *
