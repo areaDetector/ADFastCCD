@@ -29,7 +29,6 @@ FastCCDConfig("$(PORT)", 0, 0, 0, 100000, 2000, 200, "", "10.23.5.127", "")
 
 # Load Records
 
-dbLoadRecords("ADBase.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 dbLoadRecords("$(ADFASTCCD)/db/FastCCD.template",   "P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 
 # Setup FastCCD Processing Plugin (GAIN)
