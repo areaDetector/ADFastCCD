@@ -177,6 +177,11 @@ void FastCCD::processImage(cin_data_frame_t *frame)
   *            allowed to allocate. Set this to -1 to allow an unlimited amount of memory.
   * \param[in] priority The thread priority for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
   * \param[in] stackSize The stack size for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
+  * \param[in] packetBuffer The CINDATA packet buffer size
+  * \param[in] imageBuffer The CINDATA image buffer size
+  * \param[in] baseIP The base IP address
+  * \param[in] fabricIP The fabric IP address
+  * \param[in] fabricMAC The fabric MAC address
   */
 FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory, 
                  int priority, int stackSize, int packetBuffer, int imageBuffer,
@@ -1456,6 +1461,9 @@ static void FastCCDDataStatsTaskC(void *drvPvt)
   * \param[in] stackSize The stack size for the asyn port driver thread
   * \param[in] packetBuffer The CINDATA packet buffer size
   * \param[in] imageBuffer The CINDATA image buffer size
+  * \param[in] baseIP The base IP address
+  * \param[in] fabricIP The fabric IP address
+  * \param[in] fabricMAC The fabric MAC address
   */
 extern "C" {
 
