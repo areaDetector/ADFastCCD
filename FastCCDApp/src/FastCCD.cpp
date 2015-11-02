@@ -95,13 +95,13 @@ void FastCCD::processImage(cin_data_frame_t *frame)
   const char* functionName = "processImage";
 
   if(firstFrameFlag){
-    firstFrameFlag = 0;
     this->lock();
     pImage->release();
     this->unlock();
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-                             "Dropped frame %d as first framesore frame\n",
-                             frame->number);
+                             "Dropped frame %d as framesore frame %d\n",
+                             frame->number, firstFrameFlag);
+    firstFrameFlag--;
     return;
   }
 
@@ -752,12 +752,12 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
          switch(i_mode) {
            case ADImageSingle:
              this->framesRemaining = 1;
-             n_images = 1;
+             n_images = 1 + _framestore;
              break;
            case ADImageMultiple:
              this->framesRemaining = n_images;
              if(_framestore){
-               n_images++;
+               n_images += _framestore;
              }
              break;
            case ADImageContinuous:
@@ -771,7 +771,7 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
              _status |= cin_ctl_set_cycle_time(&cin_ctl_port, (float)t_exp);
              _status |= cin_ctl_set_exposure_time(&cin_ctl_port, 0.001);
              setParamStatus(ADAcquirePeriod, asynError);
-             firstFrameFlag = 1;
+             firstFrameFlag = _framestore;
            } else {
              _status |= cin_ctl_set_exposure_time(&cin_ctl_port, (float)t_exp);
              _status |= cin_ctl_set_cycle_time(&cin_ctl_port, (float)t_period);
