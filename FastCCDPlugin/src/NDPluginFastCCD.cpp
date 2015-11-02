@@ -145,26 +145,26 @@ doCallbacks:
     callParamCallbacks();
 }
 
-int NDPluginFastCCD::readTiffBackground(char *filename, NDArray *array){
-
-  static const char *functionName = "readTiffBackground";
-  TIFF *tif;
-
-  if(array == NULL){
-    return -1;
-  }
-
-  if((tif = TIFFOpen(filename, "r")) == NULL){
-    asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
-              "%s:%s error opening file %s\n",
-              driverName, functionName, filename);
-    return -1;
-  }
-
-  
-
-  TIFFClose(tif);
-}
+//int NDPluginFastCCD::readTiffBackground(char *filename, NDArray *array){
+//
+//  static const char *functionName = "readTiffBackground";
+//  TIFF *tif;
+//
+//  if(array == NULL){
+//    return -1;
+//  }
+//
+//  if((tif = TIFFOpen(filename, "r")) == NULL){
+//    asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
+//              "%s:%s error opening file %s\n",
+//              driverName, functionName, filename);
+//    return -1;
+//  }
+//
+//  
+//
+//  TIFFClose(tif);
+//}
 
 int NDPluginFastCCD::writeTiffBackground(char *filename, NDArray *array){
 
@@ -194,7 +194,7 @@ int NDPluginFastCCD::writeTiffBackground(char *filename, NDArray *array){
   TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, 1);
   TIFFSetField(tif, TIFFTAG_PLANARCONFIG,    PLANARCONFIG_CONTIG);
   TIFFSetField(tif, TIFFTAG_IMAGEWIDTH,      (epicsUInt32)array->dims[0].size);
-  IFFSetField(tif, TIFFTAG_IMAGELENGTH,     (epicsUInt32)array->dims[1].size);
+  TIFFSetField(tif, TIFFTAG_IMAGELENGTH,     (epicsUInt32)array->dims[1].size);
   TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP,    (epicsUInt32)array->dims[1].size);
 
   tsize_t stripSize = TIFFStripSize(tif);
