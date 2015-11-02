@@ -22,22 +22,16 @@ record(ai, "$(P)$(R)PollPeriod_RBV"){
 # FastCCD Framestore Mode
 #
 
-record(bo, "$(P)$(R)FrameStr") {
+record(longout, "$(P)$(R)FrameStr") {
    field(DTYP, "asynInt32")
    field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))FRAMESTORE")
-   field(ZNAM, "OFF")
-   field(ONAM, "ON")
    field(VAL,  "1")
    field(PINI, "1")
 }
 
-record(bi, "$(P)$(R)FrameStr_RBV") {
+record(longin, "$(P)$(R)FrameStr_RBV") {
    field(DTYP, "asynInt32")
    field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))FRAMESTORE")
-   field(ZNAM, "OFF")
-   field(OSV,  "NO_ALARM")
-   field(ONAM, "ON")
-   field(ZSV,  "NO_ALARM")
    field(SCAN, "I/O Intr")
 }
 
