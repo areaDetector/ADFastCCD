@@ -1,3 +1,5 @@
+include "ADBase.template"
+
 #
 # Polling Period for the camera
 #
