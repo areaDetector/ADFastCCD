@@ -240,6 +240,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDPowerString,               asynParamInt32,    &FastCCDPower);
   createParam(FastCCDFPPowerString,             asynParamInt32,    &FastCCDFPPower);
   createParam(FastCCDCameraPowerString,         asynParamInt32,    &FastCCDCameraPower);
+  createParam(FastCCDCameraPowerModeString,     asynParamInt32,    &FastCCDCameraPowerMode);
 
   createParam(FastCCDBiasString,                asynParamInt32,    &FastCCDBias);
   createParam(FastCCDClocksString,              asynParamInt32,    &FastCCDClocks);
@@ -252,6 +253,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDFclkString,                asynParamInt32,    &FastCCDFclk);
 
   createParam(FastCCDFCRICGainString,           asynParamInt32,    &FastCCDFCRICGain);
+  createParam(FastCCDFCRICClampString,          asynParamInt32,    &FastCCDFCRICClamp);
 
   createParam(FastCCDVBus12V0String,            asynParamFloat64,  &FastCCDVBus12V0);
   createParam(FastCCDVMgmt3v3String,            asynParamFloat64,  &FastCCDVMgmt3v3);
@@ -408,6 +410,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setIntegerParam(FastCCDPower, 0);
   status |= setIntegerParam(FastCCDFPPower, 0);
   status |= setIntegerParam(FastCCDCameraPower, 0);
+  status |= setIntegerParam(FastCCDCameraPowerMode, 3);
 
   status |= setIntegerParam(FastCCDBias, 0);
   status |= setIntegerParam(FastCCDClocks, 0);
@@ -428,6 +431,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setIntegerParam(FastCCDFclk, 0);
 
   status |= setIntegerParam(FastCCDFCRICGain, 0);
+  status |= setIntegerParam(FastCCDFCRICClamp, 0);
 
   status |= setDoubleParam(FastCCDVBus12V0, 0);
   status |= setDoubleParam(FastCCDVMgmt3v3, 0);
@@ -754,6 +758,13 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
          getDoubleParam(ADAcquireTime, &t_exp);
          getDoubleParam(ADAcquirePeriod, &t_period);
 
+         // Now do a hack to only set the number of images to 16 bit
+         
+         n_images &= 0xFFFF; // Only use least significant bits
+
+        // Set the parameter library back to the < 2^16 value
+         setIntegerParam(ADNumImages, n_images);
+
          switch(i_mode) {
            case ADImageSingle:
              this->framesRemaining = 1;
@@ -846,7 +857,6 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       epicsEventSignal(statusEvent);
 
     } else if (function == FastCCDFPPower) {
-
       if(value) {
         _status |= cin_ctl_fp_pwr(&cin_ctl_port, 1);
       } else {
@@ -858,11 +868,21 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       epicsEventSignal(statusEvent);
 
     } else if (function == FastCCDCameraPower) {
+      
+      // Get the mode we are in (clocks, bias or both)
+      int _mode;
+      getIntegerParam(FastCCDCameraPowerMode, &_mode); 
 
       if(value){
-        _status |= cin_ctl_set_camera_pwr(&cin_ctl_port, 1);
+        if(_mode & 0x1){
+          _status |= cin_ctl_set_clocks(&cin_ctl_port, 1);
+        }
+        if(_mode & 0x2){
+          _status |= cin_ctl_set_bias(&cin_ctl_port, 1);
+        }
       } else {
-        _status |= cin_ctl_set_camera_pwr(&cin_ctl_port, 0);
+        _status |= cin_ctl_set_bias(&cin_ctl_port, 0);
+        _status |= cin_ctl_set_clocks(&cin_ctl_port, 0);
       }
 
       sleep(3);
@@ -906,6 +926,10 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
     } else if (function == FastCCDFCRICGain){
 
       _status |= cin_ctl_set_fcric_gain(&cin_ctl_port, value);
+
+    } else if (function == FastCCDFCRICClamp){
+
+      _status |= cin_ctl_set_fcric_clamp(&cin_ctl_port, value);
 
     } else if (function == FastCCDBiasWriteV){
       double bias_voltage[NUM_BIAS_VOLTAGE];

@@ -48,10 +48,12 @@ void NDPluginFastCCD::processCallbacks(NDArray *pArray)
 
     /* Get paraemeters which we need for processing the image */
     double gain0, gain1, gain2, dpval;
-    int dataType, enableBackground;
+    int dataType, enableBackground, enableOutput, numImages;
 
     getIntegerParam(NDPluginFastCCDDataType,            &dataType);
     getIntegerParam(NDPluginFastCCDEnableBackground,    &enableBackground);
+    getIntegerParam(NDPluginFastCCDEnableOutput,        &enableOutput);
+    getIntegerParam(NDPluginFastCCDNumImages,           &numImages);
 
     getDoubleParam(NDPluginFastCCDGain0, &gain0);
     getDoubleParam(NDPluginFastCCDGain1, &gain1);
@@ -65,12 +67,12 @@ void NDPluginFastCCD::processCallbacks(NDArray *pArray)
 
     pArray->getInfo(&arrayInfo);
     size_t nElements = arrayInfo.nElements;
-
-    /* Make a copy of the array converted to NDFloat64 (Double) */
     
     int validBackground0 = 0;
     int validBackground1 = 0;
     int validBackground2 = 0;
+
+    /* Make a copy of the array converted to NDFloat64 (Double) */
 
     this->pNDArrayPool->convert(pArray, &pScratch, NDFloat64);
     if (NULL == pScratch) {
@@ -82,16 +84,17 @@ void NDPluginFastCCD::processCallbacks(NDArray *pArray)
     if (this->pBackground0 && (nElements == this->nBackground0Elements)){
       validBackground0 = 1;
     }
-    setIntegerParam(NDPluginFastCCDValidBackground0, validBackground0);
 
     if (this->pBackground1 && (nElements == this->nBackground1Elements)){
       validBackground1 = 1;
     }
-    setIntegerParam(NDPluginFastCCDValidBackground1, validBackground1);
 
     if (this->pBackground2 && (nElements == this->nBackground2Elements)){
       validBackground2 = 1;
     }
+
+    setIntegerParam(NDPluginFastCCDValidBackground0, validBackground0);
+    setIntegerParam(NDPluginFastCCDValidBackground1, validBackground1);
     setIntegerParam(NDPluginFastCCDValidBackground2, validBackground2);
 
     if (validBackground0 && validBackground1 && validBackground2 && enableBackground){
@@ -131,40 +134,30 @@ doCallbacks:
         /* Get the attributes from this driver */
         this->getAttributes(pArrayOut->pAttributeList);
         /* Call any clients who have registered for NDArray callbacks */
-        this->unlock();
-        doCallbacksGenericPointer( pArrayOut, NDArrayData, 0);
-        this->lock();
+        if(enableOutput){
+          this->numImages++;
+          if((this->numImages <= numImages) || (numImages == 0)){
+            setIntegerParam(NDPluginFastCCDNumImagesP, this->numImages);
+            this->unlock();
+            doCallbacksGenericPointer( pArrayOut, NDArrayData, 0);
+            this->lock();
+          } else {
+            setIntegerParam(NDPluginFastCCDEnableOutput, 0);
+            this->numImages = 0;
+          }
+        }
         if (this->pArrays[0] != NULL){
           this->pArrays[0]->release();
         }
         this->pArrays[0] = pArrayOut;
     }
 
-    if (NULL != pScratch) pScratch->release();
+    if (pScratch != NULL){
+      pScratch->release();
+    }
 
     callParamCallbacks();
 }
-
-//int NDPluginFastCCD::readTiffBackground(char *filename, NDArray *array){
-//
-//  static const char *functionName = "readTiffBackground";
-//  TIFF *tif;
-//
-//  if(array == NULL){
-//    return -1;
-//  }
-//
-//  if((tif = TIFFOpen(filename, "r")) == NULL){
-//    asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
-//              "%s:%s error opening file %s\n",
-//              driverName, functionName, filename);
-//    return -1;
-//  }
-//
-//  
-//
-//  TIFFClose(tif);
-//}
 
 int NDPluginFastCCD::writeTiffBackground(char *filename, NDArray *array){
 
@@ -222,7 +215,9 @@ asynStatus NDPluginFastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
     /* Set the parameter in the parameter library. */
     status = (asynStatus) setIntegerParam(addr, function, value);
 
-    if (function == NDPluginFastCCDSaveBackground0){
+    if(function == NDPluginFastCCDEnableOutput){
+      this->numImages=0;
+    } else if (function == NDPluginFastCCDSaveBackground0){
         setIntegerParam(NDPluginFastCCDSaveBackground0, 0);
         if (this->pBackground0) {
           this->pBackground0->release();
@@ -428,6 +423,12 @@ NDPluginFastCCD::NDPluginFastCCD(const char *portName, int queueSize, int blocki
                 &NDPluginFastCCDBackground1LoadFile);
     createParam(NDPluginFastCCDBackground2LoadFileString,   asynParamInt32,
                 &NDPluginFastCCDBackground2LoadFile);
+    createParam(NDPluginFastCCDEnableOutputString,   asynParamInt32,
+                &NDPluginFastCCDEnableOutput);
+    createParam(NDPluginFastCCDNumImagesString,   asynParamInt32,
+                &NDPluginFastCCDNumImages);
+    createParam(NDPluginFastCCDNumImagesPString,   asynParamInt32,
+                &NDPluginFastCCDNumImagesP);
 
     setIntegerParam(NDPluginFastCCDGain0, 1);
     setIntegerParam(NDPluginFastCCDGain1, 1);
@@ -442,6 +443,10 @@ NDPluginFastCCD::NDPluginFastCCD(const char *portName, int queueSize, int blocki
     setIntegerParam(NDPluginFastCCDEnableBackground, 0);
     setIntegerParam(NDPluginFastCCDDataType, NDFloat64);
 
+    setIntegerParam(NDPluginFastCCDNumImages, 0);
+    setIntegerParam(NDPluginFastCCDNumImagesP, 0);
+    setIntegerParam(NDPluginFastCCDEnableOutput, 0);
+
     setStringParam(NDPluginFastCCDBackground0Path, "");
     setStringParam(NDPluginFastCCDBackground1Path, "");
     setStringParam(NDPluginFastCCDBackground2Path, "");
@@ -452,6 +457,7 @@ NDPluginFastCCD::NDPluginFastCCD(const char *portName, int queueSize, int blocki
     nBackground0Elements = 0;
     nBackground1Elements = 0;
     nBackground2Elements = 0;
+    numImages = 0;
 
     /* Set the plugin type string */
     setStringParam(NDPluginDriverPluginType, "NDPluginFastCCD");

@@ -430,6 +430,12 @@ int cin_ctl_reg_dump(struct cin_port *cp, FILE *fp);
 int cin_ctl_get_bias_voltages(struct cin_port *cp, float *voltage);
 int cin_ctl_set_bias_voltages(struct cin_port *cp, float *voltage);
 
+/*------------------------
+ * CIN FCRIC Clamp
+ *------------------------*/
+
+int cin_ctl_set_fcric_clamp(struct cin_port *cp, int clamp);
+
 /* ---------------------------------------------------------------------
  *
  * CIN Data Routines

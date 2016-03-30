@@ -7,4 +7,6 @@ $(P)$(R)DataTypeOut
 $(P)$(R)BgFilePath0
 $(P)$(R)BgFilePath1
 $(P)$(R)BgFilePath2
+$(P)$(R)EnableOutput
+$(P)$(R)NumImages
 file "NDPluginBase_settings.req", P=$(P), R=$(R)

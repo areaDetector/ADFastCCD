@@ -34,6 +34,7 @@
 #define FastCCDPowerString                      "CIN_POWER"
 #define FastCCDFPPowerString                    "CIN_FP_POWER"
 #define FastCCDCameraPowerString					      "CAMERA_POWER"
+#define FastCCDCameraPowerModeString					  "CAMERA_POWER_MODE"
 
 #define FastCCDBiasString					              "BIAS"
 #define FastCCDClocksString					            "CLOCKS"
@@ -61,6 +62,7 @@
 #define FastCCDFclkString                       "FCLK"
 
 #define FastCCDFCRICGainString                  "FCRIC_GAIN"
+#define FastCCDFCRICClampString                 "FCRIC_CLAMP"
 
 #define FastCCDVBus12V0String                   "VBUS_12V0"
 #define FastCCDVMgmt3v3String                   "VMGMT_3V3"
@@ -188,7 +190,10 @@ class FastCCD : public ADDriver {
 
   // FCLK
   int FastCCDFclk;
+
+  // FCRIC
   int FastCCDFCRICGain;
+  int FastCCDFCRICClamp;
 
   // File upload
   int FastCCDFirmwareUpload;
@@ -204,6 +209,7 @@ class FastCCD : public ADDriver {
   int FastCCDPower;
   int FastCCDFPPower;
   int FastCCDCameraPower; 
+  int FastCCDCameraPowerMode; 
 
   // Bias and Clocks
   int FastCCDBias;

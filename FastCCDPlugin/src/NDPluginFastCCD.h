@@ -25,6 +25,9 @@
 #define NDPluginFastCCDSaveBackground0String         "SAVE_BACKGROUND_0"
 #define NDPluginFastCCDSaveBackground1String         "SAVE_BACKGROUND_1"
 #define NDPluginFastCCDSaveBackground2String         "SAVE_BACKGROUND_2"
+#define NDPluginFastCCDEnableOutputString            "ENABLE_OUTPUT"
+#define NDPluginFastCCDNumImagesString               "NUM_IMAGES"
+#define NDPluginFastCCDNumImagesPString              "NUM_IMAGES_P"
 
 class epicsShareClass NDPluginFastCCD : public NDPluginDriver {
 public:
@@ -67,6 +70,10 @@ protected:
   int NDPluginFastCCDSaveBackground1;
   int NDPluginFastCCDSaveBackground2;
 
+  int NDPluginFastCCDNumImages;
+  int NDPluginFastCCDNumImagesP;
+  int NDPluginFastCCDEnableOutput;
+
   int NDPluginFastCCDDPVal;
   #define LAST_NDPLUGIN_FASTCCD_PARAM NDPluginFastCCDDPVal
 
@@ -80,6 +87,8 @@ private:
   size_t nBackground1Elements;
   NDArray *pBackground2;
   size_t nBackground2Elements;
+
+  int numImages;
 
 };
 #define NUM_NDPLUGIN_FASTCCD_PARAMS ((int)(&LAST_NDPLUGIN_FASTCCD_PARAM - &FIRST_NDPLUGIN_FASTCCD_PARAM + 1))

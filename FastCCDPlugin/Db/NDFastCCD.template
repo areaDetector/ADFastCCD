@@ -3,6 +3,41 @@
 
 include "NDPluginBase.template"
 
+record(bo, "$(P)$(R)EnableOutput"){
+    field(PINI, "YES")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_OUTPUT")
+	field(ONAM, "ENABLED")
+	field(ZNAM, "DISABLED")
+}
+
+record(bi, "$(P)$(R)EnableOutput_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_OUTPUT")
+	field(ONAM, "ENABLED")
+	field(ZNAM, "DISABLED")
+	field(SCAN, "I/O Intr")
+}
+
+
+record(ao, "$(P)$(R)NumImages"){
+    field(PINI, "YES")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))NUM_IMAGES")
+}
+
+record(ai, "$(P)$(R)NumImages_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))NUM_IMAGES")
+	field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)NumImagesP_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))NUM_IMAGES_P")
+	field(SCAN, "I/O Intr")
+}
+
 record(mbbo, "$(P)$(R)DataTypeOut")
 {
     field(PINI, "YES")

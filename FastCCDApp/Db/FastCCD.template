@@ -38,7 +38,7 @@ record(longin, "$(P)$(R)FrameStr_RBV") {
 }
 
 # 
-# FCRIC Gain Settings
+# FCRIC Settings
 #
 
 record(mbbo, "$(P)$(R)FCRICGain"){
@@ -64,6 +64,20 @@ record(mbbi, "$(P)$(R)FCRICGain_RBV"){
 	field(SCAN, "I/O Intr")
 }
 
+record(bo, "$(P)$(R)FCRICClamp"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FCRIC_CLAMP")
+	field(ZNAM, "CLAMP OFF")
+	field(ONAM, "CLAMP ON")
+}
+
+record(bi, "$(P)$(R)FCRICClamp_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FCRIC_CLAMP")
+	field(ZNAM, "CLAMP OFF")
+	field(ONAM, "CLAMP ON")
+	field(SCAN, "I/O Intr")
+}
 #
 # Bias Voltages
 #
@@ -726,6 +740,39 @@ record(bi, "$(P)$(R)CameraPwr_RBV") {
    field(ONAM, "ON")
    field(ZSV,  "MINOR")
    field(SCAN, "I/O Intr")
+}
+
+record(mbbo, "$(P)$(R)CameraPwrMode") {
+   field(DTYP, "asynInt32")
+   field(OUT, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CAMERA_POWER_MODE")
+   field(ZRST, "NONE")
+   field(ONST, "CLOCKS")
+   field(TWST, "BIAS")
+   field(THST, "BIAS AND CLOCKS")
+   field(ZRVL, "0")
+   field(ONVL, "1")
+   field(TWVL, "2")
+   field(THVL, "3")
+   field(VAL, "3")
+   field(PINI, "1")
+}
+
+record(mbbi, "$(P)$(R)CameraPwrMode_RBV") {
+   field(DTYP, "asynInt32")
+   field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))CAMERA_POWER_MODE")
+   field(ZRST, "NONE")
+   field(ONST, "CLOCKS")
+   field(TWST, "BIAS")
+   field(THST, "BIAS AND CLOCKS")
+   field(ZRVL, "0")
+   field(ONVL, "1")
+   field(TWVL, "2")
+   field(THVL, "3")
+   field(SCAN, "I/O Intr")
+   field(ZRSV, "MAJOR")
+   field(ONSV, "MINOR")
+   field(TWSV, "MINOR")
+   field(THSV, "NO_ALARM")
 }
 
 record(bi, "$(P)$(R)Bias_RBV") {
