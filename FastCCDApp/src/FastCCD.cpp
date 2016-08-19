@@ -1319,58 +1319,59 @@ void FastCCD::getCameraStatus(int first_run){
         setParamStatus(ADStatus, asynDisconnected);
       }
 
-      // Poll for the BIAS Settings
-      
-      float bias_voltage[NUM_BIAS_VOLTAGE];
-      cin_status = cin_ctl_get_bias_voltages(&cin_ctl_port, bias_voltage);
-
-      setDoubleParam(FastCCDBiasPosH, bias_voltage[pt_posH]);
-      setDoubleParam(FastCCDBiasNegH, bias_voltage[pt_negH]);
-      setDoubleParam(FastCCDBiasPosRG, bias_voltage[pt_posRG]);
-      setDoubleParam(FastCCDBiasNegRG, bias_voltage[pt_negRG]);
-      setDoubleParam(FastCCDBiasPosSW, bias_voltage[pt_posSW]);
-      setDoubleParam(FastCCDBiasNegSW, bias_voltage[pt_negSW]);
-      setDoubleParam(FastCCDBiasPosV, bias_voltage[pt_posV]);
-      setDoubleParam(FastCCDBiasNegV, bias_voltage[pt_negV]);
-      setDoubleParam(FastCCDBiasPosTG, bias_voltage[pt_posTG]);
-      setDoubleParam(FastCCDBiasNegTG, bias_voltage[pt_negTG]);
-      setDoubleParam(FastCCDBiasPosVF, bias_voltage[pt_posVF]);
-      setDoubleParam(FastCCDBiasNegVF, bias_voltage[pt_negVF]);
-      setDoubleParam(FastCCDBiasNEDGE, bias_voltage[pt_NEDGE]);
-      setDoubleParam(FastCCDBiasOTG, bias_voltage[pt_OTG]);
-      setDoubleParam(FastCCDBiasVDDR, bias_voltage[pt_VDDR]);
-      setDoubleParam(FastCCDBiasVDDOut, bias_voltage[pt_VDD_OUT]);
-      setDoubleParam(FastCCDBiasBufBase, bias_voltage[pt_BUF_Base]);
-      setDoubleParam(FastCCDBiasBufDelta, bias_voltage[pt_BUF_Delta]);
-      setDoubleParam(FastCCDBiasSpare1, bias_voltage[pt_Spare1]);
-      setDoubleParam(FastCCDBiasSpare2, bias_voltage[pt_Spare2]);
-
-      asynStatus _s = asynSuccess;
-      if(cin_status){
-        _s = asynDisconnected;
-      }
-
-      setParamStatus(FastCCDBiasPosH, _s);
-      setParamStatus(FastCCDBiasNegH, _s);
-      setParamStatus(FastCCDBiasPosRG, _s);
-      setParamStatus(FastCCDBiasNegRG, _s);
-      setParamStatus(FastCCDBiasPosSW, _s);
-      setParamStatus(FastCCDBiasNegSW, _s);
-      setParamStatus(FastCCDBiasPosV, _s);
-      setParamStatus(FastCCDBiasNegV, _s);
-      setParamStatus(FastCCDBiasPosTG, _s);
-      setParamStatus(FastCCDBiasNegTG, _s);
-      setParamStatus(FastCCDBiasPosVF, _s);
-      setParamStatus(FastCCDBiasNegVF, _s);
-      setParamStatus(FastCCDBiasNEDGE, _s);
-      setParamStatus(FastCCDBiasOTG, _s);
-      setParamStatus(FastCCDBiasVDDR, _s);
-      setParamStatus(FastCCDBiasVDDOut, _s);
-      setParamStatus(FastCCDBiasBufBase, _s);
-      setParamStatus(FastCCDBiasBufDelta, _s);
-      setParamStatus(FastCCDBiasSpare1, _s);
-      setParamStatus(FastCCDBiasSpare2, _s);
     }
+    
+    // Poll for the BIAS Settings
+    
+    float bias_voltage[NUM_BIAS_VOLTAGE];
+    cin_status = cin_ctl_get_bias_voltages(&cin_ctl_port, bias_voltage);
+
+    setDoubleParam(FastCCDBiasPosH, bias_voltage[pt_posH]);
+    setDoubleParam(FastCCDBiasNegH, bias_voltage[pt_negH]);
+    setDoubleParam(FastCCDBiasPosRG, bias_voltage[pt_posRG]);
+    setDoubleParam(FastCCDBiasNegRG, bias_voltage[pt_negRG]);
+    setDoubleParam(FastCCDBiasPosSW, bias_voltage[pt_posSW]);
+    setDoubleParam(FastCCDBiasNegSW, bias_voltage[pt_negSW]);
+    setDoubleParam(FastCCDBiasPosV, bias_voltage[pt_posV]);
+    setDoubleParam(FastCCDBiasNegV, bias_voltage[pt_negV]);
+    setDoubleParam(FastCCDBiasPosTG, bias_voltage[pt_posTG]);
+    setDoubleParam(FastCCDBiasNegTG, bias_voltage[pt_negTG]);
+    setDoubleParam(FastCCDBiasPosVF, bias_voltage[pt_posVF]);
+    setDoubleParam(FastCCDBiasNegVF, bias_voltage[pt_negVF]);
+    setDoubleParam(FastCCDBiasNEDGE, bias_voltage[pt_NEDGE]);
+    setDoubleParam(FastCCDBiasOTG, bias_voltage[pt_OTG]);
+    setDoubleParam(FastCCDBiasVDDR, bias_voltage[pt_VDDR]);
+    setDoubleParam(FastCCDBiasVDDOut, bias_voltage[pt_VDD_OUT]);
+    setDoubleParam(FastCCDBiasBufBase, bias_voltage[pt_BUF_Base]);
+    setDoubleParam(FastCCDBiasBufDelta, bias_voltage[pt_BUF_Delta]);
+    setDoubleParam(FastCCDBiasSpare1, bias_voltage[pt_Spare1]);
+    setDoubleParam(FastCCDBiasSpare2, bias_voltage[pt_Spare2]);
+
+    asynStatus _s = asynSuccess;
+    if(cin_status){
+      _s = asynDisconnected;
+    }
+
+    setParamStatus(FastCCDBiasPosH, _s);
+    setParamStatus(FastCCDBiasNegH, _s);
+    setParamStatus(FastCCDBiasPosRG, _s);
+    setParamStatus(FastCCDBiasNegRG, _s);
+    setParamStatus(FastCCDBiasPosSW, _s);
+    setParamStatus(FastCCDBiasNegSW, _s);
+    setParamStatus(FastCCDBiasPosV, _s);
+    setParamStatus(FastCCDBiasNegV, _s);
+    setParamStatus(FastCCDBiasPosTG, _s);
+    setParamStatus(FastCCDBiasNegTG, _s);
+    setParamStatus(FastCCDBiasPosVF, _s);
+    setParamStatus(FastCCDBiasNegVF, _s);
+    setParamStatus(FastCCDBiasNEDGE, _s);
+    setParamStatus(FastCCDBiasOTG, _s);
+    setParamStatus(FastCCDBiasVDDR, _s);
+    setParamStatus(FastCCDBiasVDDOut, _s);
+    setParamStatus(FastCCDBiasBufBase, _s);
+    setParamStatus(FastCCDBiasBufDelta, _s);
+    setParamStatus(FastCCDBiasSpare1, _s);
+    setParamStatus(FastCCDBiasSpare2, _s);
 
   } else {
     // Set the Comm Error 

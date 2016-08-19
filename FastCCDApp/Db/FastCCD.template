@@ -82,6 +82,13 @@ record(bi, "$(P)$(R)FCRICClamp_RBV"){
 # Bias Voltages
 #
 
+record(bo, "$(P)$(R)Cmd:WBias-Cmd"){
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_WRITEV")
+  field(ZNAM, "IDLE")
+  field(ONAM, "WRITE")
+}
+
 record(ai, "$(P)$(R)E:BiasPosH-RB")
 {
   field(DTYP, "asynFloat64")
