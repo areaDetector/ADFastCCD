@@ -136,18 +136,23 @@ doCallbacks:
         /* Get the attributes from this driver */
         this->getAttributes(pArrayOut->pAttributeList);
         /* Call any clients who have registered for NDArray callbacks */
-        if(this->enableOutput && 
-           (pArray->epicsTS.nsec > this->enableOutputTimestamp.nsec) &&
-           (pArray->epicsTS.secPastEpoch > this->enableOutputTimestamp.secPastEpoch)){
-          this->numImages++;
-          if((this->numImages <= numImages) || (numImages == 0)){
-            setIntegerParam(NDPluginFastCCDNumImagesP, this->numImages);
-            this->unlock();
-            doCallbacksGenericPointer( pArrayOut, NDArrayData, 0);
-            this->lock();
+        if(this->enableOutput){
+          if((pArray->epicsTS.nsec > this->enableOutputTimestamp.nsec) &&
+            (pArray->epicsTS.secPastEpoch > this->enableOutputTimestamp.secPastEpoch)){
+            this->numImages++;
+            if((this->numImages <= numImages) || (numImages == 0)){
+              setIntegerParam(NDPluginFastCCDNumImagesP, this->numImages);
+              this->unlock();
+              doCallbacksGenericPointer( pArrayOut, NDArrayData, 0);
+              this->lock();
+            } else {
+              setIntegerParam(NDPluginFastCCDEnableOutput, 0);
+              this->numImages = 0;
+            }
           } else {
-            setIntegerParam(NDPluginFastCCDEnableOutput, 0);
-            this->numImages = 0;
+            fprintf(stderr, "Dropping frame %d.%d\n", 
+                pArray->epicsTS.secPastEpoch - this->enableOutputTimestamp.secPastEpoch,
+                pArray->epicsTS.nsec - this->enableOutputTimestamp.nsec);
           }
         }
         if (this->pArrays[0] != NULL){
