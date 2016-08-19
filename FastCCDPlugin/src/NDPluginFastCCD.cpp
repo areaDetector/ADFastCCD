@@ -20,6 +20,9 @@
 #include <asynDriver.h>
 
 #include <epicsExport.h>
+
+#include <epicsTime.h>
+
 #include "NDPluginDriver.h"
 #include "NDPluginFastCCD.h"
 
@@ -48,11 +51,10 @@ void NDPluginFastCCD::processCallbacks(NDArray *pArray)
 
     /* Get paraemeters which we need for processing the image */
     double gain0, gain1, gain2, dpval;
-    int dataType, enableBackground, enableOutput, numImages;
+    int dataType, enableBackground, numImages;
 
     getIntegerParam(NDPluginFastCCDDataType,            &dataType);
     getIntegerParam(NDPluginFastCCDEnableBackground,    &enableBackground);
-    getIntegerParam(NDPluginFastCCDEnableOutput,        &enableOutput);
     getIntegerParam(NDPluginFastCCDNumImages,           &numImages);
 
     getDoubleParam(NDPluginFastCCDGain0, &gain0);
@@ -134,7 +136,9 @@ doCallbacks:
         /* Get the attributes from this driver */
         this->getAttributes(pArrayOut->pAttributeList);
         /* Call any clients who have registered for NDArray callbacks */
-        if(enableOutput){
+        if(this->enableOutput && 
+           (pArray->epicsTS.nsec > this->enableOutputTimestamp.nsec) &&
+           (pArray->epicsTS.secPastEpoch > this->enableOutputTimestamp.secPastEpoch)){
           this->numImages++;
           if((this->numImages <= numImages) || (numImages == 0)){
             setIntegerParam(NDPluginFastCCDNumImagesP, this->numImages);
@@ -216,7 +220,9 @@ asynStatus NDPluginFastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
     status = (asynStatus) setIntegerParam(addr, function, value);
 
     if(function == NDPluginFastCCDEnableOutput){
-      this->numImages=0;
+      epicsTimeGetCurrent(&this->enableOutputTimestamp);
+      this->numImages = 0;
+      this->enableOutput = 1;
     } else if (function == NDPluginFastCCDSaveBackground0){
         setIntegerParam(NDPluginFastCCDSaveBackground0, 0);
         if (this->pBackground0) {
@@ -457,7 +463,9 @@ NDPluginFastCCD::NDPluginFastCCD(const char *portName, int queueSize, int blocki
     nBackground0Elements = 0;
     nBackground1Elements = 0;
     nBackground2Elements = 0;
+
     numImages = 0;
+    enableOutput = 0;
 
     /* Set the plugin type string */
     setStringParam(NDPluginDriverPluginType, "NDPluginFastCCD");

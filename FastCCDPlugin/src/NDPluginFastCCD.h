@@ -88,7 +88,10 @@ private:
   NDArray *pBackground2;
   size_t nBackground2Elements;
 
+  epicsTimeStamp enableOutputTimestamp;
+
   int numImages;
+  int enableOutput;
 
 };
 #define NUM_NDPLUGIN_FASTCCD_PARAMS ((int)(&LAST_NDPLUGIN_FASTCCD_PARAM - &FIRST_NDPLUGIN_FASTCCD_PARAM + 1))
