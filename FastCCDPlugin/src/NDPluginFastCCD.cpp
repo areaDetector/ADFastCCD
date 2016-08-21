@@ -168,43 +168,6 @@ doCallbacks:
     callParamCallbacks();
 }
 
-int NDPluginFastCCD::writeTiffBackground(char *filename, NDArray *array){
-
-  static const char *functionName = "writeTiffBackground";
-  TIFF *tif;
-
-  if(array == NULL){
-    return -1;
-  }
-
-  if((tif = TIFFOpen(filename, "w")) == NULL){
-    asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
-              "%s:%s error opening file %s\n",
-              driverName, functionName, filename);
-    return -1;
-  }
-
-  if((array->ndims != 2) || (array->dataType != NDFloat64)){
-    asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
-              "%s:%s NDArray is not of correct type\n",
-              driverName, functionName);
-    return -1;
-  }
-
-  TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE,   64);
-  TIFFSetField(tif, TIFFTAG_SAMPLEFORMAT,    SAMPLEFORMAT_IEEEFP);
-  TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, 1);
-  TIFFSetField(tif, TIFFTAG_PLANARCONFIG,    PLANARCONFIG_CONTIG);
-  TIFFSetField(tif, TIFFTAG_IMAGEWIDTH,      (epicsUInt32)array->dims[0].size);
-  TIFFSetField(tif, TIFFTAG_IMAGELENGTH,     (epicsUInt32)array->dims[1].size);
-  TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP,    (epicsUInt32)array->dims[1].size);
-
-  tsize_t stripSize = TIFFStripSize(tif);
-  size_t nwrite = TIFFWriteEncodedStrip(tif, 0, array->pData, stripSize);
-
-  TIFFClose(tif);
-
-}
 
 /** Called when asyn clients call pasynInt32->write().
   * This function performs actions for some parameters.
@@ -269,27 +232,6 @@ asynStatus NDPluginFastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
             nBackground2Elements= arrayInfo.nElements;
             setIntegerParam(NDPluginFastCCDValidBackground2, 1);
         }
-    } else if(function == NDPluginFastCCDBackground0SaveFile){
-      setIntegerParam(NDPluginFastCCDBackground0SaveFile, 0);
-      char fn[256];
-      getStringParam(NDPluginFastCCDBackground0Path, sizeof(fn), fn);
-      if(writeTiffBackground(fn, this->pBackground0)){
-        status = asynError;
-      }
-    } else if(function == NDPluginFastCCDBackground1SaveFile){
-      setIntegerParam(NDPluginFastCCDBackground1SaveFile, 0);
-      char fn[256];
-      getStringParam(NDPluginFastCCDBackground1Path, sizeof(fn), fn);
-      if(writeTiffBackground(fn, this->pBackground1)){
-        status = asynError;
-      }
-    } else if(function == NDPluginFastCCDBackground2SaveFile){
-      setIntegerParam(NDPluginFastCCDBackground2SaveFile, 0);
-      char fn[256];
-      getStringParam(NDPluginFastCCDBackground2Path, sizeof(fn), fn);
-      if(writeTiffBackground(fn, this->pBackground2)){
-        status = asynError;
-      }
     } else {
         /* If this parameter belongs to a base class call its method */
         if (function < FIRST_NDPLUGIN_FASTCCD_PARAM) {
@@ -326,20 +268,8 @@ asynStatus NDPluginFastCCD::writeOctet(asynUser *pasynUser, const char *value, s
     return status;
   }
 
-  if((function == NDPluginFastCCDBackground0Path) ||
-     (function == NDPluginFastCCDBackground1Path) ||
-     (function == NDPluginFastCCDBackground2Path)) {
-    struct stat s;
-    int _status = stat(value, &s);
-    if(_status){
-      setParamStatus(function, asynError);
-    } else {
-      setParamStatus(function, asynSuccess);
-    }
-  } else {
-    // Call base class to handle strings
-    status = NDPluginDriver::writeOctet(pasynUser, value, nc, na);
-  }
+  // Call base class to handle strings
+  status = NDPluginDriver::writeOctet(pasynUser, value, nc, na);
 
   if (status) {
     asynPrint(pasynUser, ASYN_TRACE_ERROR,
@@ -416,24 +346,6 @@ NDPluginFastCCD::NDPluginFastCCD(const char *portName, int queueSize, int blocki
                 &NDPluginFastCCDSaveBackground1);
     createParam(NDPluginFastCCDSaveBackground2String,   asynParamInt32,    
                 &NDPluginFastCCDSaveBackground2);
-    createParam(NDPluginFastCCDBackground0PathString,   asynParamOctet,
-                &NDPluginFastCCDBackground0Path);
-    createParam(NDPluginFastCCDBackground1PathString,   asynParamOctet,
-                &NDPluginFastCCDBackground1Path);
-    createParam(NDPluginFastCCDBackground2PathString,   asynParamOctet,
-                &NDPluginFastCCDBackground2Path);
-    createParam(NDPluginFastCCDBackground0SaveFileString,   asynParamInt32,
-                &NDPluginFastCCDBackground0SaveFile);
-    createParam(NDPluginFastCCDBackground1SaveFileString,   asynParamInt32,
-                &NDPluginFastCCDBackground1SaveFile);
-    createParam(NDPluginFastCCDBackground2SaveFileString,   asynParamInt32,
-                &NDPluginFastCCDBackground2SaveFile);
-    createParam(NDPluginFastCCDBackground0LoadFileString,   asynParamInt32,
-                &NDPluginFastCCDBackground0LoadFile);
-    createParam(NDPluginFastCCDBackground1LoadFileString,   asynParamInt32,
-                &NDPluginFastCCDBackground1LoadFile);
-    createParam(NDPluginFastCCDBackground2LoadFileString,   asynParamInt32,
-                &NDPluginFastCCDBackground2LoadFile);
     createParam(NDPluginFastCCDEnableOutputString,   asynParamInt32,
                 &NDPluginFastCCDEnableOutput);
     createParam(NDPluginFastCCDNumImagesString,   asynParamInt32,
@@ -457,10 +369,6 @@ NDPluginFastCCD::NDPluginFastCCD(const char *portName, int queueSize, int blocki
     setIntegerParam(NDPluginFastCCDNumImages, 0);
     setIntegerParam(NDPluginFastCCDNumImagesP, 0);
     setIntegerParam(NDPluginFastCCDEnableOutput, 0);
-
-    setStringParam(NDPluginFastCCDBackground0Path, "");
-    setStringParam(NDPluginFastCCDBackground1Path, "");
-    setStringParam(NDPluginFastCCDBackground2Path, "");
 
     pBackground0 = NULL;
     pBackground1 = NULL;

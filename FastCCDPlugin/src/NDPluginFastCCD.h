@@ -7,15 +7,6 @@
 #define NDPluginFastCCDGain1String                   "GAIN_1"
 #define NDPluginFastCCDGain2String                   "GAIN_2"
 #define NDPluginFastCCDDPValString                   "DP_VAL"
-#define NDPluginFastCCDBackground0PathString         "BACKGROUND0_PATH"
-#define NDPluginFastCCDBackground1PathString         "BACKGROUND1_PATH"
-#define NDPluginFastCCDBackground2PathString         "BACKGROUND2_PATH"
-#define NDPluginFastCCDBackground0SaveFileString     "BACKGROUND0_SAVE_FILE"
-#define NDPluginFastCCDBackground1SaveFileString     "BACKGROUND1_SAVE_FILE"
-#define NDPluginFastCCDBackground2SaveFileString     "BACKGROUND2_SAVE_FILE"
-#define NDPluginFastCCDBackground0LoadFileString     "BACKGROUND0_LOAD_FILE"
-#define NDPluginFastCCDBackground1LoadFileString     "BACKGROUND1_LOAD_FILE"
-#define NDPluginFastCCDBackground2LoadFileString     "BACKGROUND2_LOAD_FILE"
 #define NDPluginFastCCDEnableBackgroundString        "ENABLE_BACKGROUND"
 #define NDPluginFastCCDDataTypeString                "PROCESS_DATA_TYPE"
 #define NDPluginFastCCDValidBackgroundString         "VALID_BACKGROUND"
@@ -49,17 +40,6 @@ protected:
 
   int NDPluginFastCCDEnableBackground;
   int NDPluginFastCCDDataType;
-
-  int NDPluginFastCCDBackground0Path;
-  int NDPluginFastCCDBackground1Path;
-  int NDPluginFastCCDBackground2Path;
-
-  int NDPluginFastCCDBackground0SaveFile;
-  int NDPluginFastCCDBackground1SaveFile;
-  int NDPluginFastCCDBackground2SaveFile;
-  int NDPluginFastCCDBackground0LoadFile;
-  int NDPluginFastCCDBackground1LoadFile;
-  int NDPluginFastCCDBackground2LoadFile;
 
   int NDPluginFastCCDValidBackground;
   int NDPluginFastCCDValidBackground0;
