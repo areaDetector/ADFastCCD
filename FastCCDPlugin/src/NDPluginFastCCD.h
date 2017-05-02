@@ -55,7 +55,6 @@ protected:
   int NDPluginFastCCDEnableOutput;
 
   int NDPluginFastCCDDPVal;
-  #define LAST_NDPLUGIN_FASTCCD_PARAM NDPluginFastCCDDPVal
 
 private:
   int writeTiffBackground(char* filename, NDArray* array);
@@ -74,6 +73,5 @@ private:
   int enableOutput;
 
 };
-#define NUM_NDPLUGIN_FASTCCD_PARAMS ((int)(&LAST_NDPLUGIN_FASTCCD_PARAM - &FIRST_NDPLUGIN_FASTCCD_PARAM + 1))
     
 #endif
