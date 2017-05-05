@@ -322,11 +322,11 @@ NDPluginFastCCD::NDPluginFastCCD(const char *portName, int queueSize, int blocki
                          int priority, int stackSize)
     /* Invoke the base class constructor */
     : NDPluginDriver(portName, queueSize, blockingCallbacks,
-                   NDArrayPort, NDArrayAddr, 1, NUM_NDPLUGIN_FASTCCD_PARAMS, 
+                   NDArrayPort, NDArrayAddr, 1, 
                    maxBuffers, maxMemory,
                    asynGenericPointerMask,
                    asynGenericPointerMask,
-                   ASYN_MULTIDEVICE, 1, priority, stackSize)
+                   ASYN_MULTIDEVICE, 1, priority, stackSize, 1)
 {
     //static const char *functionName = "NDPluginFastCCD";
 
