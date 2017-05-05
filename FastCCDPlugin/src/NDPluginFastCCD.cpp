@@ -137,8 +137,8 @@ doCallbacks:
         this->getAttributes(pArrayOut->pAttributeList);
         /* Call any clients who have registered for NDArray callbacks */
         if(this->enableOutput){
-          if((pArray->epicsTS.nsec > this->enableOutputTimestamp.nsec) &&
-            (pArray->epicsTS.secPastEpoch > this->enableOutputTimestamp.secPastEpoch)){
+          if((((pArray->epicsTS.nsec > this->enableOutputTimestamp.nsec) &&
+              ((pArray->epicsTS.secPastEpoch - this->enableOutputTimestamp.secPastEpoch) == 0))) || (pArray->epicsTS.secPastEpoch > this->enableOutputTimestamp.secPastEpoch)){
             this->numImages++;
             if((this->numImages <= numImages) || (numImages == 0)){
               setIntegerParam(NDPluginFastCCDNumImagesP, this->numImages);
@@ -146,8 +146,9 @@ doCallbacks:
               doCallbacksGenericPointer( pArrayOut, NDArrayData, 0);
               this->lock();
             } else {
-              setIntegerParam(NDPluginFastCCDEnableOutput, 0);
+              this->enableOutput = 0;
               this->numImages = 0;
+              setIntegerParam(NDPluginFastCCDEnableOutput, 0);
             }
           } else {
             fprintf(stderr, "Dropping frame %d.%d\n", 
@@ -188,9 +189,13 @@ asynStatus NDPluginFastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
     status = (asynStatus) setIntegerParam(addr, function, value);
 
     if(function == NDPluginFastCCDEnableOutput){
-      epicsTimeGetCurrent(&this->enableOutputTimestamp);
-      this->numImages = 0;
-      this->enableOutput = 1;
+      int n;
+      getIntegerParam(NDPluginFastCCDEnableOutput, &n);
+      if(n == 1){
+        epicsTimeGetCurrent(&this->enableOutputTimestamp);
+        this->numImages = 0;
+        this->enableOutput = 1;
+      }
     } else if (function == NDPluginFastCCDSaveBackground0){
         setIntegerParam(NDPluginFastCCDSaveBackground0, 0);
         if (this->pBackground0) {
