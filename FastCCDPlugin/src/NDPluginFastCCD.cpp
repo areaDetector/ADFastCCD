@@ -47,7 +47,7 @@ void NDPluginFastCCD::processCallbacks(NDArray *pArray)
     NDArray *pScratch = NULL;
 
     /* Call the base class method */
-    NDPluginDriver::processCallbacks(pArray);
+    NDPluginDriver::beginProcessCallbacks(pArray);
 
     /* Get paraemeters which we need for processing the image */
     double gain0, gain1, gain2, dpval;
