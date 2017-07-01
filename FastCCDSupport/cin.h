@@ -60,7 +60,7 @@ extern const char *cin_build_version;
 #define CIN_CTL_FCLK_125_C                 0x0003
 #define CIN_CTL_FCLK_200_C                 0x0004
 #define CIN_CTL_FCLK_250_C                 0x0005
-#define CIN_CTL_FCLK_180_C                 0x0006
+#define CIN_CTL_FCLK_156_C                 0x0006
 
 #define CIN_CTL_FPGA_STS_CFG               0x8000
 #define CIN_CTL_FPGA_STS_FP_PWR            0x0008
@@ -102,6 +102,14 @@ extern const char *cin_build_version;
 #define CIN_CTL_MUX2_SAVE                  0x00E0
 #define CIN_CTL_MUX2_HWTRIG                0x00F0
 #define CIN_CTL_MUX2_EXPOSE                0x0000
+
+#define CIN_CTL_FO_REG1                    0x821D
+#define CIN_CTL_FO_REG2                    0x821E
+#define CIN_CTL_FO_REG3                    0x821F
+#define CIN_CTL_FO_REG4                    0x8001
+#define CIN_CTL_FO_REG5                    0x8211
+#define CIN_CTL_FO_REG6                    0x8212
+#define CIN_CTL_FO_REG7                    0x8213
 
 #define CIN_DATA_IP                        "10.0.5.207"
 #define CIN_DATA_PORT                      49201
@@ -179,29 +187,29 @@ extern const char *cin_build_version;
 
 /* ---------------------------------------------------------------------
  *
- * MACROS for debugging
+ * MACROS and functions for debugging
  *
  * ---------------------------------------------------------------------
  */
 
-#ifdef __DEBUG__
-  #define DEBUG_PRINT(fmt, ...) \
-    if(1) { fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, __LINE__, __func__, __VA_ARGS__); }
-#else
-  #define DEBUG_PRINT(...) do {}while(0)
-#endif
+// Global variables to set debug levels 
 
-#ifdef __DEBUG__
-  #define DEBUG_COMMENT(fmt)\
-    if(1) { fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, __LINE__, __func__); }
-#else
-  #define DEBUG_COMMENT(...) do {}while(0)
-#endif
+extern int _debug_print_flag;
+extern int _error_print_flag;
+void cin_set_debug_print(int debug);
+void cin_set_error_print(int error);
+
+#define DEBUG_PRINT(fmt, ...) \
+  if(_debug_print_flag) { fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, __LINE__, __func__, __VA_ARGS__); }
+
+#define DEBUG_COMMENT(fmt)\
+  if(_debug_print_flag) { fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, __LINE__, __func__); }
 
 #define ERROR_COMMENT(fmt)\
-  if(1) { fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, __LINE__, __func__); }
+  if(_error_print_flag) { fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, __LINE__, __func__); }
+
 #define ERROR_PRINT(fmt, ...) \
-  if(1) { fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, __LINE__, __func__, __VA_ARGS__); }
+  if(_error_print_flag) { fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, __LINE__, __func__, __VA_ARGS__); }
 
 /* ---------------------------------------------------------------------
  *
@@ -209,6 +217,19 @@ extern const char *cin_build_version;
  *
  * ---------------------------------------------------------------------
  */
+
+
+#define CIN_MAX_FILENAME 256
+typedef struct {
+  char *name;
+  char firmware_filename[CIN_MAX_FILENAME];
+  char clocks_filename[CIN_MAX_FILENAME];
+  char fcric_filename[CIN_MAX_FILENAME];
+  char bias_filename[CIN_MAX_FILENAME];
+  int overscan;
+  int columns;
+  int fclk;
+} camera_config;
 
 #define FIFO_MAX_READERS 10 
 
@@ -299,7 +320,6 @@ typedef void (*cin_data_callback) (cin_data_frame_t *);
  * Datastructures for status readouts 
  */
 
-
 typedef struct cin_ctl_id {
   uint16_t board_id;
   uint16_t serial_no;
@@ -355,6 +375,7 @@ int cin_ctl_write_with_readback(struct cin_port* cp, uint16_t reg, uint16_t val)
 
 int cin_ctl_pwr(struct cin_port *cp, int pwr);
 int cin_ctl_fp_pwr(struct cin_port* cp, int pwr);
+int cin_ctl_fo_test_pattern(struct cin_port* cp, int on_off);
 
 /*------------------------
  * CIN Configuration-Status
@@ -364,7 +385,7 @@ int cin_ctl_load_config(struct cin_port* cp,char *filename);
 int cin_ctl_load_firmware(struct cin_port* cp,struct cin_port* dcp, char *filename);
 int cin_ctl_set_fclk(struct cin_port* cp, int clkfreq);
 int cin_ctl_get_fclk(struct cin_port* cp, int *clkfreq);
-int cin_ctl_set_dco(struct cin_port* cp, int freeze);
+int cin_ctl_freeze_dco(struct cin_port* cp, int freeze);
 int cin_ctl_get_cfg_fpga_status(struct cin_port* cp, uint16_t *_val);
 int cin_ctl_get_id(struct cin_port *cp, cin_ctl_id_t *_val);
 void cin_ctl_display_id(FILE *out, cin_ctl_id_t val);
@@ -436,6 +457,12 @@ int cin_ctl_set_bias_voltages(struct cin_port *cp, float *voltage);
 
 int cin_ctl_set_fcric_clamp(struct cin_port *cp, int clamp);
 
+/*------------------------
+ * CIN Config File
+ *------------------------*/
+
+int cin_read_config_file(const char *file, const char *config_name, camera_config *config);
+
 /* ---------------------------------------------------------------------
  *
  * CIN Data Routines
@@ -488,7 +515,7 @@ void cin_data_stop_monitor_output(void);
 int cin_data_send_magic(void);
 
 int cin_data_set_descramble_params(int rows, int overscan);
-int cin_data_get_descramble_params(int *rows, int *overscan, int *xsize, int *ysize);
+void cin_data_get_descramble_params(int *rows, int *overscan, int *xsize, int *ysize);
 
 #ifdef __cplusplus
 }
