@@ -1,3 +1,44 @@
+/* vim: set ts=2 sw=2 tw=0 noet : */
+
+/**
+ * @file 
+ * @author Stuart B. Wilkins <swilkins@bnl.gov> 
+ *
+ * @section LICENSE
+ *  
+ *  Copyright (c) 2014, Brookhaven Science Associates, Brookhaven National Laboratory
+ *  All rights reserved.
+ *  
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met: 
+ *  
+ *  1. Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer. 
+ *  2. Redistributions in binary form must reproduce the above copyright notice,
+ *     this list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution. 
+ *  
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ *  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ *  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ *  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ *  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *  
+ *  The views and conclusions contained in the software and documentation are those
+ *  of the authors and should not be interpreted as representing official policies, 
+ *  either expressed or implied, of the FreeBSD Project.
+ *  
+ *  @section DESCRIPTION
+ *
+ *  header file for CIN communications
+ *
+ */
+
 #ifndef __CIN_H__
 #define __CIN_H__
 
@@ -29,10 +70,13 @@ extern const char *cin_build_version;
 #define CIN_CTL_CLI_PORT                   50200
 #define CIN_CTL_SVR_FRMW_PORT              49202
 #define CIN_CTL_CLI_FRMW_PORT              50202
+#define CIN_CTL_RCVBUF                     10  // Mb 
 
 #define CIN_CTL_MAX_READ_TRIES             10
 #define CIN_CTL_MAX_WRITE_TRIES            5
-#define CIN_CTL_WRITE_SLEEP                2000 // microsecs
+#define CIN_CTL_WRITE_SLEEP                100 // microsecs
+#define CIN_CTL_STREAM_CHUNK               256
+#define CIN_CTL_STREAM_SLEEP               15
 
 #define CIN_CTL_POWER_ENABLE               0x001F
 #define CIN_CTL_POWER_DISABLE              0x0000
@@ -147,43 +191,33 @@ extern const char *cin_build_version;
 
 /* -------------------------------------------------------------------------------
  *
- * Definitions for CIN DATA config
- *
- * -------------------------------------------------------------------------------
- */
-
-#define CIN_DATA_MODE_CALLBACK          0x01
-#define CIN_DATA_MODE_DBL_BUFFER        0x02
-
-/* -------------------------------------------------------------------------------
- *
  * Definitions for CIN BIAS SETTINGS
  *
  * -------------------------------------------------------------------------------
  */
 
-#define NUM_BIAS_VOLTAGE            20
+#define CIN_CTL_NUM_BIAS_VOLTAGE           20
 
-#define pt_posH                     0
-#define pt_negH                     1
-#define pt_posRG                    2
-#define pt_negRG                    3
-#define pt_posSW                    4
-#define pt_negSW                    5
-#define pt_posV                     6
-#define pt_negV                     7
-#define pt_posTG                    8
-#define pt_negTG                    9
-#define pt_posVF                    10
-#define pt_negVF                    11
-#define pt_NEDGE                    12
-#define pt_OTG                      13
-#define pt_VDDR                     14
-#define pt_VDD_OUT                  15
-#define pt_BUF_Base                 16
-#define pt_BUF_Delta                17
-#define pt_Spare1                   18
-#define pt_Spare2                   19
+#define CIN_CTL_BIAS_POSH                  0
+#define CIN_CTL_BIAS_NEGH                  1
+#define CIN_CTL_BIAS_POSRG                 2
+#define CIN_CTL_BIAS_NEGRG                 3
+#define CIN_CTL_BIAS_POSSW                 4
+#define CIN_CTL_BIAS_NEGSW                 5
+#define CIN_CTL_BIAS_POSV                  6
+#define CIN_CTL_BIAS_NEGV                  7
+#define CIN_CTL_BIAS_POSTG                 8
+#define CIN_CTL_BIAS_NEGTG                 9
+#define CIN_CTL_BIAS_POSVF                 10
+#define CIN_CTL_BIAS_NEGVF                 11
+#define CIN_CTL_BIAS_NEDGE                 12
+#define CIN_CTL_BIAS_OTG                   13
+#define CIN_CTL_BIAS_VDDR                  14
+#define CIN_CTL_BIAS_VDD_OUT               15
+#define CIN_CTL_BIAS_BUF_BASE              16
+#define CIN_CTL_BIAS_BUF_DELTA             17
+#define CIN_CTL_BIAS_SPARE1                18
+#define CIN_CTL_BIAS_SPARE2                19
 
 /* ---------------------------------------------------------------------
  *
@@ -218,18 +252,30 @@ void cin_set_error_print(int error);
  * ---------------------------------------------------------------------
  */
 
+extern uint16_t cin_config_timing[];
+extern int cin_config_timing_len; 
+extern unsigned char cin_config_firmware[];
+extern unsigned cin_config_firmware_len;
+extern uint16_t cin_config_bias[];
+extern int cin_config_bias_len;
+extern uint16_t cin_config_fcric_200[];
+extern int cin_config_fcric_200_len;
 
-#define CIN_MAX_FILENAME 256
-typedef struct {
-  char *name;
-  char firmware_filename[CIN_MAX_FILENAME];
-  char clocks_filename[CIN_MAX_FILENAME];
-  char fcric_filename[CIN_MAX_FILENAME];
-  char bias_filename[CIN_MAX_FILENAME];
+#define CIN_CONFIG_MAX_STRING 256
+#define CIN_CONFIG_MAX_DATA 5000
+typedef struct cin_ctl_config {
+  char name[CIN_CONFIG_MAX_STRING];
+  char firmware_filename[CIN_CONFIG_MAX_STRING];
   int overscan;
   int columns;
   int fclk;
-} camera_config;
+  uint16_t timing[CIN_CONFIG_MAX_DATA][2];
+  int timing_len;
+  uint16_t fcric[CIN_CONFIG_MAX_DATA][2];
+  int fcric_len;
+  uint16_t bias[CIN_CONFIG_MAX_DATA][2];
+  int bias_len;
+} cin_ctl_config_t;
 
 #define FIFO_MAX_READERS 10 
 
@@ -247,28 +293,43 @@ typedef struct {
   pthread_cond_t signal;
 } fifo;
 
+
 typedef struct cin_ctl_listener {
   struct cin_port *cp;
   fifo ctl_fifo;
   pthread_t thread_id;
+  pthread_barrier_t barrier;
 } cin_ctl_listener_t;
 
 typedef struct cin_port {
-    char *srvaddr;
-    char *cliaddr;
-    uint16_t srvport;
-    uint16_t cliport;
-    int sockfd;
-    struct timeval tv;
-    struct sockaddr_in sin_srv; /* server info */
-    struct sockaddr_in sin_cli; /* client info (us!) */
-    socklen_t slen; /* for recvfrom() */
-    int rcvbuf; /* For setting data recieve buffer */
-    int rcvbuf_rb; /* For readback */
-    cin_ctl_listener_t *listener;
-    pthread_mutex_t access; /* For sequential access to CIN */
-    pthread_mutexattr_t access_attr;
+  char *srvaddr;
+  char *cliaddr;
+  uint16_t srvport;
+  uint16_t cliport;
+  int sockfd;
+  struct timeval tv;
+  struct sockaddr_in sin_srv; /* server info */
+  struct sockaddr_in sin_cli; /* client info (us!) */
+  socklen_t slen; /* for recvfrom() */
+  int rcvbuf; /* For setting data recieve buffer */
+  int rcvbuf_rb; /* For readback */
 } cin_port_t;
+
+
+typedef struct cin_ctl {
+  // TCP/IP Port Information
+  cin_port_t ctl_port;
+  cin_port_t stream_port;
+
+  // Config information
+  cin_ctl_config_t config;
+
+  // Mutex for threaded access
+  cin_ctl_listener_t *listener;
+  pthread_mutex_t access; /* For sequential access to CIN */
+  pthread_mutexattr_t access_attr;
+} cin_ctl_t;
+
 
 typedef struct cin_data_frame {
   uint16_t *data;
@@ -304,6 +365,64 @@ typedef struct cin_data_stats {
   long int mallformed_packets;
 } cin_data_stats_t;
 
+typedef struct cin_data_threads {
+  pthread_t thread_id;
+  int started;
+} cin_data_threads_t;
+
+typedef struct cin_data_callbacks {
+  void* (*push) (cin_data_frame_t *);
+  void* (*pop)  (cin_data_frame_t *);
+  cin_data_frame_t *frame;
+} cin_data_callbacks_t;
+
+typedef struct {
+  uint32_t *map;
+  int      size_x; // COLS
+  int      size_y; // ROWS
+  int      overscan;
+  int      rows;
+} descramble_map_t;
+
+typedef struct cin_data {
+
+  /* FIFO Elements */
+  fifo *packet_fifo;  
+  fifo *frame_fifo;
+
+  /* Thread Information */
+
+  cin_data_threads_t listen_thread;
+  cin_data_threads_t assembler_thread;
+  cin_data_threads_t descramble_thread;
+  pthread_mutex_t listen_mutex;
+  pthread_mutex_t assembler_mutex;
+  pthread_mutex_t descramble_mutex;
+  pthread_mutex_t stats_mutex;
+  pthread_mutex_t framestore_mutex;
+
+  /* Callbacks Buffer */
+
+  cin_data_callbacks_t callbacks;
+
+  /* Interface */
+  cin_port_t dp; 
+
+  /* Statistics */
+  struct timespec framerate;
+  unsigned long int dropped_packets;
+  unsigned long int mallformed_packets;
+  uint16_t last_frame;
+
+  /* Current Descramble Map */
+  descramble_map_t map;
+
+  /* Framestore mode info */
+  int framestore_mode;
+  struct timespec framestore_trigger;
+  int framestore_counter;
+
+} cin_data_t;
 // Callback functions
 
 typedef void (*cin_data_callback) (cin_data_frame_t *);
@@ -321,9 +440,12 @@ typedef void (*cin_data_callback) (cin_data_frame_t *);
  */
 
 typedef struct cin_ctl_id {
-  uint16_t board_id;
-  uint16_t serial_no;
-  uint16_t fpga_ver;
+  uint16_t base_board_id;
+  uint16_t base_serial_no;
+  uint16_t base_fpga_ver;
+  uint16_t fabric_board_id;
+  uint16_t fabric_serial_no;
+  uint16_t fabric_fpga_ver;
 } cin_ctl_id_t;
 
 typedef struct cin_ctl_pwr_val {
@@ -353,115 +475,229 @@ typedef struct {
 
 void cin_report(FILE *fp, int details);
 
-/*------------------------
- * UDP Socket
- *------------------------*/
+/** @defgroup cin_ctl_init Cin Control Initialization Routines
+ *
+ * @{
+ */
 
-int cin_ctl_init_port(struct cin_port* cp, char* ipaddr, uint16_t oport, uint16_t iport);
-int cin_ctl_close_port(struct cin_port* cp);
+/*--------------------------------------------------------------------------------------------------------
+ * 
+ * Initialization Routines
+ *
+ *--------------------------------------------------------------------------------------------------------*/
 
-/*------------------------
- * CIN Read-Write
- *------------------------*/
 
-int cin_ctl_read(struct cin_port* cp, uint16_t reg, uint16_t *val);
-int cin_ctl_write(struct cin_port* cp, uint16_t reg, uint16_t val, int wait);
-int cin_ctl_stream_write(struct cin_port* cp, char* val,int size);
-int cin_ctl_write_with_readback(struct cin_port* cp, uint16_t reg, uint16_t val);
+/**
+ * Initialize the cin control library
+ *
+ * Initialize the control structures and communications with the CIN via the control
+ * interface. This function opens the UDP ports and starts a listening thread to 
+ * recieve packets from the CIN.
+ *
+ * @param cin handle to cin library
+ * @param ipaddr ip address of CIN base address
+ * @param bind_addr ip address to bind to
+ * @param oport output udp port of cin 
+ * @param iport input udp port of cin 
+ * @param soport stream output udp port of cin
+ * @param siport stream input udp port of cin
+ *
+ * @return Returns 0 on sucsess non-zero if error
+ */
+int cin_ctl_init(cin_ctl_t *cin, 
+                 const char* ipaddr, const char *bind_addr,
+                 uint16_t oport, uint16_t iport,
+                 uint16_t soport, uint16_t siport);
 
-/*------------------------
- * CIN PowerUP-PowerDown
- *------------------------*/
+/*!
+ * Destroy (close) the cin control library
+ *
+ * Close connections, free memory and exit library
+ *
+ * @param cin handle to cin library
+ *
+ * @return Returns 0 on sucsess non-zero if error
+ */
+int cin_ctl_destroy(cin_ctl_t *cin);
 
-int cin_ctl_pwr(struct cin_port *cp, int pwr);
-int cin_ctl_fp_pwr(struct cin_port* cp, int pwr);
-int cin_ctl_fo_test_pattern(struct cin_port* cp, int on_off);
+/*!
+ * Send a magic packet to the CIN to initialize data
+ *
+ * @param cin handle to cin library
+ *
+ * @return Returns 0 on sucsess non-zero if error
+ */
+int cin_data_send_magic(cin_data_t *cin);
+/** @} */
 
-/*------------------------
+/*--------------------------------------------------------------------------------------------------------
+ * 
+ * CIN Read Write Routines
+ *
+ *--------------------------------------------------------------------------------------------------------*/
+
+/** @defgroup cin_ctl_rw Cin Control Read/Rwite Routines
+ *
+ * @{
+ */
+
+/*!
+ * Read register from CIN
+ *
+ * @param cin handle to cin library
+ * @param reg register to read
+ * @param val variable to read value of register to
+ * @param wait if non-zero, wait a predefined time before read command (for i2c)
+ *
+ * @return Returns 0 on sucsess non-zero if error
+ */
+int cin_ctl_read(cin_ctl_t *cin, uint16_t reg, uint16_t *val, int wait);
+/*!
+ * Write register to CIN
+ *
+ * @param cin handle to cin library
+ * @param reg register to write to
+ * @param val value to write to register
+ * @param wait if non-zero
+ *
+ * Write register value to CIN. If wait is non-zero then wait a sleep time of i
+ * CIN_CTL_WRITE_SLEEP before releasing the mutex to add flow control to the cin.
+ *
+ * @return Returns 0 on sucsess non-zero if error
+ */
+int cin_ctl_write(cin_ctl_t *cin, uint16_t reg, uint16_t val, int wait);
+/*!
+ * Write stream data to CIN
+ *
+ * @param cin handle to cin library
+ * @param val array of values to write
+ * @param size size of array pointed to by val
+ *
+ * Write stream data to cin in form of 16 bit array.
+ *
+ * @return Returns 0 on sucsess non-zero if error
+ */
+int cin_ctl_stream_write(cin_ctl_t *cin, unsigned char* val,int size);
+/*!
+ * Write register to CIN with readback verification
+ *
+ * @param cin handle to cin library
+ * @param reg register to write to
+ * @param val value to write to register
+ *
+ * Write register value to CIN. Follow write with read of register and compare value.
+ * CIN_CTL_WRITE_SLEEP before releasing the mutex to add flow control to the cin.
+ *
+ * @return Returns 0 on sucsess non-zero if error
+ */
+int cin_ctl_write_with_readback(cin_ctl_t *cin, uint16_t reg, uint16_t val);
+
+/** @} */
+
+/** @defgroup cin_ctl_rw Cin Control Read/Rwite Routines
+ * @{
+ */
+/*--------------------------------------------------------------------------------------------------------
+ * 
+ * CIN Read Write Routines
+ *
+ *--------------------------------------------------------------------------------------------------------*/
+
+int cin_ctl_pwr(cin_ctl_t *cin, int pwr);
+int cin_ctl_fp_pwr(cin_ctl_t *cin, int pwr);
+int cin_ctl_fo_test_pattern(cin_ctl_t *cin, int on_off);
+
+/** @} */
+
+/*--------------------------------------------------------------------------------------------------------
+ * 
  * CIN Configuration-Status
- *------------------------*/
+ *
+ *--------------------------------------------------------------------------------------------------------*/
 
-int cin_ctl_load_config(struct cin_port* cp,char *filename);
-int cin_ctl_load_firmware(struct cin_port* cp,struct cin_port* dcp, char *filename);
-int cin_ctl_set_fclk(struct cin_port* cp, int clkfreq);
-int cin_ctl_get_fclk(struct cin_port* cp, int *clkfreq);
-int cin_ctl_freeze_dco(struct cin_port* cp, int freeze);
-int cin_ctl_get_cfg_fpga_status(struct cin_port* cp, uint16_t *_val);
-int cin_ctl_get_id(struct cin_port *cp, cin_ctl_id_t *_val);
-void cin_ctl_display_id(FILE *out, cin_ctl_id_t val);
-void cin_ctl_display_fpga_status(FILE *out, uint16_t val);
-int cin_ctl_get_dcm_status(struct cin_port* cp, uint16_t *_val);
-void cin_ctl_display_dcm_status(FILE *out, uint16_t *_val);
+/** @defgroup cin_ctl_firmware CIN Firmware Upload Routines
+ * Firmware upload routines
+ * @{
+ */
+int cin_ctl_load_config(cin_ctl_t *cin,char *filename);
+int cin_ctl_load_firmware(cin_ctl_t *cin);
+int cin_ctl_load_firmware_file(cin_ctl_t *cin, char *filename);
+int cin_ctl_load_firmware_data(cin_ctl_t *cin, unsigned char *data, int data_len);
+/** @} */
 
-/* Power status */
+/** @defgroup cin_ctl_fclk CIN FCLK Configuration Routines
+ * Firmware upload routines
+ * @{
+ */
+int cin_ctl_get_fclk(cin_ctl_t *cin, int *clkfreq);
+int cin_ctl_set_fclk(cin_ctl_t *cin, int clkfreq);
+int cin_ctl_set_fclk_regs(cin_ctl_t *cin, int clkfreq);
+/** @} */
 
 
-double cin_ctl_current_calc(uint16_t val);
-int cin_ctl_get_power_status(struct cin_port* cp, int full, int *pwr, cin_ctl_pwr_mon_t *values);
-void cin_ctl_display_pwr(FILE *out, cin_ctl_pwr_mon_t *values);
-void cin_ctl_display_pwr_line(FILE *out,const char* msg, cin_ctl_pwr_val_t val);
-int cin_ctl_calc_vi_status(struct cin_port* cp, 
-                           uint16_t vreg, uint16_t ireg, double vfact,
-                           cin_ctl_pwr_val_t *vi);
+/** @defgroup cin_ctl_status CIN Status Routines
+ * Status Routines
+ * @{
+ */
+int cin_ctl_get_cfg_fpga_status(cin_ctl_t *cin, uint16_t *_val);
+int cin_ctl_get_id(cin_ctl_t *cin, cin_ctl_id_t *_val);
+int cin_ctl_get_dcm_status(cin_ctl_t *cin, uint16_t *_val);
+int cin_ctl_get_power_status(cin_ctl_t *cin, int full, int *pwr, cin_ctl_pwr_mon_t *values);
+/** @} */
 
-/*------------------------
- * CIN Control
- *------------------------*/
 
-int cin_ctl_get_camera_pwr(struct cin_port* cp, int *val);
-int cin_ctl_set_camera_pwr(struct cin_port* cp, int val);
-int cin_ctl_set_bias(struct cin_port* cp,int val);
-int cin_ctl_get_bias(struct cin_port* cp, int *val);
-int cin_ctl_set_clocks(struct cin_port* cp,int val);
-int cin_ctl_get_clocks(struct cin_port* cp, int *val);
-int cin_ctl_set_trigger(struct cin_port* cp,int val);
-int cin_ctl_get_trigger(struct cin_port* cp, int *val);
-int cin_ctl_set_focus(struct cin_port* cp, int val);
-int cin_ctl_get_focus(struct cin_port* cp, int *val);
-int cin_ctl_get_triggering(struct cin_port *cp, int *trigger);
-int cin_ctl_int_trigger_start(struct cin_port* cp, int nimages);
-int cin_ctl_int_trigger_stop(struct cin_port* cp);
-int cin_ctl_ext_trigger_start(struct cin_port* cp, int trigger_mode);
-int cin_ctl_ext_trigger_stop(struct cin_port* cp);
-int cin_ctl_set_exposure_time(struct cin_port* cp,float e_time);
-int cin_ctl_set_trigger_delay(struct cin_port* cp,float t_time);
-int cin_ctl_set_cycle_time(struct cin_port* cp,float ftime);
-int cin_ctl_frame_count_reset(struct cin_port* cp);
-int cin_ctl_set_mux(struct cin_port *cp, int setting);
-int cin_ctl_get_mux(struct cin_port *cp, int *setting);
-int cin_ctl_set_fcric_gain(struct cin_port *cp, int gain);
+/** @defgroup cin_ctl_bias CIN Control Bias Routines
+ * Initialization group
+ * @{
+ */
+int cin_ctl_set_bias(cin_ctl_t *cin,int val);
+int cin_ctl_get_bias(cin_ctl_t *cin, int *val);
+int cin_ctl_set_bias_regs(cin_ctl_t * cin, uint16_t *vals, int verify);
+int cin_ctl_get_bias_regs(cin_ctl_t * cin, uint16_t *vals);
+int cin_ctl_set_bias_voltages(cin_ctl_t *cin, float *voltage, int verify);
+int cin_ctl_get_bias_voltages(cin_ctl_t *cin, float *voltage);
+/** @} */
 
-/*------------------------
- * CIN TCP/IP Settings
- *------------------------*/
 
-int cin_ctl_set_fabric_address(struct cin_port* cp, char *ip);
-int cin_ctl_set_address(struct cin_port* cp, char *ip, uint16_t reg0, uint16_t reg1);
+/** @defgroup cin_ctl_timing CIN COntrol Timing Routines
+ * Timing setup group
+ * @{
+ */
+int cin_ctl_set_timing_regs(cin_ctl_t *cin, uint16_t *vals, int vals_len);
+int cin_ctl_get_timing_regs(cin_ctl_t *cin, uint16_t *vals);
+/** @} */
 
-/*------------------------
- * CIN Register Dump
- *------------------------*/
+int cin_ctl_get_camera_pwr(cin_ctl_t *cin, int *val);
+int cin_ctl_set_camera_pwr(cin_ctl_t *cin, int val);
+int cin_ctl_set_clocks(cin_ctl_t *cin,int val);
+int cin_ctl_get_clocks(cin_ctl_t *cin, int *val);
+int cin_ctl_set_trigger(cin_ctl_t *cin,int val);
+int cin_ctl_get_trigger(cin_ctl_t *cin, int *val);
+int cin_ctl_set_focus(cin_ctl_t *cin, int val);
+int cin_ctl_get_focus(cin_ctl_t *cin, int *val);
+int cin_ctl_get_triggering(cin_ctl_t *cin, int *trigger);
+int cin_ctl_int_trigger_start(cin_ctl_t *cin, int nimages);
+int cin_ctl_int_trigger_stop(cin_ctl_t *cin);
+int cin_ctl_ext_trigger_start(cin_ctl_t *cin, int trigger_mode);
+int cin_ctl_ext_trigger_stop(cin_ctl_t *cin);
+int cin_ctl_set_exposure_time(cin_ctl_t *cin,float e_time);
+int cin_ctl_set_trigger_delay(cin_ctl_t *cin,float t_time);
+int cin_ctl_set_cycle_time(cin_ctl_t *cin,float ftime);
+int cin_ctl_frame_count_reset(cin_ctl_t *cin);
+int cin_ctl_set_mux(cin_ctl_t *cin, int setting);
+int cin_ctl_get_mux(cin_ctl_t *cin, int *setting);
+int cin_ctl_set_fcric_clamp(cin_ctl_t *cin, int clamp);
+int cin_ctl_set_fcric_gain(cin_ctl_t *cin, int gain);
+int cin_ctl_set_fabric_address(cin_ctl_t *cin, char *ip);
 
-int cin_ctl_reg_dump(struct cin_port *cp, FILE *fp);
 
-/*------------------------
- * CIN Bias Voltages
- *------------------------*/
-
-int cin_ctl_get_bias_voltages(struct cin_port *cp, float *voltage);
-int cin_ctl_set_bias_voltages(struct cin_port *cp, float *voltage);
-
-/*------------------------
- * CIN FCRIC Clamp
- *------------------------*/
-
-int cin_ctl_set_fcric_clamp(struct cin_port *cp, int clamp);
+int cin_ctl_reg_dump(cin_ctl_t *cin, FILE *fp);
 
 /*------------------------
  * CIN Config File
  *------------------------*/
 
-int cin_read_config_file(const char *file, const char *config_name, camera_config *config);
+int cin_config_read_file(cin_ctl_t *cin, const char *file);
 
 /* ---------------------------------------------------------------------
  *
@@ -470,52 +706,127 @@ int cin_read_config_file(const char *file, const char *config_name, camera_confi
  * ---------------------------------------------------------------------
  */
 
-int cin_data_init_port(struct cin_port* dp,
-                       char* ipaddr, uint16_t port,
-                       char* cin_ipaddr, uint16_t cin_port,
-                       int rcvbuf);
-/*
- * Initialize the data port used for recieveing the UDP packets. A
- * structure of cin_port is modified with the settings. If the strings
- * are NULL and the ports zero then defaults are used.
+/** @defgroup cin_data_init CIN Data Initialization Routines
+ * Initialization group
+ * @{
  */
 
-int cin_data_init(int mode, int packet_buffer_len, int frame_buffer_len,
-                  cin_data_callback push_callback, cin_data_callback pop_callback,
-                  void *usr_ptr);
-/*
+/** Initialize the cin data library
+ *
  * Initialize the data handeling routines and start the threads for listening.
- * mode should be set for the desired output. The packet_buffer_len in the
- * length of the packet FIFO in number of packets. The frame_buffer_len is
- * the number of data frames to buffer. 
+ *
+ * @param cin Handle to cin data library
+ * @param ipaddr IP-Address of cin (if NULL defaults to standard)
+ * @param bind_addr IP-Address to bind to (if NULL binds to 0.0.0.0)
+ * @param oport UDP Port of CIN 
+ * @param iport UDP Port of host
+ * @param rcvbuf TCP/IP Kernel recieve buffer size
+ * @param packet_buffer_len Length of packet buffer fifo (in units number of packets)
+ * @param frame_buffer_len Length of frame (assembler) buffer fifo (in units of number of frames)
+ * @param push_callback This function is called when a data structure is needed
+ * @param pop_callback This function is called when an image has been processed
+ * @param usr_ptr Pointer passed to callback functions
+ *
  */
- 
-void cin_data_wait_for_threads(void);
-/* 
- * Block until all th threads have closed. 
+int cin_data_init(cin_data_t *cin, 
+                  char* ipaddr, char* bind_ipaddr, uint16_t oport, uint16_t iport, int rcvbuf,
+                  int packet_buffer_len, int frame_buffer_len,
+                  cin_data_callback push_callback, cin_data_callback pop_callback, 
+                  void *usr_ptr);
+/** Close the cin data library and cleanup
+ *
+ * Stop all the processing threads and join them to the main thread. This function blocks until all
+ * threads have joined the main thread (program). This should be called to clean up the library before
+ * the program is exited 
+ *
+ * @param cin Handle to cin data library
  */
-int cin_data_stop_threads(void);
-/* 
- * Send a cancel request to all threads.
+void cin_data_destroy(cin_data_t *cin);
+/**
+ * @}
  */
 
-struct cin_data_frame* cin_data_get_next_frame(void);
-void cin_data_release_frame(int free_mem);
+/*--------------------------------------------------------------------------------------------------------
+ * 
+ * CIN DATA Software trigger and framestore modes
+ *
+ *--------------------------------------------------------------------------------------------------------*/
+
+/** @defgroup cin_data_framestore CIN Data Framestore Functions
+ * Framestore Group
+ * @{
+ */
+
+/** Send a framestore (software) trigger
+ * 
+ * Send a software trigger to the CIN by timestamping the request time and allow images to be
+ * processed when recieved after this time. The count option sets the number of frames
+ * to trigger. A value of -1 indicated that the trigger should not count images but run indefinately
+ * after the trigger has occured.
+ *
+ * @param cin handle to the cin_data library
+ * @param count number of frames to trigger
+ *
+ */
+void cin_data_framestore_trigger(cin_data_t *cin, int count);
+
+/** Enable framestore skip mode
+ *
+ * Enable the framestore skip mode. This function should be called before hardware triggering the camera.
+ * This causes the data processing to skip @param count frames from the first images to be read. This is
+ * usually done to stop the first few frames from being over exposed. 
+ *
+ * @param cin handle to the cin_data library
+ * 
+ */
+void cin_data_framestore_skip(cin_data_t *cin, int count);
+
+/** Get the value of the framestore counter
+ * 
+ * Return the number of frames in the framestore counter. In trigger mode, this returns the number of frames
+ * to go. In skip mode, this returns the number of frames that have to be skipped.
+ *
+ * @param cin handle to the cin_data library
+ * @returns Number of frames to go in trigger 
+ * 
+ */
+int cin_data_get_framestore_counter(cin_data_t *cin);
+
+/** Disable the framestore modes
+ *
+ * This function disables the framestore modes (software trigger and skip). If the camera is hardware triggering
+ * then the images will start to be processed. 
+ *
+ * @param cin Handle to the cin library
+ * 
+ */
+void cin_data_framestore_disable(cin_data_t *cin);
+
+/** Enable the framestore trigger mode
+ *
+ * This function enables the framestore trigger mode. It cases the images to not be processed pending a call
+ * to the function to (software) trigger the camera.
+ *
+ * @param cin Handle to the cin library
+ * 
+ */
+void cin_data_framestore_trigger_enable(cin_data_t *cin);
+
+/** @} */ // End of cin_data_framestore group
+
+struct cin_data_frame* cin_data_get_next_frame(cin_data_t *cin);
+void cin_data_release_frame(cin_data_t *cin, int free_mem);
 
 struct cin_data_frame* cin_data_get_buffered_frame(void);
 void cin_data_release_buffered_frame(void);
 
-void cin_data_compute_stats(cin_data_stats_t *stats);
+void cin_data_compute_stats(cin_data_t *cin, cin_data_stats_t *stats);
 void cin_data_show_stats(FILE *fp,cin_data_stats_t stats);
-void cin_data_reset_stats(void);
+void cin_data_reset_stats(cin_data_t *cin);
 
-void cin_data_start_monitor_output(void);
-void cin_data_stop_monitor_output(void);
 
-int cin_data_send_magic(void);
-
-int cin_data_set_descramble_params(int rows, int overscan);
-void cin_data_get_descramble_params(int *rows, int *overscan, int *xsize, int *ysize);
+int cin_data_set_descramble_params(cin_data_t *cin, int rows, int overscan);
+void cin_data_get_descramble_params(cin_data_t *cin, int *rows, int *overscan, int *xsize, int *ysize);
 
 #ifdef __cplusplus
 }

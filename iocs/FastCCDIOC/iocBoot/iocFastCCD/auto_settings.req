@@ -1,6 +1,4 @@
 file "FastCCD_settings.req",      P=$(P),  R=cam1:
-file "NDFastCCD_settings.req",    P=$(P),  R=FastCCD1:
-file "NDFastCCD_settings.req",    P=$(P),  R=FastCCD2:
+file "ADBase_settings.req",      P=$(P),  R=cam1:
 file "NDStdArrays_settings.req",  P=$(P),  R=image1:
-file "NDStdArrays_settings.req",  P=$(P),  R=image2:
 file "commonPlugin_settings.req", P=$(P)

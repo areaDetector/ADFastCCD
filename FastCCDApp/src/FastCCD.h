@@ -316,9 +316,9 @@ class FastCCD : public ADDriver {
   int cinPacketBuffer;
   int cinImageBuffer;
 
-  char cinBaseIP[128];
-  char cinFabricIP[128];
-  char cinFabricMAC[128];
+  char *cinBaseIP;
+  char *cinFabricIP;
+  char *cinFabricMAC;
 
   int firstFrameFlag;
 
@@ -344,9 +344,8 @@ class FastCCD : public ADDriver {
 
 protected:
   NDArray *pImage;
-  struct cin_port cin_data_port;
-  struct cin_port cin_ctl_port;
-  struct cin_port cin_ctl_port_stream;
+  cin_ctl_t cin_ctl;
+  cin_data_t cin_data;
 };
 
 #define NUM_FastCCD_DET_PARAMS ((int)(&LAST_FASTCCD_PARAM- &FIRST_FASTCCD_PARAM + 1))
