@@ -1,4 +1,4 @@
-file "ADBase_settings.req, P=$(P), R=(R)
+#file "ADBase_settings.req, P=$(P), R=$(R)
 $(P)$(R)Mux1
 $(P)$(R)Mux2
 $(P)$(R)FirmwarePath

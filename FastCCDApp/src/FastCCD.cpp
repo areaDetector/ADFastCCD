@@ -29,19 +29,30 @@ asynStatus FastCCD::connect(asynUser *pasynUser){
   
 asynStatus FastCCD::connectCamera(){
 
-  if(cin_data_init_port(&cin_data_port, NULL, 0, (char *)cinFabricIP, 0, 500)) {
+  cin_set_debug_print(1);
+  cin_set_error_print(1);
+
+  if(cin_ctl_init(&cin_ctl, NULL, NULL, 0, 0, 0, 0))
+  {
     return asynError;
   }
-  if(cin_ctl_init_port(&cin_ctl_port, (char *)cinBaseIP, 0, 0)) {
+  if(cin_data_init(&cin_data, 
+                   NULL, NULL, 0, 0, 0,
+                   cinPacketBuffer, cinImageBuffer,  
+                   allocateImageC, processImageC, this)) 
+  {
     return asynError;
   }
-  if(cin_ctl_init_port(&cin_ctl_port_stream, (char *)cinBaseIP, 49202, 50202)) {
+  int _status = 0;
+
+  _status |= cin_ctl_set_fabric_address(&cin_ctl, (char *)cinFabricIP);
+  _status |= cin_data_send_magic(&cin_data);
+
+  if(_status)
+  {
     return asynError;
   }
-  if(cin_data_init(CIN_DATA_MODE_CALLBACK, cinPacketBuffer, cinImageBuffer,
-                   allocateImageC, processImageC, this)) {
-    return asynError;
-  }
+
 
   return asynSuccess;
 }
@@ -51,8 +62,8 @@ asynStatus FastCCD::disconnect(asynUser *pasynUser){
 }
 
 asynStatus FastCCD::disconnectCamera(){
-  cin_ctl_close_port(&cin_ctl_port);
-  cin_ctl_close_port(&cin_ctl_port_stream);
+  cin_ctl_destroy(&cin_ctl);
+  cin_data_destroy(&cin_data);
   return asynSuccess; 
 }
 
@@ -137,8 +148,8 @@ void FastCCD::processImage(cin_data_frame_t *frame)
 
   if (this->framesRemaining > 0) this->framesRemaining--;
   if (this->framesRemaining == 0) {
-    cin_ctl_int_trigger_stop(&cin_ctl_port);
-    cin_ctl_ext_trigger_stop(&cin_ctl_port);
+    cin_ctl_int_trigger_stop(&cin_ctl);
+    cin_ctl_ext_trigger_stop(&cin_ctl);
     setIntegerParam(ADAcquire, 0);
     setIntegerParam(ADStatus, ADStatusIdle);
   }
@@ -198,10 +209,41 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   cinImageBuffer = imageBuffer;
 
   /* Store the network information */
+  if(strcmp(baseIP, ""))
+  {
+    cinBaseIP = (char *)malloc(sizeof(char) * 128);
+    if(!cinBaseIP)
+    {
+      status = asynError;
+    }
+    strncpy(cinBaseIP, baseIP, 128);
+  } else {
+    cinBaseIP = NULL;
+  }
+    
+  if(strcmp(fabricIP, ""))
+  {
+    cinFabricIP = (char *)malloc(sizeof(char) * 128);
+    if(!cinFabricIP)
+    {
+      status = asynError;
+    }
+    strncpy(cinFabricIP, fabricIP, 128);
+  } else {
+    cinFabricIP = NULL;
+  }
 
-  strncpy(cinBaseIP, baseIP, 128);
-  strncpy(cinFabricIP, fabricIP, 128);
-  strncpy(cinFabricMAC, fabricMAC, 128);
+  if(strcmp(fabricMAC, ""))
+  {
+    cinFabricMAC = (char *)malloc(sizeof(char) * 128);
+    if(!cinFabricMAC)
+    {
+      status = asynError;
+    }
+    strncpy(cinFabricMAC, fabricMAC, 128);
+  } else {
+    cinFabricMAC = NULL;
+  }
 
   //Define the polling periods for the status thread.
   statusPollingPeriod = 20; //seconds
@@ -480,6 +522,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
 
   callParamCallbacks();
 
+  //sleep(10000000);
   // Signal the status thread to poll the detector
   epicsEventSignal(statusEvent);
   epicsEventSignal(dataStatsEvent);
@@ -513,6 +556,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
       driverName, functionName);
     return;
   }
+
+
 }
 
 /**
@@ -524,8 +569,7 @@ FastCCD::~FastCCD()
 
   try {
     this->lock();
-    cin_data_stop_threads();
-    cin_data_wait_for_threads();
+    //cin_data_destroy(&cin_data);
     this->unlock();
   } catch (const std::string &e) {
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -559,7 +603,7 @@ int FastCCD::uploadConfig(int status, int path){
   setStringParam(ADStatusMessage, "Uploading Config File");
   callParamCallbacks();
 
-  _status = cin_ctl_load_config(&cin_ctl_port, _path);
+  _status = cin_ctl_load_config(&cin_ctl, _path);
 
   setIntegerParam(status, 0);
   if(!_status){
@@ -584,7 +628,7 @@ int FastCCD::uploadFirmware(void){
 
   setStringParam(ADStatusMessage, "Powering CIN OFF");
   callParamCallbacks();
-  if(cin_ctl_pwr(&cin_ctl_port, 0)){
+  if(cin_ctl_pwr(&cin_ctl, 0)){
     goto error;
   }
 
@@ -595,7 +639,7 @@ int FastCCD::uploadFirmware(void){
 
   setStringParam(ADStatusMessage, "Powering CIN ON");
   callParamCallbacks();
-  if(cin_ctl_pwr(&cin_ctl_port, 1)){
+  if(cin_ctl_pwr(&cin_ctl, 1)){
     goto error;
   }
 
@@ -604,12 +648,11 @@ int FastCCD::uploadFirmware(void){
 
   setStringParam(ADStatusMessage, "Uploading Firmware to CIN");
   callParamCallbacks();
-  _status |= cin_ctl_load_firmware(&cin_ctl_port, 
-                                  &cin_ctl_port_stream, path);
+  _status |= cin_ctl_load_firmware_file(&cin_ctl, path);
  
   if(!_status){
-    _status |= cin_ctl_set_fabric_address(&cin_ctl_port, (char *)cinFabricIP);
-    _status |= cin_data_send_magic();
+    _status |= cin_ctl_set_fabric_address(&cin_ctl, (char *)cinFabricIP);
+    _status |= cin_data_send_magic(&cin_data);
   }
 
   setIntegerParam(FastCCDFirmwareUpload, 0);
@@ -678,9 +721,9 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value){
     if(function == ADAcquireTime){
 
       if(_framestore){
-        _status = cin_ctl_set_cycle_time(&cin_ctl_port, (float)value);
+        _status = cin_ctl_set_cycle_time(&cin_ctl, (float)value);
       } else {
-        _status = cin_ctl_set_exposure_time(&cin_ctl_port, (float)value);
+        _status = cin_ctl_set_exposure_time(&cin_ctl, (float)value);
       }
 
     } else if (function == ADAcquirePeriod) {
@@ -688,7 +731,7 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value){
       if(_framestore){
         setParamStatus(function, asynError);
       } else {
-        _status = cin_ctl_set_cycle_time(&cin_ctl_port, (float)value);
+        _status = cin_ctl_set_cycle_time(&cin_ctl, (float)value);
       }
 
     } else if (function == FastCCDPollingPeriod){
@@ -780,21 +823,21 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
          if(t_mode == 0){
            if(_framestore) {
-             _status |= cin_ctl_set_cycle_time(&cin_ctl_port, (float)t_exp);
-             _status |= cin_ctl_set_exposure_time(&cin_ctl_port, 0.001);
+             _status |= cin_ctl_set_cycle_time(&cin_ctl, (float)t_exp);
+             _status |= cin_ctl_set_exposure_time(&cin_ctl, 0.001);
              setParamStatus(ADAcquirePeriod, asynError);
              firstFrameFlag = _framestore;
            } else {
-             _status |= cin_ctl_set_exposure_time(&cin_ctl_port, (float)t_exp);
-             _status |= cin_ctl_set_cycle_time(&cin_ctl_port, (float)t_period);
+             _status |= cin_ctl_set_exposure_time(&cin_ctl, (float)t_exp);
+             _status |= cin_ctl_set_cycle_time(&cin_ctl, (float)t_period);
              setParamStatus(ADAcquirePeriod, asynSuccess);
              firstFrameFlag = 0;
            }
            if(!_status){
-             _status |= cin_ctl_int_trigger_start(&cin_ctl_port, n_images);
+             _status |= cin_ctl_int_trigger_start(&cin_ctl, n_images);
            }
          } else {
-           _status |= cin_ctl_ext_trigger_start(&cin_ctl_port, t_mode);
+           _status |= cin_ctl_ext_trigger_start(&cin_ctl, t_mode);
          }
 
          if(!_status){
@@ -811,11 +854,11 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
       } else {
          // Send the hardware a stop trigger command
-         if(!cin_ctl_int_trigger_stop(&cin_ctl_port)){
+         if(!cin_ctl_int_trigger_stop(&cin_ctl)){
            setIntegerParam(ADStatus, ADStatusIdle);
            setIntegerParam(ADAcquire, 0);
          }
-         if(!cin_ctl_ext_trigger_stop(&cin_ctl_port)){
+         if(!cin_ctl_ext_trigger_stop(&cin_ctl)){
            setIntegerParam(ADStatus, ADStatusIdle);
            setIntegerParam(ADAcquire, 0);
          }
@@ -843,9 +886,9 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
     } else if (function == FastCCDPower) {
 
       if(value) {
-        _status |= cin_ctl_pwr(&cin_ctl_port, 1);
+        _status |= cin_ctl_pwr(&cin_ctl, 1);
       } else {
-        _status |= cin_ctl_pwr(&cin_ctl_port, 0);
+        _status |= cin_ctl_pwr(&cin_ctl, 0);
       }
 
       sleep(3);
@@ -854,9 +897,9 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
     } else if (function == FastCCDFPPower) {
       if(value) {
-        _status |= cin_ctl_fp_pwr(&cin_ctl_port, 1);
+        _status |= cin_ctl_fp_pwr(&cin_ctl, 1);
       } else {
-        _status |= cin_ctl_fp_pwr(&cin_ctl_port, 0);
+        _status |= cin_ctl_fp_pwr(&cin_ctl, 0);
       }
 
       sleep(3);
@@ -871,14 +914,14 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
       if(value){
         if(_mode & 0x1){
-          _status |= cin_ctl_set_clocks(&cin_ctl_port, 1);
+          _status |= cin_ctl_set_clocks(&cin_ctl, 1);
         }
         if(_mode & 0x2){
-          _status |= cin_ctl_set_bias(&cin_ctl_port, 1);
+          _status |= cin_ctl_set_bias(&cin_ctl, 1);
         }
       } else {
-        _status |= cin_ctl_set_bias(&cin_ctl_port, 0);
-        _status |= cin_ctl_set_clocks(&cin_ctl_port, 0);
+        _status |= cin_ctl_set_bias(&cin_ctl, 0);
+        _status |= cin_ctl_set_clocks(&cin_ctl, 0);
       }
 
       sleep(3);
@@ -891,13 +934,13 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       getIntegerParam(FastCCDMux1, &_val1);
       getIntegerParam(FastCCDMux2, &_val2);
       _val = (_val2 << 4) | _val1;
-      _status |= cin_ctl_set_mux(&cin_ctl_port, _val);   
+      _status |= cin_ctl_set_mux(&cin_ctl, _val);   
 
       epicsEventSignal(statusEvent);
 
     } else if (function == FastCCDResetStats) {
 
-      cin_data_reset_stats();
+      cin_data_reset_stats(&cin_data);
 
     } else if ((function == ADSizeY) || (function == FastCCDOverscan)) {
 
@@ -905,53 +948,53 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       int _val1, _val2;
       getIntegerParam(ADSizeY, &_val1);
       getIntegerParam(FastCCDOverscan, &_val2);
-      _status |= cin_data_set_descramble_params(_val1, _val2);
+      _status |= cin_data_set_descramble_params(&cin_data, _val1, _val2);
 
       // Read back to check all OK
 
       int _x, _y;
-      cin_data_get_descramble_params(&_val1, &_val2, &_x, &_y);
+      cin_data_get_descramble_params(&cin_data, &_val1, &_val2, &_x, &_y);
       setIntegerParam(ADSizeX, _x);
       setIntegerParam(ADSizeY, _y);
 
     } else if (function == FastCCDFclk) {
 
-      _status |= cin_ctl_set_fclk(&cin_ctl_port, value);
+      _status |= cin_ctl_set_fclk(&cin_ctl, value);
       epicsEventSignal(statusEvent);
 
     } else if (function == FastCCDFCRICGain){
 
-      _status |= cin_ctl_set_fcric_gain(&cin_ctl_port, value);
+      _status |= cin_ctl_set_fcric_gain(&cin_ctl, value);
 
     } else if (function == FastCCDFCRICClamp){
 
-      _status |= cin_ctl_set_fcric_clamp(&cin_ctl_port, value);
+      _status |= cin_ctl_set_fcric_clamp(&cin_ctl, value);
 
     } else if (function == FastCCDBiasWriteV){
-      double bias_voltage[NUM_BIAS_VOLTAGE];
+      double bias_voltage[CIN_CTL_NUM_BIAS_VOLTAGE];
 
-      getDoubleParam(FastCCDBiasPosH, &bias_voltage[pt_posH]);
-      getDoubleParam(FastCCDBiasNegH, &bias_voltage[pt_negH]);
-      getDoubleParam(FastCCDBiasPosRG, &bias_voltage[pt_posRG]);
-      getDoubleParam(FastCCDBiasNegRG, &bias_voltage[pt_negRG]);
-      getDoubleParam(FastCCDBiasPosSW, &bias_voltage[pt_posSW]);
-      getDoubleParam(FastCCDBiasNegSW, &bias_voltage[pt_negSW]);
-      getDoubleParam(FastCCDBiasPosV, &bias_voltage[pt_posV]);
-      getDoubleParam(FastCCDBiasNegV, &bias_voltage[pt_negV]);
-      getDoubleParam(FastCCDBiasPosTG, &bias_voltage[pt_posTG]);
-      getDoubleParam(FastCCDBiasNegTG, &bias_voltage[pt_negTG]);
-      getDoubleParam(FastCCDBiasPosVF, &bias_voltage[pt_posVF]);
-      getDoubleParam(FastCCDBiasNegVF, &bias_voltage[pt_negVF]);
-      getDoubleParam(FastCCDBiasNEDGE, &bias_voltage[pt_NEDGE]);
-      getDoubleParam(FastCCDBiasOTG, &bias_voltage[pt_OTG]);
-      getDoubleParam(FastCCDBiasVDDR, &bias_voltage[pt_VDDR]);
-      getDoubleParam(FastCCDBiasVDDOut, &bias_voltage[pt_VDD_OUT]);
-      getDoubleParam(FastCCDBiasBufBase, &bias_voltage[pt_BUF_Base]);
-      getDoubleParam(FastCCDBiasBufDelta, &bias_voltage[pt_BUF_Delta]);
-      getDoubleParam(FastCCDBiasSpare1, &bias_voltage[pt_Spare1]);
-      getDoubleParam(FastCCDBiasSpare2, &bias_voltage[pt_Spare2]);
+      getDoubleParam(FastCCDBiasPosH, &bias_voltage[CIN_CTL_BIAS_POSH]);
+      getDoubleParam(FastCCDBiasNegH, &bias_voltage[CIN_CTL_BIAS_NEGH]);
+      getDoubleParam(FastCCDBiasPosRG, &bias_voltage[CIN_CTL_BIAS_POSRG]);
+      getDoubleParam(FastCCDBiasNegRG, &bias_voltage[CIN_CTL_BIAS_NEGRG]);
+      getDoubleParam(FastCCDBiasPosSW, &bias_voltage[CIN_CTL_BIAS_POSSW]);
+      getDoubleParam(FastCCDBiasNegSW, &bias_voltage[CIN_CTL_BIAS_NEGSW]);
+      getDoubleParam(FastCCDBiasPosV, &bias_voltage[CIN_CTL_BIAS_POSV]);
+      getDoubleParam(FastCCDBiasNegV, &bias_voltage[CIN_CTL_BIAS_NEGV]);
+      getDoubleParam(FastCCDBiasPosTG, &bias_voltage[CIN_CTL_BIAS_POSTG]);
+      getDoubleParam(FastCCDBiasNegTG, &bias_voltage[CIN_CTL_BIAS_NEGTG]);
+      getDoubleParam(FastCCDBiasPosVF, &bias_voltage[CIN_CTL_BIAS_POSVF]);
+      getDoubleParam(FastCCDBiasNegVF, &bias_voltage[CIN_CTL_BIAS_NEGVF]);
+      getDoubleParam(FastCCDBiasNEDGE, &bias_voltage[CIN_CTL_BIAS_NEDGE]);
+      getDoubleParam(FastCCDBiasOTG, &bias_voltage[CIN_CTL_BIAS_OTG]);
+      getDoubleParam(FastCCDBiasVDDR, &bias_voltage[CIN_CTL_BIAS_VDDR]);
+      getDoubleParam(FastCCDBiasVDDOut, &bias_voltage[CIN_CTL_BIAS_VDD_OUT]);
+      getDoubleParam(FastCCDBiasBufBase, &bias_voltage[CIN_CTL_BIAS_BUF_BASE]);
+      getDoubleParam(FastCCDBiasBufDelta, &bias_voltage[CIN_CTL_BIAS_BUF_DELTA]);
+      getDoubleParam(FastCCDBiasSpare1, &bias_voltage[CIN_CTL_BIAS_SPARE1]);
+      getDoubleParam(FastCCDBiasSpare2, &bias_voltage[CIN_CTL_BIAS_SPARE2]);
 
-      status != cin_ctl_set_bias_voltages(&cin_ctl_port, (float *)bias_voltage);
+      _status |= cin_ctl_set_bias_voltages(&cin_ctl, (float *)bias_voltage, 0);
       
     } else {
       status = ADDriver::writeInt32(pasynUser, value);
@@ -1054,7 +1097,7 @@ void FastCCD::dataStatsTask(void)
     }
 
     cin_data_stats_t stats;
-    cin_data_compute_stats(&stats);
+    cin_data_compute_stats(&cin_data, &stats);
     setIntegerParam(FastCCDDroppedPck, (int)stats.dropped_packets);
     setIntegerParam(FastCCDBadPck, (int)stats.mallformed_packets);
     setIntegerParam(FastCCDLastFrame, stats.last_frame);
@@ -1083,11 +1126,11 @@ void FastCCD::getCameraStatus(int first_run){
   int full = 0;
 
   if(first_run){
-    cin_status |= cin_ctl_get_id(&cin_ctl_port, &id);
+    cin_status |= cin_ctl_get_id(&cin_ctl, &id);
     if(!cin_status){
-      setIntegerParam(FastCCDBoardID, id.board_id);
-      setIntegerParam(FastCCDSerialNum, id.serial_no);
-      setIntegerParam(FastCCDFPGAVersion, id.fpga_ver);
+      setIntegerParam(FastCCDBoardID, id.base_board_id);
+      setIntegerParam(FastCCDSerialNum, id.base_serial_no);
+      setIntegerParam(FastCCDFPGAVersion, id.base_fpga_ver);
       setParamStatus(FastCCDBoardID, asynSuccess);
       setParamStatus(FastCCDSerialNum, asynSuccess);
       setParamStatus(FastCCDFPGAVersion, asynSuccess);
@@ -1098,7 +1141,7 @@ void FastCCD::getCameraStatus(int first_run){
     }
   }
 
-  cin_status = cin_ctl_get_power_status(&cin_ctl_port, full, &pwr, &pwr_value);
+  cin_status = cin_ctl_get_power_status(&cin_ctl, full, &pwr, &pwr_value);
   if(!cin_status){
     // Power Status
     if(pwr){
@@ -1222,7 +1265,7 @@ void FastCCD::getCameraStatus(int first_run){
 
   uint16_t fpga_status, dcm_status;
   
-  cin_status = cin_ctl_get_cfg_fpga_status(&cin_ctl_port, &fpga_status);
+  cin_status = cin_ctl_get_cfg_fpga_status(&cin_ctl, &fpga_status);
   if(!cin_status){
     setUIntDigitalParam(FastCCDFPGAStatus, fpga_status, 0xFFFF);
     setParamStatus(FastCCDFPGAStatus, asynSuccess);
@@ -1230,7 +1273,7 @@ void FastCCD::getCameraStatus(int first_run){
     setParamStatus(FastCCDFPGAStatus, asynDisconnected);
   }
   
-  cin_status = cin_ctl_get_dcm_status(&cin_ctl_port, &dcm_status);
+  cin_status = cin_ctl_get_dcm_status(&cin_ctl, &dcm_status);
     if(!cin_status){
     setUIntDigitalParam(FastCCDDCMStatus, dcm_status, 0xFFFF);
     setParamStatus(FastCCDDCMStatus, asynSuccess);
@@ -1245,7 +1288,7 @@ void FastCCD::getCameraStatus(int first_run){
     // Clock and Bias status
   
     int _val;
-    cin_status = cin_ctl_get_camera_pwr(&cin_ctl_port, &_val);
+    cin_status = cin_ctl_get_camera_pwr(&cin_ctl, &_val);
     if(!cin_status){
       setIntegerParam(FastCCDCameraPower, _val);
       setParamStatus(FastCCDCameraPower, asynSuccess);
@@ -1253,7 +1296,7 @@ void FastCCD::getCameraStatus(int first_run){
       setParamStatus(FastCCDCameraPower, asynDisconnected);
     }
 
-    cin_status = cin_ctl_get_clocks(&cin_ctl_port, &_val);
+    cin_status = cin_ctl_get_clocks(&cin_ctl, &_val);
     if(!cin_status){
       setIntegerParam(FastCCDClocks, _val);
       setParamStatus(FastCCDClocks, asynSuccess);
@@ -1261,7 +1304,7 @@ void FastCCD::getCameraStatus(int first_run){
       setParamStatus(FastCCDClocks, asynDisconnected);
     }
  
-    cin_status = cin_ctl_get_bias(&cin_ctl_port, &_val);
+    cin_status = cin_ctl_get_bias(&cin_ctl, &_val);
     if(!cin_status){
       setIntegerParam(FastCCDBias, _val);
       setParamStatus(FastCCDBias, asynSuccess);
@@ -1272,7 +1315,7 @@ void FastCCD::getCameraStatus(int first_run){
     // Get Mux Settings
     
     int mux;
-    cin_status = cin_ctl_get_mux(&cin_ctl_port, &mux);
+    cin_status = cin_ctl_get_mux(&cin_ctl, &mux);
     if(!cin_status){
       setIntegerParam(FastCCDMux1, (mux & 0x000F));
       setIntegerParam(FastCCDMux2, (mux & 0x00F0) >> 4);
@@ -1287,7 +1330,7 @@ void FastCCD::getCameraStatus(int first_run){
     // Get FCLK Settings
 
     int fclk;
-    cin_status = cin_ctl_get_fclk(&cin_ctl_port, &fclk);
+    cin_status = cin_ctl_get_fclk(&cin_ctl, &fclk);
     if(!cin_status){
       setIntegerParam(FastCCDFclk, fclk);
       setParamStatus(FastCCDFclk, asynSuccess);
@@ -1300,7 +1343,7 @@ void FastCCD::getCameraStatus(int first_run){
     if(first_run){
 
       int trig;
-      cin_status = cin_ctl_get_triggering(&cin_ctl_port, &trig);
+      cin_status = cin_ctl_get_triggering(&cin_ctl, &trig);
       if(!cin_status){
         if(trig){
           setIntegerParam(ADAcquire, 1);
@@ -1319,29 +1362,29 @@ void FastCCD::getCameraStatus(int first_run){
     
     // Poll for the BIAS Settings
     
-    float bias_voltage[NUM_BIAS_VOLTAGE];
-    cin_status = cin_ctl_get_bias_voltages(&cin_ctl_port, bias_voltage);
+    float bias_voltage[CIN_CTL_NUM_BIAS_VOLTAGE];
+    cin_status = cin_ctl_get_bias_voltages(&cin_ctl, bias_voltage);
 
-    setDoubleParam(FastCCDBiasPosH, bias_voltage[pt_posH]);
-    setDoubleParam(FastCCDBiasNegH, bias_voltage[pt_negH]);
-    setDoubleParam(FastCCDBiasPosRG, bias_voltage[pt_posRG]);
-    setDoubleParam(FastCCDBiasNegRG, bias_voltage[pt_negRG]);
-    setDoubleParam(FastCCDBiasPosSW, bias_voltage[pt_posSW]);
-    setDoubleParam(FastCCDBiasNegSW, bias_voltage[pt_negSW]);
-    setDoubleParam(FastCCDBiasPosV, bias_voltage[pt_posV]);
-    setDoubleParam(FastCCDBiasNegV, bias_voltage[pt_negV]);
-    setDoubleParam(FastCCDBiasPosTG, bias_voltage[pt_posTG]);
-    setDoubleParam(FastCCDBiasNegTG, bias_voltage[pt_negTG]);
-    setDoubleParam(FastCCDBiasPosVF, bias_voltage[pt_posVF]);
-    setDoubleParam(FastCCDBiasNegVF, bias_voltage[pt_negVF]);
-    setDoubleParam(FastCCDBiasNEDGE, bias_voltage[pt_NEDGE]);
-    setDoubleParam(FastCCDBiasOTG, bias_voltage[pt_OTG]);
-    setDoubleParam(FastCCDBiasVDDR, bias_voltage[pt_VDDR]);
-    setDoubleParam(FastCCDBiasVDDOut, bias_voltage[pt_VDD_OUT]);
-    setDoubleParam(FastCCDBiasBufBase, bias_voltage[pt_BUF_Base]);
-    setDoubleParam(FastCCDBiasBufDelta, bias_voltage[pt_BUF_Delta]);
-    setDoubleParam(FastCCDBiasSpare1, bias_voltage[pt_Spare1]);
-    setDoubleParam(FastCCDBiasSpare2, bias_voltage[pt_Spare2]);
+    setDoubleParam(FastCCDBiasPosH, bias_voltage[CIN_CTL_BIAS_POSH]);
+    setDoubleParam(FastCCDBiasNegH, bias_voltage[CIN_CTL_BIAS_NEGH]);
+    setDoubleParam(FastCCDBiasPosRG, bias_voltage[CIN_CTL_BIAS_POSRG]);
+    setDoubleParam(FastCCDBiasNegRG, bias_voltage[CIN_CTL_BIAS_NEGRG]);
+    setDoubleParam(FastCCDBiasPosSW, bias_voltage[CIN_CTL_BIAS_POSSW]);
+    setDoubleParam(FastCCDBiasNegSW, bias_voltage[CIN_CTL_BIAS_NEGSW]);
+    setDoubleParam(FastCCDBiasPosV, bias_voltage[CIN_CTL_BIAS_POSV]);
+    setDoubleParam(FastCCDBiasNegV, bias_voltage[CIN_CTL_BIAS_NEGV]);
+    setDoubleParam(FastCCDBiasPosTG, bias_voltage[CIN_CTL_BIAS_POSTG]);
+    setDoubleParam(FastCCDBiasNegTG, bias_voltage[CIN_CTL_BIAS_NEGTG]);
+    setDoubleParam(FastCCDBiasPosVF, bias_voltage[CIN_CTL_BIAS_POSVF]);
+    setDoubleParam(FastCCDBiasNegVF, bias_voltage[CIN_CTL_BIAS_NEGVF]);
+    setDoubleParam(FastCCDBiasNEDGE, bias_voltage[CIN_CTL_BIAS_NEDGE]);
+    setDoubleParam(FastCCDBiasOTG, bias_voltage[CIN_CTL_BIAS_OTG]);
+    setDoubleParam(FastCCDBiasVDDR, bias_voltage[CIN_CTL_BIAS_VDDR]);
+    setDoubleParam(FastCCDBiasVDDOut, bias_voltage[CIN_CTL_BIAS_VDD_OUT]);
+    setDoubleParam(FastCCDBiasBufBase, bias_voltage[CIN_CTL_BIAS_BUF_BASE]);
+    setDoubleParam(FastCCDBiasBufDelta, bias_voltage[CIN_CTL_BIAS_BUF_DELTA]);
+    setDoubleParam(FastCCDBiasSpare1, bias_voltage[CIN_CTL_BIAS_SPARE1]);
+    setDoubleParam(FastCCDBiasSpare2, bias_voltage[CIN_CTL_BIAS_SPARE2]);
 
     asynStatus _s = asynSuccess;
     if(cin_status){

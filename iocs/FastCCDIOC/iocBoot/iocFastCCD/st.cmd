@@ -25,30 +25,21 @@ epicsEnvSet("EPICS_DB_INCLUDE_PATH", "$(ADCORE)/db")
 #               int priority, int stackSize, int packetBuffer, int imageBuffer,
 #				const char *baseIP, const char *fabricIP, const char *fabricMAC))
 
-FastCCDConfig("$(PORT)", 0, 0, 0, 100000, 2000, 200, "", "10.23.5.127", "")
+FastCCDConfig("$(PORT)", 0, 0, 0, 100000, 2000, 200, "", "10.0.5.127", "")
 
 # Load Records
 
 dbLoadRecords("$(ADFASTCCD)/db/FastCCD.template",   "P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 
-# Setup FastCCD Processing Plugin (GAIN)
-NDFastCCDConfigure("FastCCDProc1", 5, 0, "$(PORT)", 0, 0)
-dbLoadRecords("$(ADFASTCCD)/db/NDFastCCD.template", "P=$(PREFIX),R=FastCCD1:,PORT=FastCCDProc1,NDARRAY_PORT=$(PORT),ADDR=0,TIMEOUT=1")
-NDFastCCDConfigure("FastCCDProc2", 5, 0, "$(PORT)", 0, 0)
-dbLoadRecords("$(ADFASTCCD)/db/NDFastCCD.template", "P=$(PREFIX),R=FastCCD2:,PORT=FastCCDProc2,NDARRAY_PORT=$(PORT),ADDR=0,TIMEOUT=1")
-
 # Create a standard arrays plugin
 NDStdArraysConfigure("Image1", 5, 0, "FastCCDProc1", 0, 0)
 dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,NDARRAY_PORT=FastCCDProc1,ADDR=0,TIMEOUT=1,TYPE=Int16,FTVL=SHORT,NELEMENTS=2361600")
-NDStdArraysConfigure("Image2", 5, 0, "FastCCDProc2", 0, 0)
-dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image2:,PORT=Image2,NDARRAY_PORT=FastCCDProc2,ADDR=0,TIMEOUT=1,TYPE=Float64,FTVL=DOUBLE,NELEMENTS=2361601")
-
 
 # Load all other plugins using commonPlugins.cmd
 < $(ADCORE)/iocBoot/commonPlugins.cmd
 
 set_requestfile_path("$(ADFASTCCD)/FastCCDApp/Db")
-set_requestfile_path("$(ADFASTCCD)/FastCCDPlugin/Db")
+set_requestfile_path("$(ADCORE)","ADApp/Db")
 
 iocInit()
 

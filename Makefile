@@ -3,7 +3,6 @@ TOP = .
 include $(TOP)/configure/CONFIG
 DIRS := $(DIRS) configure
 DIRS := $(DIRS) FastCCDApp
-DIRS := $(DIRS) FastCCDPlugin
 DIRS := $(DIRS) FastCCDSupport
 
 FastCCDApp_DEPEND_DIRS += FastCCDSupport
