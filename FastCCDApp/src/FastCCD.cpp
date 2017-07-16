@@ -32,12 +32,12 @@ asynStatus FastCCD::connectCamera(){
   cin_set_debug_print(1);
   cin_set_error_print(1);
 
-  if(cin_ctl_init(&cin_ctl, NULL, NULL, 0, 0, 0, 0))
+  if(cin_ctl_init(&cin_ctl, NULL, 0, 0, NULL, 0, 0))
   {
     return asynError;
   }
   if(cin_data_init(&cin_data, 
-                   NULL, NULL, 0, 0, 0,
+                   NULL, 0, NULL, 0, 0,
                    cinPacketBuffer, cinImageBuffer,  
                    allocateImageC, processImageC, this)) 
   {
@@ -67,9 +67,9 @@ asynStatus FastCCD::disconnectCamera(){
   return asynSuccess; 
 }
 
-static void allocateImageC(cin_data_frame_t *frame){
-  FastCCD *ptr = (FastCCD*)frame->usr_ptr;
-  ptr->allocateImage(frame);
+static void allocateImageC(cin_data_frame_t *frame, void* ptr){
+  FastCCD *_ptr = (FastCCD*)ptr;
+  _ptr->allocateImage(frame);
 }
 
 void FastCCD::allocateImage(cin_data_frame_t *frame)
@@ -79,10 +79,26 @@ void FastCCD::allocateImage(cin_data_frame_t *frame)
 
   int dataType;
   getIntegerParam(NDDataType, &dataType);
-   
-  dims[0] = CIN_DATA_MAX_FRAME_X;
-  dims[1] = CIN_DATA_MAX_FRAME_Y;
   
+  // Lets allocate a size from 
+  // the descramble params
+  int rows, ovscan, x, y;
+  cin_data_get_descramble_params(&cin_data, &rows, &ovscan, &x, &y);
+  
+  if(x != 0)
+  {
+    dims[0] = x;
+  } else {
+    dims[0] = CIN_DATA_MAX_FRAME_X;
+  }
+  
+  if(y != 0)
+  {
+    dims[1] = y;
+  } else {
+    dims[1] = CIN_DATA_MAX_FRAME_Y;
+  }
+
   while(!(pImage = this->pNDArrayPool->alloc(nDims, dims, (NDDataType_t)dataType, 
                                              0, NULL))) {
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -95,10 +111,10 @@ void FastCCD::allocateImage(cin_data_frame_t *frame)
   return;
 }
 
-static void processImageC(cin_data_frame_t *frame)
+static void processImageC(cin_data_frame_t *frame, void *ptr)
 {
-  FastCCD *ptr = (FastCCD*)frame->usr_ptr;
-  ptr->processImage(frame);
+  FastCCD *_ptr = (FastCCD*)ptr;
+  _ptr->processImage(frame);
 }
 
 void FastCCD::processImage(cin_data_frame_t *frame)

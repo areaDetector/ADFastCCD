@@ -138,8 +138,8 @@
 static void FastCCDStatusTaskC(void *drvPvt);
 static void FastCCDDataStatsTaskC(void *drvPvt);
 static void exitHandler(void *drvPvt);
-static void allocateImageC(cin_data_frame_t *frame);
-static void processImageC(cin_data_frame_t *frame);
+static void allocateImageC(cin_data_frame_t *frame, void *ptr);
+static void processImageC(cin_data_frame_t *frame, void *ptr);
 
 /**
  * Driver class for FastCCD CCD. This inherits from ADDriver class in areaDetector.
