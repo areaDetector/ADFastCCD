@@ -65,11 +65,14 @@ extern const char *cin_build_version;
  * -------------------------------------------------------------------------------
  */
 
+#define CIN_OK                             0
+#define CIN_ERROR                          -1
+
 #define CIN_CTL_IP                         "192.168.1.207"
-#define CIN_CTL_SVR_PORT                   49200
-#define CIN_CTL_CLI_PORT                   50200
-#define CIN_CTL_SVR_FRMW_PORT              49202
-#define CIN_CTL_CLI_FRMW_PORT              50202
+#define CIN_CTL_CIN_PORT                   49200
+#define CIN_CTL_BIND_PORT                  50200
+#define CIN_CTL_FRMW_CIN_PORT              49202
+#define CIN_CTL_FRMW_BIND_PORT             50202
 #define CIN_CTL_RCVBUF                     10  // Mb 
 
 #define CIN_CTL_MAX_READ_TRIES             10
@@ -156,8 +159,8 @@ extern const char *cin_build_version;
 #define CIN_CTL_FO_REG7                    0x8213
 
 #define CIN_DATA_IP                        "10.0.5.207"
-#define CIN_DATA_PORT                      49201
-#define CIN_DATA_CTL_PORT                  49203
+#define CIN_DATA_BIND_PORT                 49201
+#define CIN_DATA_CIN_PORT                  49203
 #define CIN_DATA_MAX_MTU                   9000
 #define CIN_DATA_UDP_HEADER                8
 #define CIN_DATA_MAGIC_PACKET              UINT64_C(0x0000F4F3F2F1F000)
@@ -172,7 +175,7 @@ extern const char *cin_build_version;
 #define CIN_DATA_GAIN_4                    0x4000
 #define CIN_DATA_PACKET_LEN                8184
 #define CIN_DATA_MAX_PACKETS               542
-#define CIN_DATA_RCVBUF                    100  // Mb 
+#define CIN_DATA_RCVBUF                    (100*1024*1024)  // Bytes
 
 // The maximum size of the CCD chip is 960 columns by
 // 2 x 960 (1920) rows. In frame store you only read out 960 x 960
@@ -261,21 +264,7 @@ extern int cin_config_bias_len;
 extern uint16_t cin_config_fcric_200[];
 extern int cin_config_fcric_200_len;
 
-#define CIN_CONFIG_MAX_STRING 256
-#define CIN_CONFIG_MAX_DATA 5000
-typedef struct cin_ctl_config {
-  char name[CIN_CONFIG_MAX_STRING];
-  char firmware_filename[CIN_CONFIG_MAX_STRING];
-  int overscan;
-  int columns;
-  int fclk;
-  uint16_t timing[CIN_CONFIG_MAX_DATA][2];
-  int timing_len;
-  uint16_t fcric[CIN_CONFIG_MAX_DATA][2];
-  int fcric_len;
-  uint16_t bias[CIN_CONFIG_MAX_DATA][2];
-  int bias_len;
-} cin_ctl_config_t;
+#define CIN_CONFIG_MAX_STRING 40
 
 #define FIFO_MAX_READERS 10 
 
@@ -302,31 +291,51 @@ typedef struct cin_ctl_listener {
 } cin_ctl_listener_t;
 
 typedef struct cin_port {
-  char *srvaddr;
-  char *cliaddr;
-  uint16_t srvport;
-  uint16_t cliport;
   int sockfd;
   struct timeval tv;
   struct sockaddr_in sin_srv; /* server info */
   struct sockaddr_in sin_cli; /* client info (us!) */
   socklen_t slen; /* for recvfrom() */
-  int rcvbuf; /* For setting data recieve buffer */
-  int rcvbuf_rb; /* For readback */
 } cin_port_t;
 
+#define CIN_CONFIG_MAX_TIMING_DATA       880  /**< Max = 55 per state, 16 states */
+#define CIN_CONFIG_MAX_TIMING_MODES      20  /**< 20 states max */
+
+typedef struct cin_config_timing {
+  uint16_t *data;           /**< Pointer to timing data */
+  int data_len;             /**< timing data length */
+  char name[40];            /**< String for config name */
+  int rows;                 /**< Rows for this timing setup */
+  int cols;                 /**< Cols for this timing setup */
+  int overscan;             /**< Number of overscan cols for this setup */
+  int fclk_freq;            /**< FCLK Frequency to use */
+  int framestore;           /**< Flag (not zero means framestore */
+} cin_config_timing_t;
 
 typedef struct cin_ctl {
+  // Store IP Address information
+  char *addr;
+  char *bind_addr;
+  int port;
+  int bind_port;
+  int sport;
+  int bind_sport;
+
   // TCP/IP Port Information
   cin_port_t ctl_port;
   cin_port_t stream_port;
 
-  // Config information
-  cin_ctl_config_t config;
+  // Config information 
+  cin_config_timing_t timing[CIN_CONFIG_MAX_TIMING_MODES];
+  int timing_num;
+  cin_config_timing_t *current_timing;
+
+  // FCLK info for absolute time
+  int fclk_time_tick;               /**< In micro seconds */
 
   // Mutex for threaded access
   cin_ctl_listener_t *listener;
-  pthread_mutex_t access; /* For sequential access to CIN */
+  pthread_mutex_t access; 
   pthread_mutexattr_t access_attr;
 } cin_ctl_t;
 
@@ -337,7 +346,6 @@ typedef struct cin_data_frame {
   struct timespec timestamp;
   int size_x;
   int size_y;
-  void *usr_ptr; // User container
 } cin_data_frame_t;
 
 typedef struct cin_data_stats {
@@ -371,9 +379,10 @@ typedef struct cin_data_threads {
 } cin_data_threads_t;
 
 typedef struct cin_data_callbacks {
-  void* (*push) (cin_data_frame_t *);
-  void* (*pop)  (cin_data_frame_t *);
+  void* (*push) (cin_data_frame_t *, void* usr_ptr);
+  void* (*pop)  (cin_data_frame_t *, void* usr_ptr);
   cin_data_frame_t *frame;
+  void *usr_ptr; // User container
 } cin_data_callbacks_t;
 
 typedef struct {
@@ -382,7 +391,8 @@ typedef struct {
   int      size_y; // ROWS
   int      overscan;
   int      rows;
-} descramble_map_t;
+} cin_data_descramble_map_t;
+
 
 typedef struct cin_data {
 
@@ -395,8 +405,6 @@ typedef struct cin_data {
   cin_data_threads_t listen_thread;
   cin_data_threads_t assembler_thread;
   cin_data_threads_t descramble_thread;
-  pthread_mutex_t listen_mutex;
-  pthread_mutex_t assembler_mutex;
   pthread_mutex_t descramble_mutex;
   pthread_mutex_t stats_mutex;
   pthread_mutex_t framestore_mutex;
@@ -406,7 +414,12 @@ typedef struct cin_data {
   cin_data_callbacks_t callbacks;
 
   /* Interface */
-  cin_port_t dp; 
+  char *addr;
+  char *bind_addr;
+  int port;
+  int bind_port;
+  int recv_buf;
+  cin_port_t dp;
 
   /* Statistics */
   struct timespec framerate;
@@ -415,7 +428,7 @@ typedef struct cin_data {
   uint16_t last_frame;
 
   /* Current Descramble Map */
-  descramble_map_t map;
+  cin_data_descramble_map_t map;
 
   /* Framestore mode info */
   int framestore_mode;
@@ -425,7 +438,7 @@ typedef struct cin_data {
 } cin_data_t;
 // Callback functions
 
-typedef void (*cin_data_callback) (cin_data_frame_t *);
+typedef void (*cin_data_callback) (cin_data_frame_t *, void *usr_ptr);
 
 /* ---------------------------------------------------------------------
  *
@@ -495,19 +508,18 @@ void cin_report(FILE *fp, int details);
  * recieve packets from the CIN.
  *
  * @param cin handle to cin library
- * @param ipaddr ip address of CIN base address
+ * @param addr ip address of CIN base address
+ * @param port UDP port of cin 
+ * @param sport stream output UDP port of cin
  * @param bind_addr ip address to bind to
- * @param oport output udp port of cin 
- * @param iport input udp port of cin 
- * @param soport stream output udp port of cin
- * @param siport stream input udp port of cin
+ * @param bind_port input udp port of cin 
+ * @param bind_sport stream input udp port of cin
  *
  * @return Returns 0 on sucsess non-zero if error
  */
 int cin_ctl_init(cin_ctl_t *cin, 
-                 const char* ipaddr, const char *bind_addr,
-                 uint16_t oport, uint16_t iport,
-                 uint16_t soport, uint16_t siport);
+                 char *addr, uint16_t port, uint16_t sport, 
+                 char *bind_addr, uint16_t bind_port, uint16_t bind_sport);
 
 /*!
  * Destroy (close) the cin control library
@@ -716,10 +728,10 @@ int cin_config_read_file(cin_ctl_t *cin, const char *file);
  * Initialize the data handeling routines and start the threads for listening.
  *
  * @param cin Handle to cin data library
- * @param ipaddr IP-Address of cin (if NULL defaults to standard)
+ * @param addr IP-Address of cin (if NULL defaults to standard)
+ * @param port UDP Port of CIN 
  * @param bind_addr IP-Address to bind to (if NULL binds to 0.0.0.0)
- * @param oport UDP Port of CIN 
- * @param iport UDP Port of host
+ * @param bind_port UDP Port of host
  * @param rcvbuf TCP/IP Kernel recieve buffer size
  * @param packet_buffer_len Length of packet buffer fifo (in units number of packets)
  * @param frame_buffer_len Length of frame (assembler) buffer fifo (in units of number of frames)
@@ -729,10 +741,9 @@ int cin_config_read_file(cin_ctl_t *cin, const char *file);
  *
  */
 int cin_data_init(cin_data_t *cin, 
-                  char* ipaddr, char* bind_ipaddr, uint16_t oport, uint16_t iport, int rcvbuf,
+                  char* addr, uint16_t port, char* bind_addr, uint16_t bind_port, int rcvbuf,
                   int packet_buffer_len, int frame_buffer_len,
-                  cin_data_callback push_callback, cin_data_callback pop_callback, 
-                  void *usr_ptr);
+                  cin_data_callback push_callback, cin_data_callback pop_callback, void *usr_ptr);
 /** Close the cin data library and cleanup
  *
  * Stop all the processing threads and join them to the main thread. This function blocks until all
@@ -828,6 +839,7 @@ void cin_data_reset_stats(cin_data_t *cin);
 int cin_data_set_descramble_params(cin_data_t *cin, int rows, int overscan);
 void cin_data_get_descramble_params(cin_data_t *cin, int *rows, int *overscan, int *xsize, int *ysize);
 
+int cin_com_boot(cin_ctl_t *cin_ctl, cin_data_t *cin_data, char *mode);
 #ifdef __cplusplus
 }
 #endif
