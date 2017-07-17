@@ -45,6 +45,6 @@ iocInit()
 
 # save things every thirty seconds
 create_monitor_set("auto_settings.req", 30,"P=$(PREFIX),D=cam1:")
-
+dbl > $(TOP)/records.dbl
 dbl > /cf-update/xf23id1-ioc2.es-fccd.dbl
 

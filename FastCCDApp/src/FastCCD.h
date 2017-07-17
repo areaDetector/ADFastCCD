@@ -43,9 +43,12 @@
 #define FastCCDDCMStatusString                  "DCM_STATUS"
 
 #define FastCCDLibCinVersionString              "LIBCINVER"
-#define FastCCDBoardIDString                    "BOARD_ID"
-#define FastCCDSerialNumString                  "SERIAL_NUM"
-#define FastCCDFPGAVersionString                "FPGA_VER"
+#define FastCCDBaseBoardIDString                "BASE_BOARD_ID"
+#define FastCCDBaseSerialNumString              "BASE_SERIAL_NUM"
+#define FastCCDBaseFPGAVersionString            "BASE_FPGA_VER"
+#define FastCCDFabBoardIDString                 "FAB_BOARD_ID"
+#define FastCCDFabSerialNumString               "FAB_SERIAL_NUM"
+#define FastCCDFabFPGAVersionString             "FAB_FPGA_VER"
 
 #define FastCCDStatusHBString                   "STATUS_HB"
 
@@ -221,9 +224,12 @@ class FastCCD : public ADDriver {
 
   // Versioning Info
   int FastCCDLibCinVersion;
-  int FastCCDBoardID;
-  int FastCCDSerialNum;
-  int FastCCDFPGAVersion;
+  int FastCCDBaseBoardID;
+  int FastCCDBaseSerialNum;
+  int FastCCDBaseFPGAVersion;
+  int FastCCDFabBoardID;
+  int FastCCDFabSerialNum;
+  int FastCCDFabFPGAVersion;
 
   // Status HB
   int FastCCDStatusHB;

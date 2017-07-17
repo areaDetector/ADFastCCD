@@ -353,7 +353,6 @@ typedef struct cin_data_stats {
 
   int last_frame;
   double framerate;
-  double datarate;
 
   // FIFO data
   

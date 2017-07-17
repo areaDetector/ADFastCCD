@@ -336,9 +336,12 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDIFpString,                 asynParamFloat64,  &FastCCDIFp);
 
   createParam(FastCCDLibCinVersionString,       asynParamOctet,    &FastCCDLibCinVersion);
-  createParam(FastCCDBoardIDString,             asynParamInt32,    &FastCCDBoardID);
-  createParam(FastCCDSerialNumString,           asynParamInt32,    &FastCCDSerialNum);
-  createParam(FastCCDFPGAVersionString,         asynParamInt32,    &FastCCDFPGAVersion);
+  createParam(FastCCDBaseBoardIDString,         asynParamInt32,    &FastCCDBaseBoardID);
+  createParam(FastCCDBaseSerialNumString,       asynParamInt32,    &FastCCDBaseSerialNum);
+  createParam(FastCCDBaseFPGAVersionString,     asynParamInt32,    &FastCCDBaseFPGAVersion);
+  createParam(FastCCDFabBoardIDString,          asynParamInt32,    &FastCCDFabBoardID);
+  createParam(FastCCDFabSerialNumString,        asynParamInt32,    &FastCCDFabSerialNum);
+  createParam(FastCCDFabFPGAVersionString,      asynParamInt32,    &FastCCDFabFPGAVersion);
 
   createParam(FastCCDStatusHBString,            asynParamInt32,    &FastCCDStatusHB);
 
@@ -1120,8 +1123,6 @@ void FastCCD::dataStatsTask(void)
     setIntegerParam(FastCCDPacketBuffer, stats.packet_used);
     setIntegerParam(FastCCDFrameBuffer, stats.frame_used);
     setIntegerParam(FastCCDImageBuffer, stats.image_used);
-
-    //setDoubleParam(FastCCDDataRate, stats.datarate);
     
     this->lock();
     callParamCallbacks();
@@ -1144,16 +1145,26 @@ void FastCCD::getCameraStatus(int first_run){
   if(first_run){
     cin_status |= cin_ctl_get_id(&cin_ctl, &id);
     if(!cin_status){
-      setIntegerParam(FastCCDBoardID, id.base_board_id);
-      setIntegerParam(FastCCDSerialNum, id.base_serial_no);
-      setIntegerParam(FastCCDFPGAVersion, id.base_fpga_ver);
-      setParamStatus(FastCCDBoardID, asynSuccess);
-      setParamStatus(FastCCDSerialNum, asynSuccess);
-      setParamStatus(FastCCDFPGAVersion, asynSuccess);
+      setIntegerParam(FastCCDBaseBoardID, id.base_board_id);
+      setIntegerParam(FastCCDBaseSerialNum, id.base_serial_no);
+      setIntegerParam(FastCCDBaseFPGAVersion, id.base_fpga_ver);
+      setIntegerParam(FastCCDFabBoardID, id.fabric_board_id);
+      setIntegerParam(FastCCDFabSerialNum, id.fabric_serial_no);
+      setIntegerParam(FastCCDFabFPGAVersion, id.fabric_fpga_ver);
+
+      setParamStatus(FastCCDBaseBoardID, asynSuccess);
+      setParamStatus(FastCCDBaseSerialNum, asynSuccess);
+      setParamStatus(FastCCDBaseFPGAVersion, asynSuccess);
+      setParamStatus(FastCCDFabBoardID, asynSuccess);
+      setParamStatus(FastCCDFabSerialNum, asynSuccess);
+      setParamStatus(FastCCDFabFPGAVersion, asynSuccess);
     } else {
-      setParamStatus(FastCCDBoardID, asynDisconnected);
-      setParamStatus(FastCCDSerialNum, asynDisconnected);
-      setParamStatus(FastCCDFPGAVersion, asynDisconnected);
+      setParamStatus(FastCCDBaseBoardID, asynDisconnected);
+      setParamStatus(FastCCDBaseSerialNum, asynDisconnected);
+      setParamStatus(FastCCDBaseFPGAVersion, asynDisconnected);
+      setParamStatus(FastCCDFabBoardID, asynDisconnected);
+      setParamStatus(FastCCDFabSerialNum, asynDisconnected);
+      setParamStatus(FastCCDFabFPGAVersion, asynDisconnected);
     }
   }
 
