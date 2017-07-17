@@ -453,13 +453,13 @@ record(ao, "$(P)$(R)E:BiasSpare2-SP")
 # Overload the gain parameter to reprosent the overscan
 #
 
-record(ao, "$(P)$(R)Gain"){
+record(longout, "$(P)$(R)Overscan"){
 	field(DTYP, "asynInt32")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OVERSCAN")
 	field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)Gain_RBV"){
+record(longin, "$(P)$(R)Overscan_RBV"){
 	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OVERSCAN")
 	field(SCAN, "I/O Intr")
@@ -1252,24 +1252,41 @@ record(stringin, "$(P)$(R)LibCinVersion_RBV"){
     field(SCAN, "I/O Intr")
 }
 
-record(ai, "$(P)$(R)BoardID_RBV"){
+record(ai, "$(P)$(R)BBoardID_RBV"){
 	field(DTYP, "asynInt32")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BOARD_ID")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BASE_BOARD_ID")
     field(SCAN, "I/O Intr")
 }
 
-record(ai, "$(P)$(R)SerialNum_RBV"){
+record(ai, "$(P)$(R)BSerialNum_RBV"){
 	field(DTYP, "asynInt32")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SERIAL_NUM")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BASE_SERIAL_NUM")
     field(SCAN, "I/O Intr")
 }
 
-record(ai, "$(P)$(R)FPGAVer_RBV"){
+record(ai, "$(P)$(R)BFPGAVer_RBV"){
 	field(DTYP, "asynInt32")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FPGA_VER")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BASE_FPGA_VER")
     field(SCAN, "I/O Intr")
 }
 
+record(ai, "$(P)$(R)FBoardID_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FAB_BOARD_ID")
+    field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)FSerialNum_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FAB_SERIAL_NUM")
+    field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)FFPGAVer_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FAB_FPGA_VER")
+    field(SCAN, "I/O Intr")
+}
 record(ai, "$(P)$(R)LastFrame_RBV"){
 	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))LAST_FRAME")
@@ -1399,6 +1416,11 @@ record(longout, "$(P)$(R)MinY")
 }
 
 record(longout, "$(P)$(R)SizeX")
+{
+    field(DISA, "1")
+}
+
+record(ao, "$(P)$(R)Gain")
 {
     field(DISA, "1")
 }
