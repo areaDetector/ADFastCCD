@@ -32,12 +32,12 @@ asynStatus FastCCD::connectCamera(){
   cin_set_debug_print(1);
   cin_set_error_print(1);
 
-  if(cin_ctl_init(&cin_ctl, NULL, 0, 0, NULL, 0, 0))
+  if(cin_ctl_init(&cin_ctl, cinBaseIP, 0, 0, NULL, 0, 0))
   {
     return asynError;
   }
   if(cin_data_init(&cin_data, 
-                   NULL, 0, NULL, 0, 0,
+                   cinFabricIP, 0, NULL, 0, 0,
                    cinPacketBuffer, cinImageBuffer,  
                    allocateImageC, processImageC, this)) 
   {
@@ -378,31 +378,17 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDBiasSpare1String,          asynParamFloat64,  &FastCCDBiasSpare1);
   createParam(FastCCDBiasSpare2String,          asynParamFloat64,  &FastCCDBiasSpare2);
   
-  //createParam(FastCCDBiasPosHIString,           asynParamFloat64,  &FastCCDBiasPosHI);
-  //createParam(FastCCDBiasNegHIString,           asynParamFloat64,  &FastCCDBiasNegHI);
-  //createParam(FastCCDBiasPosRGIString,          asynParamFloat64,  &FastCCDBiasPosRGI);
-  //createParam(FastCCDBiasNegRGIString,          asynParamFloat64,  &FastCCDBiasNegRGI);
-  //createParam(FastCCDBiasPosSWIString,          asynParamFloat64,  &FastCCDBiasPosSWI);
-  //createParam(FastCCDBiasNegSWIString,          asynParamFloat64,  &FastCCDBiasNegSWI);
-  //createParam(FastCCDBiasPosVIString,           asynParamFloat64,  &FastCCDBiasPosVI);
-  //createParam(FastCCDBiasNegVIString,           asynParamFloat64,  &FastCCDBiasNegVI);
-  //createParam(FastCCDBiasPosTGIString,          asynParamFloat64,  &FastCCDBiasPosTGI);
-  //createParam(FastCCDBiasNegTGIString,          asynParamFloat64,  &FastCCDBiasNegTGI);
-  //createParam(FastCCDBiasPosVFIString,          asynParamFloat64,  &FastCCDBiasPosVFI);
-  //createParam(FastCCDBiasNegVFIString,          asynParamFloat64,  &FastCCDBiasNegVFI);
-  //createParam(FastCCDBiasNEDGEIString,          asynParamFloat64,  &FastCCDBiasNEDGEI);
-  //createParam(FastCCDBiasOTGIString,            asynParamFloat64,  &FastCCDBiasOTGI);
-  //createParam(FastCCDBiasVDDRIString,           asynParamFloat64,  &FastCCDBiasVDDRI);
-  //createParam(FastCCDBiasVDDOutIString,         asynParamFloat64,  &FastCCDBiasVDDOutI);
-  //createParam(FastCCDBiasBufBaseIString,        asynParamFloat64,  &FastCCDBiasBufBaseI);
-  //createParam(FastCCDBiasBufDeltaIString,       asynParamFloat64,  &FastCCDBiasBufDeltaI);
-  //createParam(FastCCDBiasSpare1IString,         asynParamFloat64,  &FastCCDBiasSpare1I);
-  //createParam(FastCCDBiasSpare2IString,         asynParamFloat64,  &FastCCDBiasSpare2I);
-
   createParam(FastCCDBiasWriteVString,          asynParamInt32,    &FastCCDBiasWriteV);
+
+  createParam(FastCCDFOTestString,              asynParamInt32,    &FastCCDFOTest);
+
+  createParam(FastCCDBootString,                asynParamInt32,    &FastCCDBoot);
+  createParam(FastCCDSendBiasString,            asynParamInt32,    &FastCCDSendBias);
+  createParam(FastCCDSendFCRICString,           asynParamInt32,    &FastCCDSendFCRIC);
 
   // Create the epicsEvent for signaling to the status task when parameters should have changed.
   // This will cause it to do a poll immediately, rather than wait for the poll time period.
+  
   this->statusEvent = epicsEventMustCreate(epicsEventEmpty);
   if (!this->statusEvent) {
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -906,6 +892,39 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
       _status = uploadConfig(FastCCDFCRICUpload, FastCCDFCRICPath);
 
+    } else if (function == FastCCDBoot) {
+      setIntegerParam(FastCCDBoot, 1);
+      setParamStatus(FastCCDBoot, asynSuccess);
+      callParamCallbacks();
+
+      _status = cin_com_boot(&cin_ctl, &cin_data, "125MHz_TIMING_FS");
+
+      setIntegerParam(FastCCDBoot, 0);
+      callParamCallbacks();
+      epicsEventSignal(statusEvent);
+
+    } else if (function == FastCCDSendFCRIC) {
+      setParamStatus(FastCCDSendFCRIC, asynSuccess);
+      setIntegerParam(FastCCDSendFCRIC, 1);
+      callParamCallbacks();
+
+      _status = cin_ctl_set_fcric(&cin_ctl);
+
+      setIntegerParam(FastCCDSendFCRIC, 0);
+      callParamCallbacks();
+      epicsEventSignal(statusEvent);
+
+    } else if (function == FastCCDSendBias) {
+      setParamStatus(FastCCDSendBias, asynSuccess);
+      setIntegerParam(FastCCDSendBias, 1);
+      callParamCallbacks();
+
+      _status = cin_ctl_upload_bias(&cin_ctl);
+
+      setIntegerParam(FastCCDSendBias, 0);
+      callParamCallbacks();
+      epicsEventSignal(statusEvent);
+
     } else if (function == FastCCDPower) {
 
       if(value) {
@@ -994,7 +1013,7 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       _status |= cin_ctl_set_fcric_clamp(&cin_ctl, value);
 
     } else if (function == FastCCDBiasWriteV){
-      double bias_voltage[CIN_CTL_NUM_BIAS_VOLTAGE];
+      double bias_voltage[CIN_CTL_NUM_BIAS];
 
       getDoubleParam(FastCCDBiasPosH, &bias_voltage[CIN_CTL_BIAS_POSH]);
       getDoubleParam(FastCCDBiasNegH, &bias_voltage[CIN_CTL_BIAS_NEGH]);
@@ -1019,6 +1038,10 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
       _status |= cin_ctl_set_bias_voltages(&cin_ctl, (float *)bias_voltage, 0);
       
+    } else if(function == FastCCDFOTest) {
+
+      _status |= cin_ctl_fo_test_pattern(&cin_ctl, value);
+
     } else {
       status = ADDriver::writeInt32(pasynUser, value);
     }
@@ -1393,8 +1416,8 @@ void FastCCD::getCameraStatus(int first_run){
     
     // Poll for the BIAS Settings
     
-    float bias_voltage[CIN_CTL_NUM_BIAS_VOLTAGE];
-    cin_status = cin_ctl_get_bias_voltages(&cin_ctl, bias_voltage);
+    float bias_voltage[CIN_CTL_NUM_BIAS];
+    cin_status = cin_ctl_get_bias_voltages(&cin_ctl, bias_voltage, NULL);
 
     setDoubleParam(FastCCDBiasPosH, bias_voltage[CIN_CTL_BIAS_POSH]);
     setDoubleParam(FastCCDBiasNegH, bias_voltage[CIN_CTL_BIAS_NEGH]);
