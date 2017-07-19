@@ -1,6 +1,75 @@
 include "ADBase.template"
 
 #
+# Fiber Optic Test Pattern
+#
+#
+record(bo, "$(P)$(R)Boot"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BOOT")
+	field(ZNAM, "Idle")
+	field(ONAM, "Uploading")
+}
+
+record(bi, "$(P)$(R)Boot_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BOOT")
+	field(SCAN, "I/O Intr")
+	field(ZNAM, "Idle")
+	field(ONAM, "Uploading")
+}
+
+record(bo, "$(P)$(R)SendFCRIC"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_FCRIC")
+	field(ZNAM, "Idle")
+	field(ONAM, "Uploading")
+}
+
+record(bi, "$(P)$(R)SendFCRIC_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_FCRIC")
+	field(SCAN, "I/O Intr")
+	field(ZNAM, "Idle")
+	field(ONAM, "Uploading")
+}
+
+record(bo, "$(P)$(R)SendBias"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_BIAS")
+	field(ZNAM, "Idle")
+	field(ONAM, "Uploading")
+}
+
+record(bi, "$(P)$(R)SendBias_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_BIAS")
+	field(SCAN, "I/O Intr")
+	field(ZNAM, "Idle")
+	field(ONAM, "Uploading")
+}
+
+#
+# Fiber Optic Test Pattern
+#
+
+record(bo, "$(P)$(R)FOTest"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FO_TEST")
+	field(ZNAM, "Off")
+	field(ONAM, "On")
+}
+
+record(bi, "$(P)$(R)FOTest_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FO_TEST")
+	field(SCAN, "I/O Intr")
+	field(ZNAM, "Off")
+	field(ONAM, "On")
+}
+
+
+#
 # Polling Period for the camera
 #
 
@@ -78,6 +147,7 @@ record(bi, "$(P)$(R)FCRICClamp_RBV"){
 	field(ONAM, "CLAMP ON")
 	field(SCAN, "I/O Intr")
 }
+#
 #
 # Bias Voltages
 #
