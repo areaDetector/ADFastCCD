@@ -526,7 +526,6 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
 
   callParamCallbacks();
 
-  //sleep(10000000);
   // Signal the status thread to poll the detector
   epicsEventSignal(statusEvent);
   epicsEventSignal(dataStatsEvent);
@@ -1611,13 +1610,25 @@ static const iocshArg * const FastCCDConfigArgs[] =  {&FastCCDConfigArg0,
                                                        &FastCCDConfigArg9};
 
 static const iocshFuncDef configFastCCD = {"FastCCDConfig", 10, FastCCDConfigArgs};
+
+static const iocshArg FastCCDDebugArg0 = {"error", iocshArgInt};
+static const iocshArg FastCCDDebugArg1 = {"debug", iocshArgInt};
+static const iocshArg * const FastCCDDebugArgs[] = {&FastCCDDebugArg0,
+                                                    &FastCCDDebugArg1};
+static const iocshFuncDef debugFastCCD = {"FastCCDDebug", 2, FastCCDConfigArgs};
+
 static void configFastCCDCallFunc(const iocshArgBuf *args)
 {
-    FastCCDConfig(args[0].sval, args[1].ival, args[2].ival,
-                  args[3].ival, args[4].ival, args[5].ival,
-                  args[6].ival, args[7].sval, args[8].sval,
-				  args[9].sval);
+  FastCCDConfig(args[0].sval, args[1].ival, args[2].ival,
+                args[3].ival, args[4].ival, args[5].ival,
+                args[6].ival, args[7].sval, args[8].sval,
+      				  args[9].sval);
 }
+
+//static void debugFastCCDCallFunc(const iocshArgBuf *args)
+//{
+//  FastCCDDebug(args[0].ival, args[1].ival);
+//}
 
 static void FastCCDRegister(void)
 {
