@@ -355,7 +355,6 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDResetStatsString,          asynParamInt32,    &FastCCDResetStats);
   createParam(FastCCDPacketBufferString,        asynParamInt32,    &FastCCDPacketBuffer);
   createParam(FastCCDFrameBufferString,         asynParamInt32,    &FastCCDFrameBuffer);
-  createParam(FastCCDImageBufferString,         asynParamInt32,    &FastCCDImageBuffer);
 
   createParam(FastCCDBiasPosHString,            asynParamFloat64,  &FastCCDBiasPosH);
   createParam(FastCCDBiasNegHString,            asynParamFloat64,  &FastCCDBiasNegH);
@@ -1147,7 +1146,6 @@ void FastCCD::dataStatsTask(void)
     setIntegerParam(FastCCDLastFrame, stats.last_frame);
     setIntegerParam(FastCCDPacketBuffer, stats.packet_used);
     setIntegerParam(FastCCDFrameBuffer, stats.frame_used);
-    setIntegerParam(FastCCDImageBuffer, stats.image_used);
     
     this->lock();
     callParamCallbacks();
