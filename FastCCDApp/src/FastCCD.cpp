@@ -894,8 +894,6 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
     } else if (function == FastCCDBoot) {
       setIntegerParam(FastCCDBoot, 1);
-      setParamStatus(FastCCDBoot, asynSuccess);
-      callParamCallbacks();
 
       _status = cin_com_boot(&cin_ctl, &cin_data, "125MHz_TIMING_FS");
 
@@ -973,8 +971,8 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
     } else if ((function == FastCCDMux1) || (function == FastCCDMux2)) {
 
       int _val, _val1, _val2;
-      getIntegerParam(FastCCDMux1, &_val1);
-      getIntegerParam(FastCCDMux2, &_val2);
+      getIntegerParam(FastCCDMux1, &_val2);
+      getIntegerParam(FastCCDMux2, &_val1);
       _val = (_val2 << 4) | _val1;
       _status |= cin_ctl_set_mux(&cin_ctl, _val);   
 
