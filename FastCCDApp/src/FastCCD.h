@@ -58,7 +58,6 @@
 #define FastCCDResetStatsString                 "RESET_STATS"
 #define FastCCDPacketBufferString               "PACKET_BUFFER"
 #define FastCCDFrameBufferString                "FRAME_BUFFER"
-#define FastCCDImageBufferString                "IMAGE_BUFFER"
 
 #define FastCCDOverscanString                   "OVERSCAN"
 
@@ -227,7 +226,6 @@ class FastCCD : public ADDriver {
   int FastCCDResetStats;
   int FastCCDPacketBuffer;
   int FastCCDFrameBuffer;
-  int FastCCDImageBuffer;
 
   // Fiber Optic Test Mode
   int FastCCDFOTest;
