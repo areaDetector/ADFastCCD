@@ -29,8 +29,8 @@ asynStatus FastCCD::connect(asynUser *pasynUser){
   
 asynStatus FastCCD::connectCamera(){
 
-  cin_set_debug_print(1);
-  cin_set_error_print(1);
+  cin_set_debug_print(0);
+  cin_set_error_print(0);
 
   if(cin_ctl_init(&cin_ctl, cinBaseIP, 0, 0, NULL, 0, 0))
   {
@@ -335,7 +335,6 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDI62v5String,               asynParamFloat64,  &FastCCDI62v5);
   createParam(FastCCDIFpString,                 asynParamFloat64,  &FastCCDIFp);
 
-  createParam(FastCCDLibCinVersionString,       asynParamOctet,    &FastCCDLibCinVersion);
   createParam(FastCCDBaseBoardIDString,         asynParamInt32,    &FastCCDBaseBoardID);
   createParam(FastCCDBaseSerialNumString,       asynParamInt32,    &FastCCDBaseSerialNum);
   createParam(FastCCDBaseFPGAVersionString,     asynParamInt32,    &FastCCDBaseFPGAVersion);
@@ -522,7 +521,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setDoubleParam(FastCCDBiasSpare1, 0);
   status |= setDoubleParam(FastCCDBiasSpare2, 0);
 
-  status |= setStringParam(FastCCDLibCinVersion, (char *)cin_build_version);
+  status |= setStringParam(ADSDKVersion, (char *)cin_build_version);
 
   callParamCallbacks();
 
@@ -676,7 +675,7 @@ error:
 
 
 /** Report status of the driver.
-  * Prints details about the detector in us if details>0.
+  * Prints details about the detector in us if details > 0.
   * It then calls the ADDriver::report() method.
   * \param[in] fp File pointed passed by caller where the output is written to.
   * \param[in] details Controls the level of detail in the report. */
@@ -1169,6 +1168,9 @@ void FastCCD::getCameraStatus(int first_run){
       setIntegerParam(FastCCDFabBoardID, id.fabric_board_id);
       setIntegerParam(FastCCDFabSerialNum, id.fabric_serial_no);
       setIntegerParam(FastCCDFabFPGAVersion, id.fabric_fpga_ver);
+      char buffer [50];
+      sprintf(buffer, "0x%04X", id.fabric_fpga_ver);
+      setStringParam(ADFirmwareVersion, (char *)buffer);
 
       setParamStatus(FastCCDBaseBoardID, asynSuccess);
       setParamStatus(FastCCDBaseSerialNum, asynSuccess);
@@ -1576,6 +1578,12 @@ static void FastCCDDataStatsTaskC(void *drvPvt)
   */
 extern "C" {
 
+void FastCCDDebug(int error, int debug)
+{
+  cin_set_debug_print(error);
+  cin_set_error_print(debug);
+}
+
 int FastCCDConfig(const char *portName, int maxBuffers, size_t maxMemory, 
                   int priority, int stackSize, int packetBuffer, int imageBuffer,
 				  const char *baseIP, const char *fabricIP, const char *fabricMAC)
@@ -1615,7 +1623,7 @@ static const iocshArg FastCCDDebugArg0 = {"error", iocshArgInt};
 static const iocshArg FastCCDDebugArg1 = {"debug", iocshArgInt};
 static const iocshArg * const FastCCDDebugArgs[] = {&FastCCDDebugArg0,
                                                     &FastCCDDebugArg1};
-static const iocshFuncDef debugFastCCD = {"FastCCDDebug", 2, FastCCDConfigArgs};
+static const iocshFuncDef debugFastCCD = {"FastCCDDebug", 2, FastCCDDebugArgs};
 
 static void configFastCCDCallFunc(const iocshArgBuf *args)
 {
@@ -1625,14 +1633,15 @@ static void configFastCCDCallFunc(const iocshArgBuf *args)
       				  args[9].sval);
 }
 
-//static void debugFastCCDCallFunc(const iocshArgBuf *args)
-//{
-//  FastCCDDebug(args[0].ival, args[1].ival);
-//}
+static void debugFastCCDCallFunc(const iocshArgBuf *args)
+{
+  FastCCDDebug(args[0].ival, args[1].ival);
+}
 
 static void FastCCDRegister(void)
 {
     iocshRegister(&configFastCCD, configFastCCDCallFunc);
+    iocshRegister(&debugFastCCD, debugFastCCDCallFunc);
 }
 
 epicsExportRegistrar(FastCCDRegister);
