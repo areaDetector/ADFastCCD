@@ -1316,12 +1316,6 @@ record(bi, "$(P)$(R)FCRICUpload_RBV") {
 # Versioning Information
 #
 
-record(stringin, "$(P)$(R)LibCinVersion_RBV"){
-	field(DTYP, "asynOctetRead")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))LIBCINVER")
-    field(SCAN, "I/O Intr")
-}
-
 record(ai, "$(P)$(R)BBoardID_RBV"){
 	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BASE_BOARD_ID")
@@ -1396,12 +1390,6 @@ record(ai, "$(P)$(R)PacketBuffer_RBV"){
 	field(SCAN, "I/O Intr")
 }
 
-record(ai, "$(P)$(R)ImageBuffer_RBV"){
-	field(DTYP, "asynInt32")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))IMAGE_BUFFER")
-	field(SCAN, "I/O Intr")
-}
-
 #
 # Records for power
 #
@@ -1449,6 +1437,7 @@ record(bi, "$(P)$(R)FPPower_RBV")
 #
 # Records in ADBase that do not apply to the fCCD
 #
+
 record(longout, "$(P)$(R)NumExposures")
 {
     field(DISA, "1")
