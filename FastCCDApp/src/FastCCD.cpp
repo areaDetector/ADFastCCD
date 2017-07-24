@@ -45,7 +45,6 @@ asynStatus FastCCD::connectCamera(){
   }
 
   cin_ctl_set_msg_callback(&cin_ctl, &messageCallbackC, (void*)this);
-  cin_ctl_message(&cin_ctl, "libcin initialized", CIN_CTL_MSG_OK);
 
   int _status = 0;
 
@@ -71,15 +70,27 @@ asynStatus FastCCD::disconnectCamera(){
   return asynSuccess; 
 }
 
-static void messageCallbackC(char *message, int severity, void *ptr)
+static void messageCallbackC(const char *message, int severity, void *ptr)
 {
   FastCCD *_ptr = (FastCCD*)ptr;
   _ptr->messageCallback(message, severity);
 }
 
-void FastCCD::messageCallback(char *message, int severity)
+void FastCCD::messageCallback(const char *message, int severity)
 {
   setStringParam(ADStatusMessage, message);
+  if(severity == CIN_CTL_MSG_OK)
+  {
+    setParamAlarmSeverity(ADStatusMessage, 0);
+    setParamAlarmStatus(ADStatusMessage, 0);
+  } else if(severity == CIN_CTL_MSG_MINOR){
+    setParamAlarmSeverity(ADStatusMessage, 1);
+    setParamAlarmStatus(ADStatusMessage, 1);
+  } else if(severity == CIN_CTL_MSG_MAJOR){
+    setParamAlarmSeverity(ADStatusMessage, 2);
+    setParamAlarmStatus(ADStatusMessage, 1);
+  }
+
   callParamCallbacks();
 }
 
@@ -416,17 +427,6 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   }
 
 
-  try {
-    this->lock();
-    connectCamera();
-    this->unlock();
-  } catch (const std::string &e) {
-    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-      "%s:%s: %s\n",
-      driverName, functionName, e.c_str());
-    return;
-  }
-
   sizeX = CIN_DATA_MAX_FRAME_X;
   sizeY = CIN_DATA_MAX_FRAME_Y;
 
@@ -538,6 +538,19 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
 
   status |= setStringParam(ADSDKVersion, (char *)cin_build_version);
 
+  try {
+    this->lock();
+    connectCamera();
+    this->unlock();
+    setStringParam(ADStatusMessage, "Camera connected");
+  } catch (const std::string &e) {
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+      "%s:%s: %s\n",
+      driverName, functionName, e.c_str());
+    setStringParam(ADStatusMessage, "Camera failed to connect");
+    return;
+  }
+
   callParamCallbacks();
 
   // Signal the status thread to poll the detector
@@ -574,7 +587,6 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
     return;
   }
 
-
 }
 
 /**
@@ -587,6 +599,7 @@ FastCCD::~FastCCD()
   try {
     this->lock();
     cin_data_destroy(&cin_data);
+    cin_ctl_destroy(&cin_ctl);
     this->unlock();
   } catch (const std::string &e) {
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
