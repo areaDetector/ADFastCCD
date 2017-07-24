@@ -43,6 +43,10 @@ asynStatus FastCCD::connectCamera(){
   {
     return asynError;
   }
+
+  cin_ctl_set_msg_callback(&cin_ctl, &messageCallbackC, (void*)this);
+  cin_ctl_message(&cin_ctl, "libcin initialized", CIN_CTL_MSG_OK);
+
   int _status = 0;
 
   _status |= cin_ctl_set_fabric_address(&cin_ctl, (char *)cinFabricIP);
@@ -65,6 +69,18 @@ asynStatus FastCCD::disconnectCamera(){
   cin_ctl_destroy(&cin_ctl);
   cin_data_destroy(&cin_data);
   return asynSuccess; 
+}
+
+static void messageCallbackC(char *message, int severity, void *ptr)
+{
+  FastCCD *_ptr = (FastCCD*)ptr;
+  _ptr->messageCallback(message, severity);
+}
+
+void FastCCD::messageCallback(char *message, int severity)
+{
+  setStringParam(ADStatusMessage, message);
+  callParamCallbacks();
 }
 
 static void allocateImageC(cin_data_frame_t *frame, void* ptr){
@@ -403,12 +419,11 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
     return;
   }
 
+
   try {
     this->lock();
     connectCamera();
     this->unlock();
-    setStringParam(ADStatusMessage, "Initialized");
-    callParamCallbacks();
   } catch (const std::string &e) {
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
       "%s:%s: %s\n",
@@ -575,7 +590,7 @@ FastCCD::~FastCCD()
 
   try {
     this->lock();
-    //cin_data_destroy(&cin_data);
+    cin_data_destroy(&cin_data);
     this->unlock();
   } catch (const std::string &e) {
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
