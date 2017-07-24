@@ -333,7 +333,7 @@ typedef struct cin_ctl {
   pthread_mutexattr_t access_attr;
 
   // Callback fot status info
-  void (*msg_callback)(char*, int, void*);
+  void (*msg_callback)(const char*, int, void*);
   void *msg_callback_ptr;
 } cin_ctl_t;
 
@@ -372,6 +372,7 @@ typedef struct cin_data_stats {
 
 typedef struct cin_data_threads {
   pthread_t thread_id;
+  pthread_barrier_t barrier;
   int started;
 } cin_data_threads_t;
 
@@ -435,7 +436,10 @@ typedef struct cin_data {
 } cin_data_t;
 // Callback functions
 
+// FUnction pointer definitions
+
 typedef void (*cin_data_callback) (cin_data_frame_t *, void *usr_ptr);
+typedef void (*cin_ctl_msg_callback)(const char*, int, void*);
 
 /* ---------------------------------------------------------------------
  *
@@ -529,8 +533,8 @@ int cin_ctl_init(cin_ctl_t *cin,
  */
 int cin_ctl_destroy(cin_ctl_t *cin);
 
-void cin_ctl_message(cin_ctl_t *cin, char *message, int severity);
-void cin_ctl_set_msg_callback(cin_ctl_t *cin, void (*msg_callback)(char*, int, void*), void *ptr);
+void cin_ctl_message(cin_ctl_t *cin, const char *message, int severity);
+void cin_ctl_set_msg_callback(cin_ctl_t *cin, cin_ctl_msg_callback callback, void *ptr);
 
 /*!
  * Send a magic packet to the CIN to initialize data
@@ -840,7 +844,7 @@ void cin_data_reset_stats(cin_data_t *cin);
 int cin_data_set_descramble_params(cin_data_t *cin, int rows, int overscan);
 void cin_data_get_descramble_params(cin_data_t *cin, int *rows, int *overscan, int *xsize, int *ysize);
 
-int cin_com_boot(cin_ctl_t *cin_ctl, cin_data_t *cin_data, char *mode);
+int cin_com_boot(cin_ctl_t *cin_ctl, cin_data_t *cin_data, const char *mode);
 int cin_ctl_upload_bias(cin_ctl_t *cin);
 #ifdef __cplusplus
 }

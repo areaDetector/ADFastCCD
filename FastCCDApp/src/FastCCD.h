@@ -124,7 +124,7 @@
 static void FastCCDStatusTaskC(void *drvPvt);
 static void FastCCDDataStatsTaskC(void *drvPvt);
 static void exitHandler(void *drvPvt);
-static void messageCallbackC(char *message, int severity, void *ptr);
+static void messageCallbackC(const char *message, int severity, void *ptr);
 static void allocateImageC(cin_data_frame_t *frame, void *ptr);
 static void processImageC(cin_data_frame_t *frame, void *ptr);
 
@@ -157,7 +157,7 @@ class FastCCD : public ADDriver {
   void statusTask(void);
   void dataStatsTask(void);
   
-  void messageCallback(char *message, int severity);
+  void messageCallback(const char *message, int severity);
   void allocateImage(cin_data_frame_t *frame);
   void processImage(cin_data_frame_t *frame);  
 
