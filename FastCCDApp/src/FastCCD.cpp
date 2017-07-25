@@ -17,6 +17,7 @@
 #include <iocsh.h>
 #include <epicsExport.h>
 #include <epicsExit.h>
+#include <alarm.h>
 
 #include "cin.h"
 #include "FastCCD.h"
@@ -81,14 +82,14 @@ void FastCCD::messageCallback(const char *message, int severity)
   setStringParam(ADStatusMessage, message);
   if(severity == CIN_CTL_MSG_OK)
   {
-    setParamAlarmSeverity(ADStatusMessage, 0);
-    setParamAlarmStatus(ADStatusMessage, 0);
+    setParamAlarmSeverity(ADStatusMessage, NO_ALARM);
+    setParamAlarmStatus(ADStatusMessage, NO_ALARM);
   } else if(severity == CIN_CTL_MSG_MINOR){
-    setParamAlarmSeverity(ADStatusMessage, 1);
-    setParamAlarmStatus(ADStatusMessage, 1);
+    setParamAlarmSeverity(ADStatusMessage, MINOR_ALARM);
+    setParamAlarmStatus(ADStatusMessage, STATE_ALARM);
   } else if(severity == CIN_CTL_MSG_MAJOR){
-    setParamAlarmSeverity(ADStatusMessage, 2);
-    setParamAlarmStatus(ADStatusMessage, 1);
+    setParamAlarmSeverity(ADStatusMessage, MAJOR_ALARM);
+    setParamAlarmStatus(ADStatusMessage, STATE_ALARM);
   }
 
   callParamCallbacks();
