@@ -32,8 +32,8 @@ FastCCDConfig("$(PORT)", 0, 0, 0, 100000, 2000, 200, "", "10.0.5.127", "")
 dbLoadRecords("$(ADFASTCCD)/db/FastCCD.template",   "P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 
 # Create a standard arrays plugin
-NDStdArraysConfigure("Image1", 5, 0, "FastCCDProc1", 0, 0)
-dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,NDARRAY_PORT=FastCCDProc1,ADDR=0,TIMEOUT=1,TYPE=Int16,FTVL=SHORT,NELEMENTS=2361600")
+NDStdArraysConfigure("Image1", 5, 0, "FASTCCD", 0, 0)
+dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,NDARRAY_PORT=FASTCCD,ADDR=0,TIMEOUT=1,TYPE=Int16,FTVL=SHORT,NELEMENTS=2361600")
 
 # Load all other plugins using commonPlugins.cmd
 < $(ADCORE)/iocBoot/commonPlugins.cmd
@@ -49,4 +49,7 @@ dbl > $(TOP)/records.dbl
 dbl > /cf-update/xf23id1-ioc2.es-fccd.dbl
 
 dbpf $(PREFIX)cam1:NDAttributesFile FastCCDDetectorAttributes.xml
+dbpf $(PREFIX)Stats1:NDAttributesFile StatsAttributes.xml
+dbpf $(PREFIX)ROIStat1:NDAttributesFile ROIStatAttributes.xml
+
 

@@ -754,9 +754,9 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value){
     }
 
     if(function == ADAcquireTime){
-
       if(_framestore){
         _status = cin_ctl_set_cycle_time(&cin_ctl, (float)value);
+        setDoubleParam(ADAcquirePeriod, value);
       } else {
         _status = cin_ctl_set_exposure_time(&cin_ctl, (float)value);
       }
@@ -764,7 +764,8 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value){
     } else if (function == ADAcquirePeriod) {
 
       if(_framestore){
-        setParamStatus(function, asynError);
+        _status = cin_ctl_set_cycle_time(&cin_ctl, (float)value);
+        setDoubleParam(ADAcquireTime, value);
       } else {
         _status = cin_ctl_set_cycle_time(&cin_ctl, (float)value);
       }
@@ -859,13 +860,13 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
          if(t_mode == 0){
            if(_framestore) {
              _status |= cin_ctl_set_cycle_time(&cin_ctl, (float)t_exp);
-             _status |= cin_ctl_set_exposure_time(&cin_ctl, 0.001);
-             setParamStatus(ADAcquirePeriod, asynError);
+             _status |= cin_ctl_set_exposure_time(&cin_ctl, 0);
+             setDoubleParam(ADAcquirePeriod, t_exp);
+             setDoubleParam(ADAcquireTime, t_exp);
              firstFrameFlag = _framestore;
            } else {
-             _status |= cin_ctl_set_exposure_time(&cin_ctl, (float)t_exp);
              _status |= cin_ctl_set_cycle_time(&cin_ctl, (float)t_period);
-             setParamStatus(ADAcquirePeriod, asynSuccess);
+             _status |= cin_ctl_set_exposure_time(&cin_ctl, (float)t_exp);
              firstFrameFlag = 0;
            }
            if(!_status){
