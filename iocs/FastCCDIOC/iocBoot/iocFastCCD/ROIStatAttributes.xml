@@ -1,0 +1,17 @@
+<?xml version="1.0" standalone="no" ?>
+<!-- Attributes -->
+<Attributes
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../../../ADCore/XML_schema/NDAttributes.xsd"
+    >
+    <Attribute name="Total_0" type="PARAM" source="ROISTAT_TOTAL"   addr="0" datatype="DOUBLE" description="Total"/>
+    <Attribute name="Total_1" type="PARAM" source="ROISTAT_TOTAL"   addr="1" datatype="DOUBLE" description="Total"/>
+    <Attribute name="Total_2" type="PARAM" source="ROISTAT_TOTAL"   addr="1" datatype="DOUBLE" description="Total"/>
+    <Attribute name="Total_3" type="PARAM" source="ROISTAT_TOTAL"   addr="1" datatype="DOUBLE" description="Total"/>
+    <Attribute name="Total_4" type="PARAM" source="ROISTAT_TOTAL"   addr="1" datatype="DOUBLE" description="Total"/>
+    <Attribute name="Total_5" type="PARAM" source="ROISTAT_TOTAL"   addr="1" datatype="DOUBLE" description="Total"/>
+    <Attribute name="Total_6" type="PARAM" source="ROISTAT_TOTAL"   addr="1" datatype="DOUBLE" description="Total"/>
+    <Attribute name="Total_7" type="PARAM" source="ROISTAT_TOTAL"   addr="1" datatype="DOUBLE" description="Total"/>
+</Attributes>
+    
+    
