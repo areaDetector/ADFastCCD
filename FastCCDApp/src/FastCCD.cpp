@@ -30,9 +30,6 @@ asynStatus FastCCD::connect(asynUser *pasynUser){
   
 asynStatus FastCCD::connectCamera(){
 
-  cin_set_debug_print(0);
-  cin_set_error_print(0);
-
   if(cin_ctl_init(&cin_ctl, cinBaseIP, 0, 0, NULL, 0, 0))
   {
     return asynError;
