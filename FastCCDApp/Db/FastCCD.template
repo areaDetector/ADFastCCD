@@ -1,4 +1,97 @@
 include "ADBase.template"
+#
+# Timing Mode Names
+#
+#
+record(ai, "$(P)$(R)TimingMode_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TIMING_MODE")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)TimingMode")
+{
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TIMING_MODE")
+}
+
+record(stringin, "$(P)$(R)TimingName_RBV")
+{
+	field(DTYP, "asynOctetRead")
+	field(SCAN, "I/O Intr")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TIMING_NAME")
+}
+
+record(stringin, "$(P)$(R)TimingName1_RBV")
+{
+	field(DTYP, "asynOctetRead")
+	field(SCAN, "I/O Intr")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TIMING_NAME_0")
+}
+
+record(stringin, "$(P)$(R)TimingName2_RBV")
+{
+	field(DTYP, "asynOctetRead")
+	field(SCAN, "I/O Intr")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TIMING_NAME_1")
+}
+
+record(stringin, "$(P)$(R)TimingName3_RBV")
+{
+	field(DTYP, "asynOctetRead")
+	field(SCAN, "I/O Intr")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TIMING_NAME_2")
+}
+
+record(stringin, "$(P)$(R)TimingName4_RBV")
+{
+	field(DTYP, "asynOctetRead")
+	field(SCAN, "I/O Intr")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TIMING_NAME_3")
+}
+
+record(stringin, "$(P)$(R)TimingName5_RBV")
+{
+	field(DTYP, "asynOctetRead")
+	field(SCAN, "I/O Intr")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TIMING_NAME_4")
+}
+
+record(stringin, "$(P)$(R)TimingName6_RBV")
+{
+	field(DTYP, "asynOctetRead")
+	field(SCAN, "I/O Intr")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TIMING_NAME_5")
+}
+
+record(stringin, "$(P)$(R)TimingName7_RBV")
+{
+	field(DTYP, "asynOctetRead")
+	field(SCAN, "I/O Intr")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TIMING_NAME_6")
+}
+
+record(stringin, "$(P)$(R)TimingName8_RBV")
+{
+	field(DTYP, "asynOctetRead")
+	field(SCAN, "I/O Intr")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TIMING_NAME_7")
+}
+
+record(stringin, "$(P)$(R)TimingName9_RBV")
+{
+	field(DTYP, "asynOctetRead")
+	field(SCAN, "I/O Intr")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TIMING_NAME_8")
+}
+
+record(stringin, "$(P)$(R)TimingName10_RBV")
+{
+	field(DTYP, "asynOctetRead")
+	field(SCAN, "I/O Intr")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TIMING_NAME_9")
+}
 
 #
 # Fiber Optic Test Pattern

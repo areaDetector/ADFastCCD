@@ -54,6 +54,17 @@ asynStatus FastCCD::connectCamera(){
     return asynError;
   }
 
+  int timing_max = (CIN_CONFIG_MAX_TIMING_MODES > 10)  ? 10 : CIN_CONFIG_MAX_TIMING_MODES; 
+  for(int i=0;i<timing_max;i++)
+  {
+    char *name;
+    if(cin_config_get_timing_name(&cin_ctl, i, &name) == CIN_OK)
+    {
+      setStringParam(FastCCDTimingNameN[i], name);
+    } else {
+      setStringParam(FastCCDTimingNameN[i], "");
+    }
+  }
 
   return asynSuccess;
 }
@@ -159,6 +170,20 @@ void FastCCD::processImage(cin_data_frame_t *frame)
 
   this->lock();
 
+  if (this->framesRemaining > 0) this->framesRemaining--;
+  if (this->framesRemaining == 0) {
+    cin_ctl_int_trigger_stop(&cin_ctl);
+    cin_ctl_ext_trigger_stop(&cin_ctl);
+    setIntegerParam(ADAcquire, 0);
+    setIntegerParam(ADStatus, ADStatusIdle);
+  }
+
+  /* Update the frame counter */
+  int imageCounter;
+  getIntegerParam(NDArrayCounter, &imageCounter);
+  imageCounter++;
+  setIntegerParam(NDArrayCounter, imageCounter);
+
   // Set the unique ID
   pImage->uniqueId = frame->number;
   pImage->dims[0].size = frame->size_x;
@@ -181,25 +206,11 @@ void FastCCD::processImage(cin_data_frame_t *frame)
        
   int arrayCallbacks;
   getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
-
   if (arrayCallbacks) {
     /* Call the NDArray callback */
     doCallbacksGenericPointer(pImage, NDArrayData, 0);
   }
 
-  if (this->framesRemaining > 0) this->framesRemaining--;
-  if (this->framesRemaining == 0) {
-    cin_ctl_int_trigger_stop(&cin_ctl);
-    cin_ctl_ext_trigger_stop(&cin_ctl);
-    setIntegerParam(ADAcquire, 0);
-    setIntegerParam(ADStatus, ADStatusIdle);
-  }
-
-  /* Update the frame counter */
-  int imageCounter;
-  getIntegerParam(NDArrayCounter, &imageCounter);
-  imageCounter++;
-  setIntegerParam(NDArrayCounter, imageCounter);
  
   asynPrint(this->pasynUserSelf, ASYN_TRACEIO_DRIVER,
               "%s:%s: frameId=%d\n",
@@ -405,6 +416,19 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDSendBiasString,            asynParamInt32,    &FastCCDSendBias);
   createParam(FastCCDSendFCRICString,           asynParamInt32,    &FastCCDSendFCRIC);
 
+  createParam(FastCCDTimingModeString,          asynParamInt32,    &FastCCDTimingMode);
+  createParam(FastCCDTimingNameString,          asynParamOctet,    &FastCCDTimingName);
+  createParam(FastCCDTimingName0String,         asynParamOctet,    &FastCCDTimingNameN[0]);
+  createParam(FastCCDTimingName1String,         asynParamOctet,    &FastCCDTimingNameN[1]);
+  createParam(FastCCDTimingName2String,         asynParamOctet,    &FastCCDTimingNameN[2]);
+  createParam(FastCCDTimingName3String,         asynParamOctet,    &FastCCDTimingNameN[3]);
+  createParam(FastCCDTimingName4String,         asynParamOctet,    &FastCCDTimingNameN[4]);
+  createParam(FastCCDTimingName5String,         asynParamOctet,    &FastCCDTimingNameN[5]);
+  createParam(FastCCDTimingName6String,         asynParamOctet,    &FastCCDTimingNameN[6]);
+  createParam(FastCCDTimingName7String,         asynParamOctet,    &FastCCDTimingNameN[7]);
+  createParam(FastCCDTimingName8String,         asynParamOctet,    &FastCCDTimingNameN[8]);
+  createParam(FastCCDTimingName9String,         asynParamOctet,    &FastCCDTimingNameN[9]);
+
   // Create the epicsEvent for signaling to the status task when parameters should have changed.
   // This will cause it to do a poll immediately, rather than wait for the poll time period.
   
@@ -535,6 +559,15 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setDoubleParam(FastCCDBiasSpare2, 0);
 
   status |= setStringParam(ADSDKVersion, (char *)cin_build_version);
+
+  status |= setIntegerParam(FastCCDTimingMode, 0);
+
+  // Now set timing names
+  
+  for(int i=0;i<10;i++)
+  {
+    status |= setStringParam(FastCCDTimingNameN[i], "");
+  }
 
   try {
     this->lock();
@@ -794,7 +827,7 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value){
 }
 
 
-/** Called when asyn clients call pasynInt32->write().
+/** Called when asyn clients call pasynInt32->writr().
   * This function performs actions for some parameters, including ADAcquire, ADBinX, etc.
   * For all parameters it sets the value in the parameter library and calls any registered callbacks..
   * \param[in] pasynUser pasynUser structure that encodes the reason and address.
@@ -914,6 +947,7 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
     } else if (function == FastCCDBoot) {
       setIntegerParam(FastCCDBoot, 1);
+      callParamCallbacks();
 
       _status = cin_com_boot(&cin_ctl, &cin_data, "125MHz_TIMING_FS");
 
@@ -991,8 +1025,8 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
     } else if ((function == FastCCDMux1) || (function == FastCCDMux2)) {
 
       int _val, _val1, _val2;
-      getIntegerParam(FastCCDMux1, &_val2);
-      getIntegerParam(FastCCDMux2, &_val1);
+      getIntegerParam(FastCCDMux1, &_val1);
+      getIntegerParam(FastCCDMux2, &_val2);
       _val = (_val2 << 4) | _val1;
       _status |= cin_ctl_set_mux(&cin_ctl, _val);   
 
@@ -1060,6 +1094,20 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
       _status |= cin_ctl_fo_test_pattern(&cin_ctl, value);
 
+    } else if(function == FastCCDTimingMode) {
+      int val;
+      char _name[CIN_CONFIG_MAX_TIMING_NAME];
+      char *name = _name;
+      getIntegerParam(FastCCDTimingMode, &val);
+      // Check if mode exists
+      if((_status |= cin_config_get_timing_name(&cin_ctl, val, &name)) == CIN_OK)
+      {
+        // Mode exists
+        _status |= cin_com_set_timing(&cin_ctl, &cin_data, name);
+        // Now readback the name
+        _status |= cin_config_get_current_timing_name(&cin_ctl, &name);
+        setStringParam(FastCCDTimingName, name);
+      }
     } else {
       status = ADDriver::writeInt32(pasynUser, value);
     }

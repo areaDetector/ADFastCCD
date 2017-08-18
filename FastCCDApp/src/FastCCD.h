@@ -120,6 +120,19 @@
 #define FastCCDSendBiasString                   "SEND_BIAS"
 #define FastCCDSendFCRICString                  "SEND_FCRIC"
 
+#define FastCCDTimingModeString                 "TIMING_MODE"
+#define FastCCDTimingNameString                 "TIMING_NAME"
+#define FastCCDTimingName0String                "TIMING_NAME_0"
+#define FastCCDTimingName1String                "TIMING_NAME_1"
+#define FastCCDTimingName2String                "TIMING_NAME_2"
+#define FastCCDTimingName3String                "TIMING_NAME_3"
+#define FastCCDTimingName4String                "TIMING_NAME_4"
+#define FastCCDTimingName5String                "TIMING_NAME_5"
+#define FastCCDTimingName6String                "TIMING_NAME_6"
+#define FastCCDTimingName7String                "TIMING_NAME_7"
+#define FastCCDTimingName8String                "TIMING_NAME_8"
+#define FastCCDTimingName9String                "TIMING_NAME_9"
+
 //C Function prototypes to tie in with EPICS
 static void FastCCDStatusTaskC(void *drvPvt);
 static void FastCCDDataStatsTaskC(void *drvPvt);
@@ -234,6 +247,11 @@ class FastCCD : public ADDriver {
   int FastCCDBoot;
   int FastCCDSendBias;
   int FastCCDSendFCRIC;
+
+  // Timing Name Strings
+  int FastCCDTimingName;
+  int FastCCDTimingNameN[10];
+  int FastCCDTimingMode;
 
   // Bias Settings
   int FastCCDBiasPosH;       
