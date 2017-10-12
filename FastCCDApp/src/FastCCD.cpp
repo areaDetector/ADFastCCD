@@ -168,6 +168,18 @@ void FastCCD::processImage(cin_data_frame_t *frame)
     return;
   }
 
+  int _status;
+  getIntegerParam(ADStatus, &_status);
+  if(_status != ADStatusAcquire)
+  {
+    // Lets dump the image as we are not acquiring
+    this->lock();
+    pImage->release();
+    this->unlock();
+
+    return;
+  }
+
   this->lock();
 
   if (this->framesRemaining > 0) this->framesRemaining--;
