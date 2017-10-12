@@ -3,17 +3,74 @@ include "ADBase.template"
 # Timing Mode Names
 #
 #
-record(ai, "$(P)$(R)TimingMode_RBV")
+record(mbbi, "$(P)$(R)TimingMode_RBV")
 {
 	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TIMING_MODE")
 	field(SCAN, "I/O Intr")
+	field(ZRST, "Timing Setting 1")
+	field(ONST, "Timing Setting 2")
+	field(TWST, "Timing Setting 3")
+	field(THST, "Timing Setting 4")
+	field(FRST, "Timing Setting 5")
+	field(FVST, "Timing Setting 6")
+	field(SXST, "Timing Setting 7")
+	field(SVST, "Timing Setting 8")
+	field(EIST, "Timing Setting 9")
+	field(NIST, "Timing Setting 10")
+	field(ZRVL, "0")
+	field(ONVL, "1")
+	field(TWVL, "2")
+	field(THVL, "3")
+	field(FRVL, "4")
+	field(FVVL, "5")
+	field(SXVL, "6")
+	field(SVVL, "7")
+	field(EIVL, "8")
+	field(NIVL, "9")
 }
 
-record(ao, "$(P)$(R)TimingMode")
+record(mbbo, "$(P)$(R)TimingMode")
 {
 	field(DTYP, "asynInt32")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TIMING_MODE")
+	field(ZRST, "Timing Setting 1")
+	field(ONST, "Timing Setting 2")
+	field(TWST, "Timing Setting 3")
+	field(THST, "Timing Setting 4")
+	field(FRST, "Timing Setting 5")
+	field(FVST, "Timing Setting 6")
+	field(SXST, "Timing Setting 7")
+	field(SVST, "Timing Setting 8")
+	field(EIST, "Timing Setting 9")
+	field(NIST, "Timing Setting 10")
+	field(ZRVL, "0")
+	field(ONVL, "1")
+	field(TWVL, "2")
+	field(THVL, "3")
+	field(FRVL, "4")
+	field(FVVL, "5")
+	field(SXVL, "6")
+	field(SVVL, "7")
+	field(EIVL, "8")
+	field(NIVL, "9")
+}
+
+record(bi, "$(P)$(R)SendTiming_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_TIMING")
+	field(SCAN, "I/O Intr")
+	field(ZNAM, "Idle")
+	field(ONAM, "Uploading")
+}
+
+record(bo, "$(P)$(R)SendTiming")
+{
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_TIMING")
+	field(ZNAM, "Idle")
+	field(ONAM, "Uploading")
 }
 
 record(stringin, "$(P)$(R)TimingName_RBV")

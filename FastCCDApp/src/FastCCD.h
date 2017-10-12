@@ -121,6 +121,7 @@
 #define FastCCDSendFCRICString                  "SEND_FCRIC"
 
 #define FastCCDTimingModeString                 "TIMING_MODE"
+#define FastCCDSendTimingString                 "SEND_TIMING"
 #define FastCCDTimingNameString                 "TIMING_NAME"
 #define FastCCDTimingName0String                "TIMING_NAME_0"
 #define FastCCDTimingName1String                "TIMING_NAME_1"
@@ -245,6 +246,7 @@ class FastCCD : public ADDriver {
 
   // New boot mode
   int FastCCDBoot;
+  int FastCCDSendTiming;
   int FastCCDSendBias;
   int FastCCDSendFCRIC;
 
