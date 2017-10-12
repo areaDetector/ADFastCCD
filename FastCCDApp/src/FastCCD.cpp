@@ -256,6 +256,9 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   
   static const char *functionName = "FastCCD";
 
+  cin_set_debug_print(0);
+  cin_set_error_print(0);
+
   /* Write the packet and frame buffer sizes */
   cinPacketBuffer = packetBuffer;
   cinImageBuffer = imageBuffer;
@@ -298,7 +301,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   }
 
   //Define the polling periods for the status thread.
-  statusPollingPeriod = 20; //seconds
+  statusPollingPeriod = 30; //seconds
   dataStatsPollingPeriod = 0.1; //seconds
 
   // Assume we are in continuous mode
@@ -415,6 +418,7 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDBootString,                asynParamInt32,    &FastCCDBoot);
   createParam(FastCCDSendBiasString,            asynParamInt32,    &FastCCDSendBias);
   createParam(FastCCDSendFCRICString,           asynParamInt32,    &FastCCDSendFCRIC);
+  createParam(FastCCDSendTimingString,          asynParamInt32,    &FastCCDSendTiming);
 
   createParam(FastCCDTimingModeString,          asynParamInt32,    &FastCCDTimingMode);
   createParam(FastCCDTimingNameString,          asynParamOctet,    &FastCCDTimingName);
@@ -803,9 +807,7 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value){
       epicsEventSignal(statusEvent);
 
     } else {
-
       ADDriver::writeFloat64(pasynUser, value);
-
     }
 
     if(_status){
@@ -859,11 +861,8 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
          getDoubleParam(ADAcquireTime, &t_exp);
          getDoubleParam(ADAcquirePeriod, &t_period);
 
-         // Now do a hack to only set the number of images to 16 bit
-         
          n_images &= 0xFFFF; // Only use least significant bits
 
-        // Set the parameter library back to the < 2^16 value
          setIntegerParam(ADNumImages, n_images);
 
          switch(i_mode) {
@@ -883,20 +882,26 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
              break;
          }
 
+         if(_framestore)
+         {
+           _status |= cin_ctl_set_exposure_time(&cin_ctl, 0);
+         } else {
+           _status |= cin_ctl_set_exposure_time(&cin_ctl, (float)t_exp);
+         }
+
          if(t_mode == 0){
            if(_framestore) {
              _status |= cin_ctl_set_cycle_time(&cin_ctl, (float)t_exp);
-             _status |= cin_ctl_set_exposure_time(&cin_ctl, 0);
              setDoubleParam(ADAcquirePeriod, t_exp);
              setDoubleParam(ADAcquireTime, t_exp);
              firstFrameFlag = _framestore;
            } else {
              _status |= cin_ctl_set_cycle_time(&cin_ctl, (float)t_period);
-             _status |= cin_ctl_set_exposure_time(&cin_ctl, (float)t_exp);
              firstFrameFlag = 0;
            }
            if(!_status){
-             _status |= cin_ctl_int_trigger_start(&cin_ctl, n_images);
+             // Make areadetector do image counting in software.
+             _status |= cin_ctl_int_trigger_start(&cin_ctl, 0);
            }
          } else {
            _status |= cin_ctl_ext_trigger_start(&cin_ctl, t_mode);
@@ -946,10 +951,14 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       _status = uploadConfig(FastCCDFCRICUpload, FastCCDFCRICPath);
 
     } else if (function == FastCCDBoot) {
+      // Get timing mode
+      int mode;
+      getIntegerParam(FastCCDTimingMode, &mode);
+
       setIntegerParam(FastCCDBoot, 1);
       callParamCallbacks();
 
-      _status = cin_com_boot(&cin_ctl, &cin_data, "125MHz_TIMING_FS");
+      _status = cin_com_boot(&cin_ctl, &cin_data, mode);
 
       setIntegerParam(FastCCDBoot, 0);
       callParamCallbacks();
@@ -1094,25 +1103,41 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
       _status |= cin_ctl_fo_test_pattern(&cin_ctl, value);
 
-    } else if(function == FastCCDTimingMode) {
+    } else if(function == FastCCDSendTiming) {
       int val;
+      getIntegerParam(FastCCDTimingMode, &val);
+
+      // Check if mode exists
+
+      if(cin_com_set_timing(&cin_ctl, &cin_data, val) != CIN_ERROR)
+      {
+        // Now readback the name
+        char _name[CIN_CONFIG_MAX_TIMING_NAME];
+        char *name = _name;
+        _status = cin_config_get_current_timing_name(&cin_ctl, &name);
+        setStringParam(FastCCDTimingName, name);
+      } else {
+        _status = CIN_ERROR;
+      }
+    } else if(function == FastCCDTimingMode){
       char _name[CIN_CONFIG_MAX_TIMING_NAME];
       char *name = _name;
-      getIntegerParam(FastCCDTimingMode, &val);
-      // Check if mode exists
-      if((_status |= cin_config_get_timing_name(&cin_ctl, val, &name)) == CIN_OK)
+      int _val;
+      getIntegerParam(FastCCDTimingMode, &_val);
+      _status = cin_config_get_timing_name(&cin_ctl, _val, &name);
+      if(_status != CIN_ERROR)
       {
-        // Mode exists
-        _status |= cin_com_set_timing(&cin_ctl, &cin_data, name);
-        // Now readback the name
-        _status |= cin_config_get_current_timing_name(&cin_ctl, &name);
         setStringParam(FastCCDTimingName, name);
+        setParamStatus(FastCCDTimingName, asynSuccess);
+      } else {
+        setStringParam(FastCCDTimingName, "");
+        setParamStatus(FastCCDTimingName, asynError);
       }
     } else {
       status = ADDriver::writeInt32(pasynUser, value);
     }
 
-    if(_status){
+    if(_status != CIN_OK){
       status = asynError;
       setParamStatus(function, asynError);
     } else {

@@ -90,6 +90,8 @@ extern const char *cin_build_version;
 #define CIN_CTL_FCLK_SLEEP                 200000 // microseconds
 #define CIN_CTL_STREAM_CHUNK               512
 #define CIN_CTL_STREAM_SLEEP               5
+#define CIN_CTL_PACKET_WAIT                1000 // usecs
+#define CIN_CTL_PACKET_LOOPS               250
 
 #define CIN_CTL_POWER_ENABLE               0x001F
 #define CIN_CTL_POWER_DISABLE              0x0000
@@ -294,6 +296,40 @@ typedef struct cin_port {
   struct sockaddr_in sin_cli; /* client info (us!) */
   socklen_t slen; /* for recvfrom() */
 } cin_port_t;
+
+/* ----------------------------------------------------------------------------*/
+/**
+ * @Breif CIN CCD Timing state
+ *
+ * Each timing state is made up of 52 parameters
+ *
+ * 0	    passes_per_state      
+ * 1	    next_state            
+ * 3      loop_backs_for_state		When not zero go to loop_state and subtract 1
+ * 4	    loop_state            
+ * 5	    ccd_clock_cnt_end     	Number of clock counts for 1 pass of this state
+ * 6 -20	initial_clock_value[15]	There are 8 vertical, 4 horizontal, convert, save_data and spare
+ * 21-35	clock_edge1[15]		  		After this number of ticks the clock signal is inverted from 
+ *                                initial_clock_value
+ * 36-50	clock_edge2[15]         After this number of ticks the clock signal is 
+ *                                reverted to 
+ * */
+/* ----------------------------------------------------------------------------*/
+typedef struct cin_timing_state {
+  uint8_t  passes_per_state;   /**< Number of times to pass through this state */
+  uint8_t  next_state;         /**< State to jump to upon completion */
+  uint32_t loop_back_counter; /**< Number of jumps to loop_state*/
+  uint8_t  loop_state;         /**< State to jump to when loop_state is non zero */
+  uint8_t  total_ticks;        /**< Total number of ticks for this state  */
+  uint8_t  initial_state[15];  /**< Initial clock values */
+  uint8_t  edge1[15];          /**< Number of ticks to wait before inverting 
+                                    clock state*/
+  uint8_t  edge2[15];          /**< Number of ticks to wait before returning to
+                                    initial_state*/
+  uint8_t  spare1;
+  uint8_t  spare2;
+
+} cin_timing_state_t;
 
 #define CIN_CONFIG_MAX_TIMING_DATA       880  /**< Max = 55 per state, 16 states */
 #define CIN_CONFIG_MAX_TIMING_MODES      10  /**< states max */
@@ -576,11 +612,10 @@ int cin_data_send_magic(cin_data_t *cin);
  * @param cin handle to cin library
  * @param reg register to read
  * @param val variable to read value of register to
- * @param wait if non-zero, wait a predefined time before read command (for i2c)
  *
  * @return Returns 0 on sucsess non-zero if error
  */
-int cin_ctl_read(cin_ctl_t *cin, uint16_t reg, uint16_t *val, int wait);
+int cin_ctl_read(cin_ctl_t *cin, uint16_t reg, uint16_t *val);
 /*!
  * Write register to CIN
  *
@@ -779,13 +814,40 @@ int cin_ctl_set_fclk(cin_ctl_t *cin, int clkfreq);
 
 
 /** @defgroup cin_ctl_status CIN Status Routines
- * Status Routines
+ *
+ * Group of routines to get the status of the frame and config FPGAs in the CIN. 
+ *
  * @{
  */
+
+/* ----------------------------------------------------------------------------*/
+/**
+ * @Breif Get the serial and firmware numbers from the CIN
+ *
+ * @Param cin handle to cin library
+ * @Param id data structure containing firmware and serial numbers
+ *
+ * @Returns CIN_OK on sucsess, CIN_ERROR on an error 
+ */
+/* ----------------------------------------------------------------------------*/
+int cin_ctl_get_id(cin_ctl_t *cin, cin_ctl_id_t *val);
+
+/* ----------------------------------------------------------------------------*/
+/**
+ * @Breif 
+ *
+ * @Param cin
+ * @Param _val
+ *
+ * @Returns   
+ */
+/* ----------------------------------------------------------------------------*/
 int cin_ctl_get_cfg_fpga_status(cin_ctl_t *cin, uint16_t *_val);
-int cin_ctl_get_id(cin_ctl_t *cin, cin_ctl_id_t *_val);
+
 int cin_ctl_get_dcm_status(cin_ctl_t *cin, uint16_t *_val);
+
 int cin_ctl_get_power_status(cin_ctl_t *cin, int full, int *pwr, cin_ctl_pwr_mon_t *values);
+
 /** @} */
 
 
@@ -793,6 +855,7 @@ int cin_ctl_get_power_status(cin_ctl_t *cin, int full, int *pwr, cin_ctl_pwr_mon
  * Initialization group
  * @{
  */
+
 int cin_ctl_set_bias(cin_ctl_t *cin,int val);
 int cin_ctl_get_bias(cin_ctl_t *cin, int *val);
 int cin_ctl_set_bias_regs(cin_ctl_t * cin, uint16_t *vals, int verify);
@@ -1004,8 +1067,9 @@ void cin_data_reset_stats(cin_data_t *cin);
 int cin_data_set_descramble_params(cin_data_t *cin, int rows, int overscan);
 void cin_data_get_descramble_params(cin_data_t *cin, int *rows, int *overscan, int *xsize, int *ysize);
 
-int cin_com_boot(cin_ctl_t *cin_ctl, cin_data_t *cin_data, const char *mode);
-int cin_com_set_timing(cin_ctl_t *cin_ctl, cin_data_t *cin_data,  const char *name);
+int cin_com_boot(cin_ctl_t *cin_ctl, cin_data_t *cin_data, int mode);
+int cin_com_set_timing(cin_ctl_t *cin_ctl, cin_data_t *cin_data,  int mode);
+int cin_config_find_timing(cin_ctl_t *cin, const char *name);
 int cin_ctl_upload_bias(cin_ctl_t *cin);
 #ifdef __cplusplus
 }
