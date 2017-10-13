@@ -129,7 +129,7 @@
 #define FastCCDTimingName3String                "TIMING_NAME_3"
 #define FastCCDTimingName4String                "TIMING_NAME_4"
 #define FastCCDTimingName5String                "TIMING_NAME_5"
-#define FastCCDTimingName6String                "TIMING_NAME_6"
+#0;define FastCCDTimingName6String                "TIMING_NAME_6"
 #define FastCCDTimingName7String                "TIMING_NAME_7"
 #define FastCCDTimingName8String                "TIMING_NAME_8"
 #define FastCCDTimingName9String                "TIMING_NAME_9"
@@ -333,6 +333,7 @@ class FastCCD : public ADDriver {
   double dataStatsPollingPeriod;
  
   int framesRemaining;
+  int freeRun;
 
   void getCameraStatus(int first_run);
   int uploadConfig(int status, int path);

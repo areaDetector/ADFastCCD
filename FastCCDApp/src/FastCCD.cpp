@@ -176,18 +176,25 @@ void FastCCD::processImage(cin_data_frame_t *frame)
     this->lock();
     pImage->release();
     this->unlock();
-
     return;
   }
 
   this->lock();
 
-  if (this->framesRemaining > 0) this->framesRemaining--;
-  if (this->framesRemaining == 0) {
-    cin_ctl_int_trigger_stop(&cin_ctl);
-    cin_ctl_ext_trigger_stop(&cin_ctl);
-    setIntegerParam(ADAcquire, 0);
-    setIntegerParam(ADStatus, ADStatusIdle);
+  if(!freeRun){
+    this->framesRemaining--;
+    if (this->framesRemaining <= 0) {
+      cin_ctl_int_trigger_stop(&cin_ctl);
+      cin_ctl_ext_trigger_stop(&cin_ctl);
+      setIntegerParam(ADAcquire, 0);
+      setIntegerParam(ADStatus, ADStatusIdle);
+    }
+    if(this->framesRemaining < 0){
+      // Ok we have a problem. STOP!
+      pImage->release();
+      this->unlock();
+      return;
+    }
   }
 
   /* Update the frame counter */
@@ -317,7 +324,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   dataStatsPollingPeriod = 0.1; //seconds
 
   // Assume we are in continuous mode
-  framesRemaining = -1;
+  framesRemaining = 0;
+  freeRun = 1;
 
   // Set the first frame flag
   firstFrameFlag = 0;
@@ -880,16 +888,19 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
          switch(i_mode) {
            case ADImageSingle:
              this->framesRemaining = 1;
+             this->freeRun = 0;
              n_images = 1 + _framestore;
              break;
            case ADImageMultiple:
              this->framesRemaining = n_images;
+             this->freeRun = 0;
              if(_framestore){
                n_images += _framestore;
              }
              break;
            case ADImageContinuous:
-             this->framesRemaining = -1;
+             this->framesRemaining = 0;
+             this->freeRun = 1;
              n_images = 0;
              break;
          }
