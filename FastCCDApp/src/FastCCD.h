@@ -129,7 +129,7 @@
 #define FastCCDTimingName3String                "TIMING_NAME_3"
 #define FastCCDTimingName4String                "TIMING_NAME_4"
 #define FastCCDTimingName5String                "TIMING_NAME_5"
-#0;define FastCCDTimingName6String                "TIMING_NAME_6"
+#define FastCCDTimingName6String                "TIMING_NAME_6"
 #define FastCCDTimingName7String                "TIMING_NAME_7"
 #define FastCCDTimingName8String                "TIMING_NAME_8"
 #define FastCCDTimingName9String                "TIMING_NAME_9"
