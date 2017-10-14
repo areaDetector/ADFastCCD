@@ -39,199 +39,48 @@ static const char *driverName="NDPluginFastCCD";
   */
 void NDPluginFastCCD::processCallbacks(NDArray *pArray)
 {
-    /* This function computes the ROIs.
-     * It is called with the mutex already locked.  It unlocks it during long calculations when private
-     * structures don't need to be protected.
-     */
 
-    int dataType;
-    int dim;
-    NDDimension_t dims[ND_ARRAY_MAX_DIMS], tempDim, *pDim;
-    size_t userDims[ND_ARRAY_MAX_DIMS];
-    NDArrayInfo arrayInfo, scratchInfo;
-    NDArray *pScratch, *pOutput;
-    NDColorMode_t colorMode;
-    double *pData;
-    int enableScale, enableDim[3], autoSize[3];
-    size_t i;
-    double scale;
-    int collapseDims;
-    //static const char* functionName = "processCallbacks";
+    //size_t userDims[ND_ARRAY_MAX_DIMS];
+    //NDArrayInfo arrayInfo, scratchInfo;
+    //NDArray *pScratch, *pOutput;
+    //NDColorMode_t colorMode;
+    //double *pData;
+    //int enableScale, enableDim[3], autoSize[3];
+    //size_t i;
+    //double scale;
+    //int collapseDims;
+  static const char* functionName = "processCallbacks";
+  size_t dims[2];
+  int nDims = 2;
+  int rowOffset;
+  int rows;
+  int overscan_cols;
     
-    memset(dims, 0, sizeof(NDDimension_t) * ND_ARRAY_MAX_DIMS);
+  /* Get all parameters while we have the mutex */
+  getIntegerParam(NDPluginFastCCDRowOffset,      &row_offset);
+  getIntegerParam(NDPluginFastCCDRows,           &rows);
+  getIntegerParam(NDPluginFastCCDOverscanCols,   &overscan_cols);
 
-    /* Get all parameters while we have the mutex */
-    getIntegerParam(NDPluginFastCCDDim0Bin,      &dims[0].binning);
-    getIntegerParam(NDPluginFastCCDDim1Bin,      &dims[1].binning);
-    getIntegerParam(NDPluginFastCCDDim2Bin,      &dims[2].binning);
-    getIntegerParam(NDPluginFastCCDDim0Reverse,  &dims[0].reverse);
-    getIntegerParam(NDPluginFastCCDDim1Reverse,  &dims[1].reverse);
-    getIntegerParam(NDPluginFastCCDDim2Reverse,  &dims[2].reverse);
-    getIntegerParam(NDPluginFastCCDDim0Enable,   &enableDim[0]);
-    getIntegerParam(NDPluginFastCCDDim1Enable,   &enableDim[1]);
-    getIntegerParam(NDPluginFastCCDDim2Enable,   &enableDim[2]);
-    getIntegerParam(NDPluginFastCCDDim0AutoSize, &autoSize[0]);
-    getIntegerParam(NDPluginFastCCDDim1AutoSize, &autoSize[1]);
-    getIntegerParam(NDPluginFastCCDDim2AutoSize, &autoSize[2]);
-    getIntegerParam(NDPluginFastCCDDataType,     &dataType);
-    getIntegerParam(NDPluginFastCCDEnableScale,  &enableScale);
-    getDoubleParam(NDPluginFastCCDScale, &scale);
-    getIntegerParam(NDPluginFastCCDCollapseDims, &collapseDims);
+  /* Call the base class method */
+  NDPluginDriver::beginProcessCallbacks(pArray);
+  
+  // rows is the number of rows in the CCD for *half* of the image.
+  // The dims[1] size is reduced by 10+overscan / 10
+  dims[0] = rows*2;
+  dims[1] = 10 * pArray->dims[1] / (10 + overscan_cols);
+  pOutput = this->pNDArrayPool->alloc(nDims, dims, pArray->dataType, 0, NULL);
 
-    /* Call the base class method */
-    NDPluginDriver::beginProcessCallbacks(pArray);
-    
-    /* Get information about the array */
-    pArray->getInfo(&arrayInfo);
-    
-    userDims[0] = arrayInfo.xDim;
-    userDims[1] = arrayInfo.yDim;
-    userDims[2] = arrayInfo.colorDim;
+  /* This function is called with the lock taken, and it must be set when we exit.
+   * The following code can be exected without the mutex because we are not accessing memory
+   * that other threads can access. */
+  this->unlock();
 
-    /* Make sure dimensions are valid, fix them if they are not */
-    for (dim=0; dim<pArray->ndims; dim++) {
-        pDim = &dims[dim];
-        if (enableDim[dim]) {
-            size_t newDimSize = pArray->dims[userDims[dim]].size;
-            pDim->offset  = requestedOffset_[dim];
-            pDim->size    = requestedSize_[dim];
-            pDim->offset  = MAX(pDim->offset,  0);
-            pDim->offset  = MIN(pDim->offset,  newDimSize-1);
-            if (autoSize[dim]) pDim->size = newDimSize;
-            pDim->size    = MAX(pDim->size,    1);
-            pDim->size    = MIN(pDim->size,    newDimSize - pDim->offset);
-            pDim->binning = MAX(pDim->binning, 1);
-            pDim->binning = MIN(pDim->binning, (int)pDim->size);
-        } else {
-            pDim->offset  = 0;
-            pDim->size    = pArray->dims[userDims[dim]].size;
-            pDim->binning = 1;
-        }
-    }
 
-    /* Update the parameters that may have changed */
-    setIntegerParam(NDPluginFastCCDDim0MaxSize, 0);
-    setIntegerParam(NDPluginFastCCDDim1MaxSize, 0);
-    setIntegerParam(NDPluginFastCCDDim2MaxSize, 0);
-    if (pArray->ndims > 0) {
-        pDim = &dims[0];
-        setIntegerParam(NDPluginFastCCDDim0MaxSize, (int)pArray->dims[userDims[0]].size);
-        if (enableDim[0]) {
-            setIntegerParam(NDPluginFastCCDDim0Min,  (int)pDim->offset);
-            setIntegerParam(NDPluginFastCCDDim0Size, (int)pDim->size);
-            setIntegerParam(NDPluginFastCCDDim0Bin,  pDim->binning);
-        }
-    }
-    if (pArray->ndims > 1) {
-        pDim = &dims[1];
-        setIntegerParam(NDPluginFastCCDDim1MaxSize, (int)pArray->dims[userDims[1]].size);
-        if (enableDim[1]) {
-            setIntegerParam(NDPluginFastCCDDim1Min,  (int)pDim->offset);
-            setIntegerParam(NDPluginFastCCDDim1Size, (int)pDim->size);
-            setIntegerParam(NDPluginFastCCDDim1Bin,  pDim->binning);
-        }
-    }
-    if (pArray->ndims > 2) {
-        pDim = &dims[2];
-        setIntegerParam(NDPluginFastCCDDim2MaxSize, (int)pArray->dims[userDims[2]].size);
-        if (enableDim[2]) {
-            setIntegerParam(NDPluginFastCCDDim2Min,  (int)pDim->offset);
-            setIntegerParam(NDPluginFastCCDDim2Size, (int)pDim->size);
-            setIntegerParam(NDPluginFastCCDDim2Bin,  pDim->binning);
-        }
-    }
 
-    /* This function is called with the lock taken, and it must be set when we exit.
-     * The following code can be exected without the mutex because we are not accessing memory
-     * that other threads can access. */
-    this->unlock();
+  this->lock();
 
-    /* Extract this ROI from the input array.  The convert() function allocates
-     * a new array and it is reserved (reference count = 1) */
-    if (dataType == -1) dataType = (int)pArray->dataType;
-    /* We treat the case of RGB1 data specially, so that NX and NY are the X and Y dimensions of the
-     * image, not the first 2 dimensions.  This makes it much easier to switch back and forth between
-     * RGB1 and mono mode when using an ROI. */
-    if (arrayInfo.colorMode == NDColorModeRGB1) {
-        tempDim = dims[0];
-        dims[0] = dims[2];
-        dims[2] = dims[1];
-        dims[1] = tempDim;
-    }
-    else if (arrayInfo.colorMode == NDColorModeRGB2) {
-        tempDim = dims[1];
-        dims[1] = dims[2];
-        dims[2] = tempDim;
-    }
-    
-    if (enableScale && (scale != 0) && (scale != 1)) {
-        /* This is tricky.  We want to do the operation to avoid errors due to integer truncation.
-         * For example, if an image with all pixels=1 is binned 3x3 with scale=9 (divide by 9), then
-         * the output should also have all pixels=1. 
-         * We do this by extracting the ROI and converting to double, do the scaling, then convert
-         * to the desired data type. */
-        this->pNDArrayPool->convert(pArray, &pScratch, NDFloat64, dims);
-        pScratch->getInfo(&scratchInfo);
-        pData = (double *)pScratch->pData;
-        for (i=0; i<scratchInfo.nElements; i++) pData[i] = pData[i]/scale;
-        this->pNDArrayPool->convert(pScratch, &pOutput, (NDDataType_t)dataType);
-        pScratch->release();
-    } 
-    else {        
-        this->pNDArrayPool->convert(pArray, &pOutput, (NDDataType_t)dataType, dims);
-    }
-
-    /* If we selected just one color from the array, then we need to collapse the
-     * dimensions and set the color mode to mono */
-    colorMode = NDColorModeMono;
-    if ((pOutput->ndims == 3) && 
-        (arrayInfo.colorMode == NDColorModeRGB1) && 
-        (pOutput->dims[0].size == 1)) 
-    {
-        collapseDims = 1;
-        pOutput->pAttributeList->add("ColorMode", "Color mode", NDAttrInt32, &colorMode);
-    }
-    else if ((pOutput->ndims == 3) && 
-        (arrayInfo.colorMode == NDColorModeRGB2) && 
-        (pOutput->dims[1].size == 1)) 
-    {
-        collapseDims = 1;
-        pOutput->pAttributeList->add("ColorMode", "Color mode", NDAttrInt32, &colorMode);
-    }
-    else if ((pOutput->ndims == 3) && 
-        (arrayInfo.colorMode == NDColorModeRGB3) && 
-        (pOutput->dims[2].size == 1)) 
-    {
-        collapseDims = 1;
-        pOutput->pAttributeList->add("ColorMode", "Color mode", NDAttrInt32, &colorMode);
-    }
-    
-    /* If collapseDims is set then collapse any dimensions of size 1 */
-    if (collapseDims) {
-        int i=0, j;
-        while ((i < pOutput->ndims) && (pOutput->ndims > 1)) {
-            if (pOutput->dims[i].size == 1) {
-                for (j=i+1; j<pOutput->ndims; j++) {
-                    pOutput->dims[j-1] = pOutput->dims[j];
-                }
-                if (pOutput->ndims > 1) pOutput->ndims--;
-            } else {
-               i++;
-            }
-        }
-    }
-    this->lock();
-
-    /* Set the image size of the ROI image data */
-    setIntegerParam(NDArraySizeX, 0);
-    setIntegerParam(NDArraySizeY, 0);
-    setIntegerParam(NDArraySizeZ, 0);
-    if (pOutput->ndims > 0) setIntegerParam(NDArraySizeX, (int)pOutput->dims[userDims[0]].size);
-    if (pOutput->ndims > 1) setIntegerParam(NDArraySizeY, (int)pOutput->dims[userDims[1]].size);
-    if (pOutput->ndims > 2) setIntegerParam(NDArraySizeZ, (int)pOutput->dims[userDims[2]].size);
-
-    NDPluginDriver::endProcessCallbacks(pOutput, false, true);
-    callParamCallbacks();
+  NDPluginDriver::endProcessCallbacks(pOutput, false, true);
+  callParamCallbacks();
 
 }
 

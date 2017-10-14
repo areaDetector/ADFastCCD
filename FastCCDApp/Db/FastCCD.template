@@ -669,19 +669,27 @@ record(ao, "$(P)$(R)E:BiasSpare2-SP")
   field(PINI, "1")
 }
 
-#
-# Overload the gain parameter to reprosent the overscan
-#
-
-record(longout, "$(P)$(R)Overscan"){
+record(longout, "$(P)$(R)OverscanRows"){
 	field(DTYP, "asynInt32")
-	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OVERSCAN")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OVERSCAN_ROWS")
 	field(PINI, "1")
 }
 
-record(longin, "$(P)$(R)Overscan_RBV"){
+record(longin, "$(P)$(R)OverscanRows_RBV"){
 	field(DTYP, "asynInt32")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OVERSCAN")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OVERSCAN_ROWS")
+	field(SCAN, "I/O Intr")
+}
+
+record(longout, "$(P)$(R)OverscanCols"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OVERSCAN_COLS")
+	field(PINI, "1")
+}
+
+record(longin, "$(P)$(R)OverscanCols_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OVERSCAN_COLS")
 	field(SCAN, "I/O Intr")
 }
 

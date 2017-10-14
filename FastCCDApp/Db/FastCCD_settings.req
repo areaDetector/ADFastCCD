@@ -9,7 +9,8 @@ $(P)$(R)PollPeriod
 $(P)$(R)FrameStr
 $(P)$(R)FCRICGain
 $(P)$(R)FCRICClamp
-$(P)$(R)Overscan
+$(P)$(R)OverscanRows
+$(P)$(R)OverscanCols
 $(P)$(R)TimingMode
 $(P)$(R)E:BiasBase-SP
 $(P)$(R)E:BiasDelta-SP
