@@ -1,10 +1,10 @@
 /*
- * NDPluginROI.cpp
+ * NDPluginFastCCD.cpp
  *
- * Region-of-Interest (ROI) plugin
- * Author: Mark Rivers
+ * FastCCD Plugin
+ * Author: Stuart Wilkins
  *
- * Created April 23, 2008
+ * Created October 14th 2017
  */
 
 #include <stdlib.h>
@@ -23,23 +23,21 @@
 
 #include <epicsExport.h>
 #include "NDPluginDriver.h"
-#include "NDPluginROI.h"
-
-//static const char *driverName="NDPluginROI";
+#include "NDPluginFastCCD.h"
 
 #define MAX(A,B) (A)>(B)?(A):(B)
 #define MIN(A,B) (A)<(B)?(A):(B)
 
-static const char *driverName="NDPluginROI";
+static const char *driverName="NDPluginFastCCD";
 
 
 /** Callback function that is called by the NDArray driver with new NDArray data.
   * Extracts the NthrDArray data into each of the ROIs that are being used.
-  * Computes statistics on the ROI if NDPluginROIComputeStatistics is 1.
-  * Computes the histogram of ROI values if NDPluginROIComputeHistogram is 1.
+  * Computes statistics on the ROI if NDPluginFastCCDComputeStatistics is 1.
+  * Computes the histogram of ROI values if NDPluginFastCCDComputeHistogram is 1.
   * \param[in] pArray  The NDArray from the callback.
   */
-void NDPluginROI::processCallbacks(NDArray *pArray)
+void NDPluginFastCCD::processCallbacks(NDArray *pArray)
 {
     /* This function computes the ROIs.
      * It is called with the mutex already locked.  It unlocks it during long calculations when private
@@ -63,22 +61,22 @@ void NDPluginROI::processCallbacks(NDArray *pArray)
     memset(dims, 0, sizeof(NDDimension_t) * ND_ARRAY_MAX_DIMS);
 
     /* Get all parameters while we have the mutex */
-    getIntegerParam(NDPluginROIDim0Bin,      &dims[0].binning);
-    getIntegerParam(NDPluginROIDim1Bin,      &dims[1].binning);
-    getIntegerParam(NDPluginROIDim2Bin,      &dims[2].binning);
-    getIntegerParam(NDPluginROIDim0Reverse,  &dims[0].reverse);
-    getIntegerParam(NDPluginROIDim1Reverse,  &dims[1].reverse);
-    getIntegerParam(NDPluginROIDim2Reverse,  &dims[2].reverse);
-    getIntegerParam(NDPluginROIDim0Enable,   &enableDim[0]);
-    getIntegerParam(NDPluginROIDim1Enable,   &enableDim[1]);
-    getIntegerParam(NDPluginROIDim2Enable,   &enableDim[2]);
-    getIntegerParam(NDPluginROIDim0AutoSize, &autoSize[0]);
-    getIntegerParam(NDPluginROIDim1AutoSize, &autoSize[1]);
-    getIntegerParam(NDPluginROIDim2AutoSize, &autoSize[2]);
-    getIntegerParam(NDPluginROIDataType,     &dataType);
-    getIntegerParam(NDPluginROIEnableScale,  &enableScale);
-    getDoubleParam(NDPluginROIScale, &scale);
-    getIntegerParam(NDPluginROICollapseDims, &collapseDims);
+    getIntegerParam(NDPluginFastCCDDim0Bin,      &dims[0].binning);
+    getIntegerParam(NDPluginFastCCDDim1Bin,      &dims[1].binning);
+    getIntegerParam(NDPluginFastCCDDim2Bin,      &dims[2].binning);
+    getIntegerParam(NDPluginFastCCDDim0Reverse,  &dims[0].reverse);
+    getIntegerParam(NDPluginFastCCDDim1Reverse,  &dims[1].reverse);
+    getIntegerParam(NDPluginFastCCDDim2Reverse,  &dims[2].reverse);
+    getIntegerParam(NDPluginFastCCDDim0Enable,   &enableDim[0]);
+    getIntegerParam(NDPluginFastCCDDim1Enable,   &enableDim[1]);
+    getIntegerParam(NDPluginFastCCDDim2Enable,   &enableDim[2]);
+    getIntegerParam(NDPluginFastCCDDim0AutoSize, &autoSize[0]);
+    getIntegerParam(NDPluginFastCCDDim1AutoSize, &autoSize[1]);
+    getIntegerParam(NDPluginFastCCDDim2AutoSize, &autoSize[2]);
+    getIntegerParam(NDPluginFastCCDDataType,     &dataType);
+    getIntegerParam(NDPluginFastCCDEnableScale,  &enableScale);
+    getDoubleParam(NDPluginFastCCDScale, &scale);
+    getIntegerParam(NDPluginFastCCDCollapseDims, &collapseDims);
 
     /* Call the base class method */
     NDPluginDriver::beginProcessCallbacks(pArray);
@@ -112,34 +110,34 @@ void NDPluginROI::processCallbacks(NDArray *pArray)
     }
 
     /* Update the parameters that may have changed */
-    setIntegerParam(NDPluginROIDim0MaxSize, 0);
-    setIntegerParam(NDPluginROIDim1MaxSize, 0);
-    setIntegerParam(NDPluginROIDim2MaxSize, 0);
+    setIntegerParam(NDPluginFastCCDDim0MaxSize, 0);
+    setIntegerParam(NDPluginFastCCDDim1MaxSize, 0);
+    setIntegerParam(NDPluginFastCCDDim2MaxSize, 0);
     if (pArray->ndims > 0) {
         pDim = &dims[0];
-        setIntegerParam(NDPluginROIDim0MaxSize, (int)pArray->dims[userDims[0]].size);
+        setIntegerParam(NDPluginFastCCDDim0MaxSize, (int)pArray->dims[userDims[0]].size);
         if (enableDim[0]) {
-            setIntegerParam(NDPluginROIDim0Min,  (int)pDim->offset);
-            setIntegerParam(NDPluginROIDim0Size, (int)pDim->size);
-            setIntegerParam(NDPluginROIDim0Bin,  pDim->binning);
+            setIntegerParam(NDPluginFastCCDDim0Min,  (int)pDim->offset);
+            setIntegerParam(NDPluginFastCCDDim0Size, (int)pDim->size);
+            setIntegerParam(NDPluginFastCCDDim0Bin,  pDim->binning);
         }
     }
     if (pArray->ndims > 1) {
         pDim = &dims[1];
-        setIntegerParam(NDPluginROIDim1MaxSize, (int)pArray->dims[userDims[1]].size);
+        setIntegerParam(NDPluginFastCCDDim1MaxSize, (int)pArray->dims[userDims[1]].size);
         if (enableDim[1]) {
-            setIntegerParam(NDPluginROIDim1Min,  (int)pDim->offset);
-            setIntegerParam(NDPluginROIDim1Size, (int)pDim->size);
-            setIntegerParam(NDPluginROIDim1Bin,  pDim->binning);
+            setIntegerParam(NDPluginFastCCDDim1Min,  (int)pDim->offset);
+            setIntegerParam(NDPluginFastCCDDim1Size, (int)pDim->size);
+            setIntegerParam(NDPluginFastCCDDim1Bin,  pDim->binning);
         }
     }
     if (pArray->ndims > 2) {
         pDim = &dims[2];
-        setIntegerParam(NDPluginROIDim2MaxSize, (int)pArray->dims[userDims[2]].size);
+        setIntegerParam(NDPluginFastCCDDim2MaxSize, (int)pArray->dims[userDims[2]].size);
         if (enableDim[2]) {
-            setIntegerParam(NDPluginROIDim2Min,  (int)pDim->offset);
-            setIntegerParam(NDPluginROIDim2Size, (int)pDim->size);
-            setIntegerParam(NDPluginROIDim2Bin,  pDim->binning);
+            setIntegerParam(NDPluginFastCCDDim2Min,  (int)pDim->offset);
+            setIntegerParam(NDPluginFastCCDDim2Size, (int)pDim->size);
+            setIntegerParam(NDPluginFastCCDDim2Bin,  pDim->binning);
         }
     }
 
@@ -233,7 +231,6 @@ void NDPluginROI::processCallbacks(NDArray *pArray)
     if (pOutput->ndims > 2) setIntegerParam(NDArraySizeZ, (int)pOutput->dims[userDims[2]].size);
 
     NDPluginDriver::endProcessCallbacks(pOutput, false, true);
-
     callParamCallbacks();
 
 }
@@ -244,7 +241,7 @@ void NDPluginROI::processCallbacks(NDArray *pArray)
   * For all parameters it sets the value in the parameter library and calls any registered callbacks..
   * \param[in] pasynUser pasynUser structure that encodes the reason and address.
   * \param[in] value Value to write. */
-asynStatus NDPluginROI::writeInt32(asynUser *pasynUser, epicsInt32 value)
+asynStatus NDPluginFastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 {
     int function = pasynUser->reason;
     asynStatus status = asynSuccess;
@@ -253,17 +250,17 @@ asynStatus NDPluginROI::writeInt32(asynUser *pasynUser, epicsInt32 value)
     /* Set the parameter in the parameter library. */
     status = (asynStatus) setIntegerParam(function, value);
 
-    if        (function == NDPluginROIDim0Min) {
+    if        (function == NDPluginFastCCDDim0Min) {
         requestedOffset_[0] = value;
-    } else if (function == NDPluginROIDim1Min) {
+    } else if (function == NDPluginFastCCDDim1Min) {
         requestedOffset_[1] = value;
-    } else if (function == NDPluginROIDim2Min) {
+    } else if (function == NDPluginFastCCDDim2Min) {
         requestedOffset_[2] = value;
-    } else if (function == NDPluginROIDim0Size) {
+    } else if (function == NDPluginFastCCDDim0Size) {
         requestedSize_[0] = value;
-    } else if (function == NDPluginROIDim1Size) {
+    } else if (function == NDPluginFastCCDDim1Size) {
         requestedSize_[1] = value;
-    } else if (function == NDPluginROIDim2Size) {
+    } else if (function == NDPluginFastCCDDim2Size) {
         requestedSize_[2] = value;
     } else {
         /* If this parameter belongs to a base class call its method */
@@ -286,7 +283,7 @@ asynStatus NDPluginROI::writeInt32(asynUser *pasynUser, epicsInt32 value)
 }
 
 
-/** Constructor for NDPluginROI; most parameters are simply passed to NDPluginDriver::NDPluginDriver.
+/** Constructor for NDPluginFastCCD; most parameters are simply passed to NDPluginDriver::NDPluginDriver.
   * After calling the base class constructor this method sets reasonable default values for all of the
   * ROI parameters.
   * \param[in] portName The name of the asyn port driver to be created.
@@ -306,7 +303,7 @@ asynStatus NDPluginROI::writeInt32(asynUser *pasynUser, epicsInt32 value)
   * \param[in] stackSize The stack size for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
   * \param[in] maxThreads The maximum number of threads this driver is allowed to use. If 0 then 1 will be used.
   */
-NDPluginROI::NDPluginROI(const char *portName, int queueSize, int blockingCallbacks,
+NDPluginFastCCD::NDPluginFastCCD(const char *portName, int queueSize, int blockingCallbacks,
                          const char *NDArrayPort, int NDArrayAddr,
                          int maxBuffers, size_t maxMemory,
                          int priority, int stackSize, int maxThreads)
@@ -317,52 +314,52 @@ NDPluginROI::NDPluginROI(const char *portName, int queueSize, int blockingCallba
                    asynInt32ArrayMask | asynFloat64ArrayMask | asynGenericPointerMask,
                    ASYN_MULTIDEVICE, 1, priority, stackSize, maxThreads)
 {
-    //static const char *functionName = "NDPluginROI";
+    //static const char *functionName = "NDPluginFastCCD";
 
     /* ROI general parameters */
-    createParam(NDPluginROINameString,              asynParamOctet, &NDPluginROIName);
+    createParam(NDPluginFastCCDNameString,              asynParamOctet, &NDPluginFastCCDName);
 
      /* ROI definition */
-    createParam(NDPluginROIDim0MinString,           asynParamInt32, &NDPluginROIDim0Min);
-    createParam(NDPluginROIDim1MinString,           asynParamInt32, &NDPluginROIDim1Min);
-    createParam(NDPluginROIDim2MinString,           asynParamInt32, &NDPluginROIDim2Min);
-    createParam(NDPluginROIDim0SizeString,          asynParamInt32, &NDPluginROIDim0Size);
-    createParam(NDPluginROIDim1SizeString,          asynParamInt32, &NDPluginROIDim1Size);
-    createParam(NDPluginROIDim2SizeString,          asynParamInt32, &NDPluginROIDim2Size);
-    createParam(NDPluginROIDim0MaxSizeString,       asynParamInt32, &NDPluginROIDim0MaxSize);
-    createParam(NDPluginROIDim1MaxSizeString,       asynParamInt32, &NDPluginROIDim1MaxSize);
-    createParam(NDPluginROIDim2MaxSizeString,       asynParamInt32, &NDPluginROIDim2MaxSize);
-    createParam(NDPluginROIDim0BinString,           asynParamInt32, &NDPluginROIDim0Bin);
-    createParam(NDPluginROIDim1BinString,           asynParamInt32, &NDPluginROIDim1Bin);
-    createParam(NDPluginROIDim2BinString,           asynParamInt32, &NDPluginROIDim2Bin);
-    createParam(NDPluginROIDim0ReverseString,       asynParamInt32, &NDPluginROIDim0Reverse);
-    createParam(NDPluginROIDim1ReverseString,       asynParamInt32, &NDPluginROIDim1Reverse);
-    createParam(NDPluginROIDim2ReverseString,       asynParamInt32, &NDPluginROIDim2Reverse);
-    createParam(NDPluginROIDim0EnableString,        asynParamInt32, &NDPluginROIDim0Enable);
-    createParam(NDPluginROIDim1EnableString,        asynParamInt32, &NDPluginROIDim1Enable);
-    createParam(NDPluginROIDim2EnableString,        asynParamInt32, &NDPluginROIDim2Enable);
-    createParam(NDPluginROIDim0AutoSizeString,      asynParamInt32, &NDPluginROIDim0AutoSize);
-    createParam(NDPluginROIDim1AutoSizeString,      asynParamInt32, &NDPluginROIDim1AutoSize);
-    createParam(NDPluginROIDim2AutoSizeString,      asynParamInt32, &NDPluginROIDim2AutoSize);
-    createParam(NDPluginROIDataTypeString,          asynParamInt32, &NDPluginROIDataType);
-    createParam(NDPluginROIEnableScaleString,       asynParamInt32, &NDPluginROIEnableScale);
-    createParam(NDPluginROIScaleString,             asynParamFloat64, &NDPluginROIScale);
-    createParam(NDPluginROICollapseDimsString,      asynParamInt32, &NDPluginROICollapseDims);
+    createParam(NDPluginFastCCDDim0MinString,           asynParamInt32, &NDPluginFastCCDDim0Min);
+    createParam(NDPluginFastCCDDim1MinString,           asynParamInt32, &NDPluginFastCCDDim1Min);
+    createParam(NDPluginFastCCDDim2MinString,           asynParamInt32, &NDPluginFastCCDDim2Min);
+    createParam(NDPluginFastCCDDim0SizeString,          asynParamInt32, &NDPluginFastCCDDim0Size);
+    createParam(NDPluginFastCCDDim1SizeString,          asynParamInt32, &NDPluginFastCCDDim1Size);
+    createParam(NDPluginFastCCDDim2SizeString,          asynParamInt32, &NDPluginFastCCDDim2Size);
+    createParam(NDPluginFastCCDDim0MaxSizeString,       asynParamInt32, &NDPluginFastCCDDim0MaxSize);
+    createParam(NDPluginFastCCDDim1MaxSizeString,       asynParamInt32, &NDPluginFastCCDDim1MaxSize);
+    createParam(NDPluginFastCCDDim2MaxSizeString,       asynParamInt32, &NDPluginFastCCDDim2MaxSize);
+    createParam(NDPluginFastCCDDim0BinString,           asynParamInt32, &NDPluginFastCCDDim0Bin);
+    createParam(NDPluginFastCCDDim1BinString,           asynParamInt32, &NDPluginFastCCDDim1Bin);
+    createParam(NDPluginFastCCDDim2BinString,           asynParamInt32, &NDPluginFastCCDDim2Bin);
+    createParam(NDPluginFastCCDDim0ReverseString,       asynParamInt32, &NDPluginFastCCDDim0Reverse);
+    createParam(NDPluginFastCCDDim1ReverseString,       asynParamInt32, &NDPluginFastCCDDim1Reverse);
+    createParam(NDPluginFastCCDDim2ReverseString,       asynParamInt32, &NDPluginFastCCDDim2Reverse);
+    createParam(NDPluginFastCCDDim0EnableString,        asynParamInt32, &NDPluginFastCCDDim0Enable);
+    createParam(NDPluginFastCCDDim1EnableString,        asynParamInt32, &NDPluginFastCCDDim1Enable);
+    createParam(NDPluginFastCCDDim2EnableString,        asynParamInt32, &NDPluginFastCCDDim2Enable);
+    createParam(NDPluginFastCCDDim0AutoSizeString,      asynParamInt32, &NDPluginFastCCDDim0AutoSize);
+    createParam(NDPluginFastCCDDim1AutoSizeString,      asynParamInt32, &NDPluginFastCCDDim1AutoSize);
+    createParam(NDPluginFastCCDDim2AutoSizeString,      asynParamInt32, &NDPluginFastCCDDim2AutoSize);
+    createParam(NDPluginFastCCDDataTypeString,          asynParamInt32, &NDPluginFastCCDDataType);
+    createParam(NDPluginFastCCDEnableScaleString,       asynParamInt32, &NDPluginFastCCDEnableScale);
+    createParam(NDPluginFastCCDScaleString,             asynParamFloat64, &NDPluginFastCCDScale);
+    createParam(NDPluginFastCCDCollapseDimsString,      asynParamInt32, &NDPluginFastCCDCollapseDims);
 
     /* Set the plugin type string */
-    setStringParam(NDPluginDriverPluginType, "NDPluginROI");
+    setStringParam(NDPluginDriverPluginType, "NDPluginFastCCD");
 
     /* Try to connect to the array port */
     connectToArrayPort();
 }
 
 /** Configuration command */
-extern "C" int NDROIConfigure(const char *portName, int queueSize, int blockingCallbacks,
-                                 const char *NDArrayPort, int NDArrayAddr,
-                                 int maxBuffers, size_t maxMemory,
-                                 int priority, int stackSize, int maxThreads)
+extern "C" int NDFastCCDConfigure(const char *portName, int queueSize, int blockingCallbacks,
+                                  const char *NDArrayPort, int NDArrayAddr,
+                                  int maxBuffers, size_t maxMemory,
+                                  int priority, int stackSize, int maxThreads)
 {
-    NDPluginROI *pPlugin = new NDPluginROI(portName, queueSize, blockingCallbacks, NDArrayPort, NDArrayAddr,
+    NDPluginFastCCD *pPlugin = new NDPluginFastCCD(portName, queueSize, blockingCallbacks, NDArrayPort, NDArrayAddr,
                                            maxBuffers, maxMemory, priority, stackSize, maxThreads);
     return pPlugin->start();
 }
@@ -388,20 +385,20 @@ static const iocshArg * const initArgs[] = {&initArg0,
                                             &initArg7,
                                             &initArg8,
                                             &initArg9};
-static const iocshFuncDef initFuncDef = {"NDROIConfigure",10,initArgs};
+static const iocshFuncDef initFuncDef = {"NDFastCCDConfigure",10,initArgs};
 static void initCallFunc(const iocshArgBuf *args)
 {
-    NDROIConfigure(args[0].sval, args[1].ival, args[2].ival,
+    NDFastCCDConfigure(args[0].sval, args[1].ival, args[2].ival,
                    args[3].sval, args[4].ival, args[5].ival,
                    args[6].ival, args[7].ival, args[8].ival,
                    args[9].ival);
 }
 
-extern "C" void NDROIRegister(void)
+extern "C" void NDFastCCDRegister(void)
 {
     iocshRegister(&initFuncDef,initCallFunc);
 }
 
 extern "C" {
-epicsExportRegistrar(NDROIRegister);
+epicsExportRegistrar(NDFastCCDRegister);
 }

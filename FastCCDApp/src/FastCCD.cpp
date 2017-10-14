@@ -225,6 +225,9 @@ void FastCCD::processImage(cin_data_frame_t *frame)
   pImage->epicsTS.secPastEpoch = frame->timestamp.tv_sec;
   pImage->epicsTS.nsec = frame->timestamp.tv_nsec;
   updateTimeStamp(&pImage->epicsTS);
+
+  pImage->pAttributeList->add("OverscanColumns", "Overscan Columns", NDAttrInt32, &colorMode);
+  pImage->pAttributeList->add("OverscanRows", "Overscan Rows", NDAttrInt32, &colorMode);
   
   // Get any attributes for the driver
   this->getAttributes(pImage->pAttributeList);
