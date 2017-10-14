@@ -58,7 +58,8 @@
 #define FastCCDPacketBufferString               "PACKET_BUFFER"
 #define FastCCDFrameBufferString                "FRAME_BUFFER"
 
-#define FastCCDOverscanString                   "OVERSCAN"
+#define FastCCDOverscanRowsString               "OVERSCAN_COLS"
+#define FastCCDOverscanColsString               "OVERSCAN_COLS"
 
 #define FastCCDFclkString                       "FCLK"
 
@@ -188,7 +189,8 @@ class FastCCD : public ADDriver {
   int FastCCDFramestore;
 
   // Overscan
-  int FastCCDOverscan;
+  int FastCCDOverscanRows;
+  int FastCCDOverscanCols;
 
   // FCLK
   int FastCCDFclk;

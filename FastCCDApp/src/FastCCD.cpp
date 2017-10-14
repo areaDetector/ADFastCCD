@@ -226,9 +226,6 @@ void FastCCD::processImage(cin_data_frame_t *frame)
   pImage->epicsTS.nsec = frame->timestamp.tv_nsec;
   updateTimeStamp(&pImage->epicsTS);
 
-  pImage->pAttributeList->add("OverscanColumns", "Overscan Columns", NDAttrInt32, &colorMode);
-  pImage->pAttributeList->add("OverscanRows", "Overscan Rows", NDAttrInt32, &colorMode);
-  
   // Get any attributes for the driver
   this->getAttributes(pImage->pAttributeList);
        
@@ -370,7 +367,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDFPGAStatusString,          asynParamUInt32Digital, &FastCCDFPGAStatus);
   createParam(FastCCDDCMStatusString,           asynParamUInt32Digital, &FastCCDDCMStatus);
 
-  createParam(FastCCDOverscanString,            asynParamInt32,    &FastCCDOverscan);
+  createParam(FastCCDOverscanRowsString,        asynParamInt32,    &FastCCDOverscanRows);
+  createParam(FastCCDOverscanColsString,        asynParamInt32,    &FastCCDOverscanCols);
 
   createParam(FastCCDFclkString,                asynParamInt32,    &FastCCDFclk);
 
@@ -537,7 +535,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setStringParam(FastCCDClockPath, "");
   status |= setStringParam(FastCCDFCRICPath, "");
 
-  status |= setIntegerParam(FastCCDOverscan, 2);
+  status |= setIntegerParam(FastCCDOverscanRows, 0);
+  status |= setIntegerParam(FastCCDOverscanCols, 0);
 
   status |= setIntegerParam(FastCCDFclk, 0);
 
@@ -991,9 +990,9 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       callParamCallbacks();
 
       _status = cin_com_boot(&cin_ctl, &cin_data, mode);
-
       setIntegerParam(FastCCDBoot, 0);
       callParamCallbacks();
+
       epicsEventSignal(statusEvent);
 
     } else if (function == FastCCDSendFCRIC) {
@@ -1077,12 +1076,12 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
       cin_data_reset_stats(&cin_data);
 
-    } else if ((function == ADSizeY) || (function == FastCCDOverscan)) {
+    } else if ((function == ADSizeY) || (function == FastCCDOverscanCols)) {
 
       // The Y size changed, change the descramble routine
       int _val1, _val2;
       getIntegerParam(ADSizeY, &_val1);
-      getIntegerParam(FastCCDOverscan, &_val2);
+      getIntegerParam(FastCCDOverscanCols, &_val2);
       _status |= cin_data_set_descramble_params(&cin_data, _val1, _val2);
 
       // Read back to check all OK
@@ -1091,6 +1090,7 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       cin_data_get_descramble_params(&cin_data, &_val1, &_val2, &_x, &_y);
       setIntegerParam(ADSizeX, _x);
       setIntegerParam(ADSizeY, _y);
+      setIntegerParam(FastCCDOverscanCols, &_val2);
 
     } else if (function == FastCCDFclk) {
 
@@ -1516,6 +1516,12 @@ void FastCCD::getCameraStatus(int first_run){
     } else {
       setParamStatus(FastCCDFclk, asynDisconnected);
     }
+
+    // Now we should set parameters such as size and overscan.
+    cin_data_get_descramble_params(&cin_data, &_val1, &_val2, &_x, &_y);
+    setIntegerParam(ADSizeX, _x);
+    setIntegerParam(ADSizeY, _y);
+    setIntegerParam(FastCCDOverscanCols, &_val2);
 
     // Are we triggering ?
 

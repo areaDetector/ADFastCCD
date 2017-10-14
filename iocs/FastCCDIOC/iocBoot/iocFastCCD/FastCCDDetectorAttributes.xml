@@ -14,6 +14,7 @@
     <Attribute name="AcquirePeriod"       type="PARAM"    source="ACQ_PERIOD"                   datatype="DOUBLE"     description="Acquire Period"/>
 	<Attribute name="SDKVersion"          type="PARAM"    source="SDK_VERSION"                  datatype="STRING"     description="Software SDK Version"/>
 	<Attribute name="FirmwareVersion"     type="PARAM"    source="FIRMWARE_VERSION"             datatype="STRING"     description="CIN Firmware Version"/>
-	<Attribute name="Overscan"            type="PARAM"    source="OVERSCAN"                     datatype="INT"        description="Image Overscan"/>
+	<Attribute name="OverscanColumns"     type="PARAM"    source="OVERSCAN_COLS"                datatype="INT"        description="Image Overscan Cols"/>
+	<Attribute name="OverscanRows"        type="PARAM"    source="OVERSCAN_ROWS"                datatype="INT"        description="Image Overscan Rows"/>
 </Attributes>
 
