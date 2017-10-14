@@ -162,8 +162,8 @@ void FastCCD::processImage(cin_data_frame_t *frame)
     pImage->release();
     this->unlock();
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-                             "Dropped frame %d as framesore frame %d\n",
-                             frame->number, firstFrameFlag);
+              "Dropped frame %d as framesore frame %d\n",
+              frame->number, firstFrameFlag);
     firstFrameFlag--;
     return;
   }
@@ -173,6 +173,9 @@ void FastCCD::processImage(cin_data_frame_t *frame)
   if(_status != ADStatusAcquire)
   {
     // Lets dump the image as we are not acquiring
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+              "Dropped frame %d as we are not acquiring\n",
+              frame->number);
     this->lock();
     pImage->release();
     this->unlock();
@@ -191,6 +194,9 @@ void FastCCD::processImage(cin_data_frame_t *frame)
     }
     if(this->framesRemaining < 0){
       // Ok we have a problem. STOP!
+      asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+                "Dropped frame %d due to \"framesRemaining\" overrun.\n",
+                frame->number);
       pImage->release();
       this->unlock();
       return;
