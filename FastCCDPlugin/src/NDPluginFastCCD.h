@@ -3,22 +3,21 @@
 
 #include "NDPluginDriver.h"
 
-#define FCCD_GAIN_1             0xC000
-#define FCCD_GAIN_1_M           8
-#define FCCD_GAIN_2             0x4000
-#define FCCD_GAIN_2_M           4
-#define FCCD_GAIN_8_M           1
+#define FCCD_GAIN_1                             0xC000
+#define FCCD_GAIN_1_M                           8
+#define FCCD_GAIN_2                             0x4000
+#define FCCD_GAIN_2_M                           4
+#define FCCD_GAIN_8_M                           1
+#define FCCD_MASK                               0x1FFF
 
-#define FCCD_SCOL_N             10
-
-/* ROI general parameters */
+#define FCCD_SCOL_N                             10
 
 #define NDPluginFastCCDNameString               "NAME"
 #define NDPluginFastCCDRowOffsetString          "ROW_OFFSET"
 #define NDPluginFastCCDRowsString               "ROWS"
 #define NDPluginFastCCDOverscanColsString       "OVERSCAN_COLS"
-#define NDPluginFastCCDEnableGainString        "ENABLE_GAIN"
-#define NDPluginFastCCDEnableSizeString        "ENABLE_SIZE"
+#define NDPluginFastCCDEnableGainString         "ENABLE_GAIN"
+#define NDPluginFastCCDEnableSizeString         "ENABLE_SIZE"
 #define NDPluginFastCCDAttrOverString           "ATTR_OVER"
 #define NDPluginFastCCDCaptureBgndString        "CAPTURE_BGND"
 #define NDPluginFastCCDEnableBgndString         "ENABLE_BGND"
@@ -27,9 +26,6 @@
 #define NDPluginFastCCDBgndSubtrString          "BGND_SUBTR"
 #define NDPluginFastCCDTestString               "TEST"
 
-/** Extract Regions-Of-Interest (ROI) from NDArray data; the plugin can be a source of NDArray callbacks for
-  * other plugins, passing these sub-arrays. 
-  * The plugin also optionally computes a statistics on the ROI. */
 class epicsShareClass NDPluginFastCCD : public NDPluginDriver {
 public:
     NDPluginFastCCD(const char *portName, int queueSize, int blockingCallbacks, 
