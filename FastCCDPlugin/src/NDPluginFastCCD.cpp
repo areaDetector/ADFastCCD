@@ -31,9 +31,6 @@ static const char *driverName="NDPluginFastCCD";
 
 
 /** Callback function that is called by the NDArray driver with new NDArray data.
-  * Extracts the NthrDArray data into each of the ROIs that are being used.
-  * Computes statistics on the ROI if NDPluginFastCCDComputeStatistics is 1.
-  * Computes the histogram of ROI values if NDPluginFastCCDComputeHistogram is 1.
   * \param[in] pArray  The NDArray from the callback.
   */
 void NDPluginFastCCD::processCallbacks(NDArray *pArray)
@@ -263,12 +260,12 @@ epicsType NDPluginFastCCD::correctPixel(epicsType inp, int correctGain)
   if(correctGain){
     if((inp & FCCD_GAIN_1) == FCCD_GAIN_1)
     {
-      outp = inp * FCCD_GAIN_1_M;  
+      outp = (inp & FCCD_MASK) * FCCD_GAIN_1_M;  
     } else if ((inp & FCCD_GAIN_2) == FCCD_GAIN_2) {
-      outp = inp * FCCD_GAIN_2_M;
+      outp = (inp & FCCD_MASK) * FCCD_GAIN_2_M;
     } else {
       // Gain 8
-      outp = inp * FCCD_GAIN_8_M;
+      outp = (inp & FCCD_MASK) * FCCD_GAIN_8_M;
     }
   } else {
     outp = inp;
@@ -324,7 +321,7 @@ asynStatus NDPluginFastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
 /** Constructor for NDPluginFastCCD; most parameters are simply passed to NDPluginDriver::NDPluginDriver.
   * After calling the base class constructor this method sets reasonable default values for all of the
-  * ROI parameters.
+  * plugin parameters.
   * \param[in] portName The name of the asyn port driver to be created.
   * \param[in] queueSize The number of NDArrays that the input queue for this plugin can hold when
   *            NDPluginDriverBlockingCallbacks=0.  Larger queues can decrease the number of dropped arrays,
