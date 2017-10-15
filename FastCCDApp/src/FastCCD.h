@@ -58,7 +58,7 @@
 #define FastCCDPacketBufferString               "PACKET_BUFFER"
 #define FastCCDFrameBufferString                "FRAME_BUFFER"
 
-#define FastCCDOverscanRowsString               "OVERSCAN_COLS"
+#define FastCCDOverscanRowsString               "OVERSCAN_ROWS"
 #define FastCCDOverscanColsString               "OVERSCAN_COLS"
 
 #define FastCCDFclkString                       "FCLK"

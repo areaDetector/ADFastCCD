@@ -1,0 +1,8 @@
+$(P)$(R)RowOffset
+$(P)$(R)OverscanCols
+$(P)$(R)Rows
+$(P)$(R)EnableGain
+$(P)$(R)EnableSize
+$(P)$(R)EnableBgnd
+$(P)$(R)AttrOver
+file "NDPluginBase_settings.req" P=$(P), R=$(R)

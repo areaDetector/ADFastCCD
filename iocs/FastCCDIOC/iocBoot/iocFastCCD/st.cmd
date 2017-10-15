@@ -38,7 +38,12 @@ dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,NDARRAY
 # Load all other plugins using commonPlugins.cmd
 < $(ADCORE)/iocBoot/commonPlugins.cmd
 
+# Load the FastCCD Plugin
+NDFastCCDConfigure("FastCCD1", $(QSIZE), 0, "PROC1", 0, 0, 0, 0, 0, $(MAX_THREADS=5))
+dbLoadRecords("$(ADFASTCCD)/db/NDFastCCD.template", "P=$(PREFIX),R=FastCCD1:, PORT=FastCCD1, NDARRAY_PORT=FASTCCD, ADDR=0, TIMEOUT=1")
+
 set_requestfile_path("$(ADFASTCCD)/FastCCDApp/Db")
+set_requestfile_path("$(ADFASTCCD)/FastCCDPlugin/Db")
 set_requestfile_path("$(ADCORE)","ADApp/Db")
 
 iocInit()
