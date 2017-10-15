@@ -1,0 +1,150 @@
+include "NDPluginBase.template"
+
+record(bo, "$(P)$(R)EnableGain"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_GAIN")
+	field(ZNAM, "Off")
+	field(ONAM, "On")
+	field(PINI, "1")
+}
+
+record(bi, "$(P)$(R)EnableGain_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_GAIN")
+	field(SCAN, "I/O Intr")
+	field(ZNAM, "Off")
+	field(ONAM, "On")
+}
+
+record(bo, "$(P)$(R)EnableSize"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_SIZE")
+	field(ZNAM, "Off")
+	field(ONAM, "On")
+	field(PINI, "1")
+}
+
+record(bi, "$(P)$(R)EnableSize_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_SIZE")
+	field(SCAN, "I/O Intr")
+	field(ZNAM, "Off")
+	field(ONAM, "On")
+}
+
+record(bo, "$(P)$(R)EnableBgnd"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_BGND")
+	field(ZNAM, "Off")
+	field(ONAM, "On")
+	field(PINI, "1")
+}
+
+record(bi, "$(P)$(R)EnableBgnd_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_BGND")
+	field(SCAN, "I/O Intr")
+	field(ZNAM, "Off")
+	field(ONAM, "On")
+}
+
+record(longout, "$(P)$(R)Rows"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ROWS")
+	field(PINI, "1")
+}
+
+record(longin, "$(P)$(R)Rows_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ROWS")
+	field(SCAN, "I/O Intr")
+}
+
+record(longout, "$(P)$(R)RowOffset"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ROW_OFFSET")
+	field(PINI, "1")
+}
+
+record(longin, "$(P)$(R)RowOffset_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ROW_OFFSET")
+	field(SCAN, "I/O Intr")
+}
+
+record(longout, "$(P)$(R)OverscanCols"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OVERSCAN_COLS")
+	field(PINI, "1")
+}
+
+record(longin, "$(P)$(R)OverscanCols_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OVERSCAN_COLS")
+	field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)AttrOver"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ATTR_OVER")
+	field(ZNAM, "Off")
+	field(ONAM, "On")
+}
+
+record(bi, "$(P)$(R)AttrOver_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ATTR_OVER")
+	field(SCAN, "I/O Intr")
+	field(ZNAM, "Off")
+	field(ONAM, "On")
+}
+
+record(bo, "$(P)$(R)CaptureBgnd"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))CAPTURE_BGND")
+	field(ZNAM, "Off")
+	field(ONAM, "On")
+}
+
+record(bi, "$(P)$(R)CaptureBgnd_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))CAPTURE_BGND")
+	field(SCAN, "I/O Intr")
+	field(ZNAM, "Off")
+	field(ONAM, "On")
+}
+
+record(longout, "$(P)$(R)Test"){
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TEST")
+}
+
+record(longin, "$(P)$(R)Test_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TEST")
+	field(SCAN, "I/O Intr")
+}
+
+record(bi, "$(P)$(R)ValidBgnd_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VALID_BGND")
+	field(SCAN, "I/O Intr")
+	field(ZNAM, "Invalid")
+	field(ONAM, "Valid")
+}
+
+record(bi, "$(P)$(R)ValidImage_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))VALID_IMAGE")
+	field(SCAN, "I/O Intr")
+	field(ZNAM, "Invalid")
+	field(ONAM, "Valid")
+}
+
+record(bi, "$(P)$(R)BgndSubtr_RBV"){
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BGND_SUBTR")
+	field(SCAN, "I/O Intr")
+	field(ZNAM, "No Subtraction")
+	field(ONAM, "Subtracted")
+}

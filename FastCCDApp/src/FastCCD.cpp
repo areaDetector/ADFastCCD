@@ -990,6 +990,14 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       callParamCallbacks();
 
       _status = cin_com_boot(&cin_ctl, &cin_data, mode);
+      // Now we should set parameters such as size and overscan.
+      
+      int _val1, _val2, _x, _y;
+      cin_data_get_descramble_params(&cin_data, &_val1, &_val2, &_x, &_y);
+      setIntegerParam(ADSizeX, _x);
+      setIntegerParam(ADSizeY, _y);
+      setIntegerParam(FastCCDOverscanCols, _val2);
+
       setIntegerParam(FastCCDBoot, 0);
       callParamCallbacks();
 
@@ -1090,7 +1098,7 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       cin_data_get_descramble_params(&cin_data, &_val1, &_val2, &_x, &_y);
       setIntegerParam(ADSizeX, _x);
       setIntegerParam(ADSizeY, _y);
-      setIntegerParam(FastCCDOverscanCols, &_val2);
+      setIntegerParam(FastCCDOverscanCols, _val2);
 
     } else if (function == FastCCDFclk) {
 
@@ -1516,12 +1524,6 @@ void FastCCD::getCameraStatus(int first_run){
     } else {
       setParamStatus(FastCCDFclk, asynDisconnected);
     }
-
-    // Now we should set parameters such as size and overscan.
-    cin_data_get_descramble_params(&cin_data, &_val1, &_val2, &_x, &_y);
-    setIntegerParam(ADSizeX, _x);
-    setIntegerParam(ADSizeY, _y);
-    setIntegerParam(FastCCDOverscanCols, &_val2);
 
     // Are we triggering ?
 

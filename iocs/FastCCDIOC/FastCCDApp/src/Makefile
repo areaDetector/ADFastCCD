@@ -12,13 +12,13 @@ PROD_IOC_Linux  += $(PROD_NAME)
 # <name>.dbd will be created from <name>Include.dbd
 DBD += $(PROD_NAME).dbd
 $(PROD_NAME)_DBD += FastCCDSupport.dbd
-#$(PROD_NAME)_DBD += NDPluginFastCCDSupport.dbd
+$(PROD_NAME)_DBD += NDPluginFastCCDSupport.dbd
 
 PROD_SRCS += $(PROD_NAME)_registerRecordDeviceDriver.cpp $(PROD_NAME)Main.cpp
 
 # Add locally compiled object code
 PROD_LIBS += FastCCD
-#PROD_LIBS += NDPluginFastCCD
+PROD_LIBS += NDPluginFastCCD
 PROD_LIBS += cin
 PROD_SYS_LIBS += config
 

@@ -25,8 +25,7 @@
 #include "NDPluginDriver.h"
 #include "NDPluginFastCCD.h"
 
-#define MAX(A,B) (A)>(B)?(A):(B)
-#define MIN(A,B) (A)<(B)?(A):(B)
+#include <unistd.h>
 
 static const char *driverName="NDPluginFastCCD";
 
@@ -39,51 +38,243 @@ static const char *driverName="NDPluginFastCCD";
   */
 void NDPluginFastCCD::processCallbacks(NDArray *pArray)
 {
-
-    //size_t userDims[ND_ARRAY_MAX_DIMS];
-    //NDArrayInfo arrayInfo, scratchInfo;
-    //NDArray *pScratch, *pOutput;
-    //NDColorMode_t colorMode;
-    //double *pData;
-    //int enableScale, enableDim[3], autoSize[3];
-    //size_t i;
-    //double scale;
-    //int collapseDims;
-  static const char* functionName = "processCallbacks";
+  //static const char* functionName = "processCallbacks";
+  NDArray *pOutput;
+  NDAttribute *pAttribute;
   size_t dims[2];
   int nDims = 2;
   int rowOffset;
-  int rows;
-  int overscan_cols;
+  int rows, overscanCols; 
+  int correctSize, correctGain, correctBgnd;
+  int attrOver, captureBgnd, validBgnd;
+  int bgndSubtract = 0;
     
   /* Get all parameters while we have the mutex */
-  getIntegerParam(NDPluginFastCCDRowOffset,      &row_offset);
+  getIntegerParam(NDPluginFastCCDRowOffset,      &rowOffset);
   getIntegerParam(NDPluginFastCCDRows,           &rows);
-  getIntegerParam(NDPluginFastCCDOverscanCols,   &overscan_cols);
+  getIntegerParam(NDPluginFastCCDOverscanCols,   &overscanCols);
+  getIntegerParam(NDPluginFastCCDEnableSize,     &correctSize);
+  getIntegerParam(NDPluginFastCCDEnableGain,     &correctGain);
+  getIntegerParam(NDPluginFastCCDEnableBgnd,     &correctBgnd);
+  getIntegerParam(NDPluginFastCCDAttrOver,       &attrOver);
+  getIntegerParam(NDPluginFastCCDCaptureBgnd,    &captureBgnd);
+
+  setIntegerParam(NDPluginFastCCDValidImage, 0);
+  setIntegerParam(NDPluginFastCCDBgndSubtr, 0);
 
   /* Call the base class method */
   NDPluginDriver::beginProcessCallbacks(pArray);
-  
-  // rows is the number of rows in the CCD for *half* of the image.
-  // The dims[1] size is reduced by 10+overscan / 10
-  dims[0] = rows*2;
-  dims[1] = 10 * pArray->dims[1] / (10 + overscan_cols);
+
+  /* we only work on 2d arrays */
+
+  if(pArray->ndims != 2)
+  {
+    NDPluginDriver::endProcessCallbacks(pArray, true, true);
+    callParamCallbacks();
+    return;
+  }
+
+  if(captureBgnd)
+  {
+    if(pBackground != NULL){
+      pBackground->release();
+      pBackground = NULL;
+    }
+    this->pNDArrayPool->convert(pArray, &pBackground, NDInt16);
+    setIntegerParam(NDPluginFastCCDCaptureBgnd, 0);
+    callParamCallbacks();
+    return;
+  }
+
+  validBgnd = 0;
+  if(pBackground != NULL)
+  {
+    if(pBackground->ndims == 2)
+    {
+      if((pBackground->dims[0].size == pArray->dims[0].size) && 
+         (pBackground->dims[1].size == pArray->dims[1].size))
+      {
+        validBgnd = 1;
+      }
+    }
+  }
+  setIntegerParam(NDPluginFastCCDValidBgnd,      validBgnd);
+
+
+  if(correctSize)
+  {
+    if(attrOver)
+    {
+      pAttribute = pArray->pAttributeList->find("OverscanColumns");
+      if(pAttribute) pAttribute->getValue(NDAttrInt32, &overscanCols);
+      pAttribute = pArray->pAttributeList->find("SensorRows");
+      if(pAttribute) pAttribute->getValue(NDAttrInt32, &rows);
+      pAttribute = pArray->pAttributeList->find("SensorRowOffset");
+      if(pAttribute) pAttribute->getValue(NDAttrInt32, &rowOffset);
+      setIntegerParam(NDPluginFastCCDRowOffset,      rowOffset);
+      setIntegerParam(NDPluginFastCCDRows,           rows);
+      setIntegerParam(NDPluginFastCCDOverscanCols,   overscanCols);
+    }
+
+    // rows is the number of rows in the CCD for *half* of the image.
+    // The dims[1] size is reduced by 10+overscan / 10
+    //
+    // Do some bounds checking here
+    int newCols = FCCD_SCOL_N * pArray->dims[0].size / (FCCD_SCOL_N + overscanCols);
+
+    if(((unsigned int)(rows + rowOffset) > (pArray->dims[1].size / 2)) ||
+       ((unsigned int)newCols > pArray->dims[0].size))
+    {
+      // Invalid dimensions, just pass array
+      NDPluginDriver::endProcessCallbacks(pArray, true, true);
+      callParamCallbacks();
+      return;
+    }
+
+    dims[0] = newCols;
+    dims[1] = rows * 2;
+
+  } else {
+    // This is just a passthrough, not efficient but works
+    dims[1] = pArray->dims[1].size;
+    dims[0] = pArray->dims[0].size;
+    rowOffset = 0;
+    overscanCols = 0;
+    rows = dims[1];
+  }
+
   pOutput = this->pNDArrayPool->alloc(nDims, dims, pArray->dataType, 0, NULL);
+
+  bgndSubtract = validBgnd && correctBgnd;
+  setIntegerParam(NDPluginFastCCDBgndSubtr, bgndSubtract);
 
   /* This function is called with the lock taken, and it must be set when we exit.
    * The following code can be exected without the mutex because we are not accessing memory
    * that other threads can access. */
   this->unlock();
-
-
-
+  asynStatus stat = processImage(pArray, pOutput, rowOffset, overscanCols, correctGain, bgndSubtract);
   this->lock();
 
+  if(stat != asynSuccess)
+  {
+    pOutput->release();
+    setIntegerParam(NDPluginFastCCDValidImage, 0);
+    NDPluginDriver::endProcessCallbacks(pArray, true, true);
+    callParamCallbacks();
+    return;
+  }
+
+  setIntegerParam(NDPluginFastCCDValidImage, 1);
   NDPluginDriver::endProcessCallbacks(pOutput, false, true);
   callParamCallbacks();
-
+  return;
 }
 
+asynStatus NDPluginFastCCD::processImage(NDArray *pIn, NDArray *pOut, 
+                                         int rowOffset, int overscanCols, int correctGain, int bgndSubtract)
+{
+  asynStatus status;
+
+  switch(pIn->dataType)
+  {
+    case NDInt32:
+      status = processImageT<epicsInt32>(pIn, pOut, rowOffset, overscanCols, correctGain, bgndSubtract);
+      break;
+    case NDInt16:
+      status = processImageT<epicsInt16>(pIn, pOut, rowOffset, overscanCols, correctGain, bgndSubtract);
+      break;
+    case NDUInt16:
+      status = processImageT<epicsInt16>(pIn, pOut, rowOffset, overscanCols, correctGain, bgndSubtract);
+      break;
+    default:
+      status = asynError;
+      break;
+  }
+
+  return status;
+}
+
+template <typename epicsType>
+asynStatus NDPluginFastCCD::processImageT(NDArray *pIn, NDArray *pOut, 
+                                          int rowOffset, int overscanCols, int correctGain,
+                                          int bgndSubtract)
+{
+  epicsType *pInData = (epicsType *)pIn->pData;
+  epicsType *pOutData = (epicsType *)pOut->pData;
+  epicsInt16 *pBackData = NULL;
+
+  if(bgndSubtract)
+  {
+    pBackData = (epicsInt16 *)pBackground->pData;
+  }
+
+  int oldCols = pIn->dims[0].size;
+  int oldRows = pIn->dims[1].size;
+  int newCols = pOut->dims[0].size;
+  int newRows = pOut->dims[1].size;
+
+  for(int row=0;row<(newRows/2) ;row++)
+  {
+    int newCol = 0;
+    for(int col=0;col<oldCols;col++)
+    {
+      if(col % (FCCD_SCOL_N + overscanCols) < FCCD_SCOL_N)
+      {
+        int nOut = newCol + (newCols * row);
+        int nIn = col + (oldCols * (row + rowOffset));
+        if(bgndSubtract)
+        {
+          pOutData[nOut] = correctPixel<epicsType>(pInData[nIn] - pBackData[nIn], correctGain);
+        } else {
+          pOutData[nOut] = correctPixel<epicsType>(pInData[nIn], correctGain);
+        }
+        newCol++;
+      }
+    }
+  }
+
+  for(int row=0;row<(newRows/2) ;row++)
+  {
+    int newCol = 0;
+    for(int col=0;col<oldCols;col++)
+    {
+      if(col % (FCCD_SCOL_N + overscanCols) >= overscanCols)
+      {
+        int nOut = newCol + (newCols * (newRows - 1 - row));
+        int nIn = col + (oldCols * (oldRows - 1 - row - rowOffset));
+        if(bgndSubtract)
+        {
+          pOutData[nOut] = correctPixel<epicsType>(pInData[nIn] - pBackData[nIn], correctGain);
+        } else {
+          pOutData[nOut] = correctPixel<epicsType>(pInData[nIn], correctGain);
+        }
+        newCol++;
+      }
+    }
+  }
+
+  return asynSuccess;
+}
+
+template <typename epicsType>
+epicsType NDPluginFastCCD::correctPixel(epicsType inp, int correctGain)
+{
+  epicsType outp; 
+  if(correctGain){
+    if((inp & FCCD_GAIN_1) == FCCD_GAIN_1)
+    {
+      outp = inp * FCCD_GAIN_1_M;  
+    } else if ((inp & FCCD_GAIN_2) == FCCD_GAIN_2) {
+      outp = inp * FCCD_GAIN_2_M;
+    } else {
+      // Gain 8
+      outp = inp * FCCD_GAIN_8_M;
+    }
+  } else {
+    outp = inp;
+  }
+  return outp;
+}
 /** Called when asyn clients call pasynInt32->write().
   * This function performs actions for some parameters, including NDPluginDriverEnableCallbacks and
   * NDPluginDriverArrayAddr.
@@ -99,18 +290,17 @@ asynStatus NDPluginFastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
     /* Set the parameter in the parameter library. */
     status = (asynStatus) setIntegerParam(function, value);
 
-    if        (function == NDPluginFastCCDDim0Min) {
-        requestedOffset_[0] = value;
-    } else if (function == NDPluginFastCCDDim1Min) {
-        requestedOffset_[1] = value;
-    } else if (function == NDPluginFastCCDDim2Min) {
-        requestedOffset_[2] = value;
-    } else if (function == NDPluginFastCCDDim0Size) {
-        requestedSize_[0] = value;
-    } else if (function == NDPluginFastCCDDim1Size) {
-        requestedSize_[1] = value;
-    } else if (function == NDPluginFastCCDDim2Size) {
-        requestedSize_[2] = value;
+    if (function == NDPluginFastCCDTest){
+      int i;
+      getIntegerParam(NDPluginFastCCDTest, &i);
+      sleep(10);
+      if(i == 0)
+      {
+        status = asynError;
+      } else {
+        setIntegerParam(NDPluginFastCCDTest, i + 1);
+      }
+        
     } else {
         /* If this parameter belongs to a base class call its method */
         if (function < FIRST_NDPLUGIN_ROI_PARAM) 
@@ -165,38 +355,36 @@ NDPluginFastCCD::NDPluginFastCCD(const char *portName, int queueSize, int blocki
 {
     //static const char *functionName = "NDPluginFastCCD";
 
-    /* ROI general parameters */
     createParam(NDPluginFastCCDNameString,              asynParamOctet, &NDPluginFastCCDName);
-
-     /* ROI definition */
-    createParam(NDPluginFastCCDDim0MinString,           asynParamInt32, &NDPluginFastCCDDim0Min);
-    createParam(NDPluginFastCCDDim1MinString,           asynParamInt32, &NDPluginFastCCDDim1Min);
-    createParam(NDPluginFastCCDDim2MinString,           asynParamInt32, &NDPluginFastCCDDim2Min);
-    createParam(NDPluginFastCCDDim0SizeString,          asynParamInt32, &NDPluginFastCCDDim0Size);
-    createParam(NDPluginFastCCDDim1SizeString,          asynParamInt32, &NDPluginFastCCDDim1Size);
-    createParam(NDPluginFastCCDDim2SizeString,          asynParamInt32, &NDPluginFastCCDDim2Size);
-    createParam(NDPluginFastCCDDim0MaxSizeString,       asynParamInt32, &NDPluginFastCCDDim0MaxSize);
-    createParam(NDPluginFastCCDDim1MaxSizeString,       asynParamInt32, &NDPluginFastCCDDim1MaxSize);
-    createParam(NDPluginFastCCDDim2MaxSizeString,       asynParamInt32, &NDPluginFastCCDDim2MaxSize);
-    createParam(NDPluginFastCCDDim0BinString,           asynParamInt32, &NDPluginFastCCDDim0Bin);
-    createParam(NDPluginFastCCDDim1BinString,           asynParamInt32, &NDPluginFastCCDDim1Bin);
-    createParam(NDPluginFastCCDDim2BinString,           asynParamInt32, &NDPluginFastCCDDim2Bin);
-    createParam(NDPluginFastCCDDim0ReverseString,       asynParamInt32, &NDPluginFastCCDDim0Reverse);
-    createParam(NDPluginFastCCDDim1ReverseString,       asynParamInt32, &NDPluginFastCCDDim1Reverse);
-    createParam(NDPluginFastCCDDim2ReverseString,       asynParamInt32, &NDPluginFastCCDDim2Reverse);
-    createParam(NDPluginFastCCDDim0EnableString,        asynParamInt32, &NDPluginFastCCDDim0Enable);
-    createParam(NDPluginFastCCDDim1EnableString,        asynParamInt32, &NDPluginFastCCDDim1Enable);
-    createParam(NDPluginFastCCDDim2EnableString,        asynParamInt32, &NDPluginFastCCDDim2Enable);
-    createParam(NDPluginFastCCDDim0AutoSizeString,      asynParamInt32, &NDPluginFastCCDDim0AutoSize);
-    createParam(NDPluginFastCCDDim1AutoSizeString,      asynParamInt32, &NDPluginFastCCDDim1AutoSize);
-    createParam(NDPluginFastCCDDim2AutoSizeString,      asynParamInt32, &NDPluginFastCCDDim2AutoSize);
-    createParam(NDPluginFastCCDDataTypeString,          asynParamInt32, &NDPluginFastCCDDataType);
-    createParam(NDPluginFastCCDEnableScaleString,       asynParamInt32, &NDPluginFastCCDEnableScale);
-    createParam(NDPluginFastCCDScaleString,             asynParamFloat64, &NDPluginFastCCDScale);
-    createParam(NDPluginFastCCDCollapseDimsString,      asynParamInt32, &NDPluginFastCCDCollapseDims);
+    createParam(NDPluginFastCCDRowsString,              asynParamInt32, &NDPluginFastCCDRows);
+    createParam(NDPluginFastCCDRowOffsetString,         asynParamInt32, &NDPluginFastCCDRowOffset);
+    createParam(NDPluginFastCCDOverscanColsString,      asynParamInt32, &NDPluginFastCCDOverscanCols);
+    createParam(NDPluginFastCCDEnableGainString,        asynParamInt32, &NDPluginFastCCDEnableGain);
+    createParam(NDPluginFastCCDEnableSizeString,        asynParamInt32, &NDPluginFastCCDEnableSize);
+    createParam(NDPluginFastCCDEnableBgndString,        asynParamInt32, &NDPluginFastCCDEnableBgnd);
+    createParam(NDPluginFastCCDAttrOverString,          asynParamInt32, &NDPluginFastCCDAttrOver);
+    createParam(NDPluginFastCCDValidBgndString,         asynParamInt32, &NDPluginFastCCDValidBgnd);
+    createParam(NDPluginFastCCDValidImageString,        asynParamInt32, &NDPluginFastCCDValidImage);
+    createParam(NDPluginFastCCDCaptureBgndString,       asynParamInt32, &NDPluginFastCCDCaptureBgnd);
+    createParam(NDPluginFastCCDBgndSubtrString,         asynParamInt32, &NDPluginFastCCDBgndSubtr);
+    createParam(NDPluginFastCCDTestString,              asynParamInt32, &NDPluginFastCCDTest);
 
     /* Set the plugin type string */
     setStringParam(NDPluginDriverPluginType, "NDPluginFastCCD");
+    setIntegerParam(NDPluginFastCCDRows, 480);
+    setIntegerParam(NDPluginFastCCDRowOffset, 6);
+    setIntegerParam(NDPluginFastCCDOverscanCols, 0);
+    setIntegerParam(NDPluginFastCCDEnableGain, 0);
+    setIntegerParam(NDPluginFastCCDEnableSize, 0);
+    setIntegerParam(NDPluginFastCCDEnableBgnd, 0);
+    setIntegerParam(NDPluginFastCCDAttrOver, 0);
+    setIntegerParam(NDPluginFastCCDCaptureBgnd, 0);
+    setIntegerParam(NDPluginFastCCDValidBgnd, 0);
+    setIntegerParam(NDPluginFastCCDValidImage, 0);
+    setIntegerParam(NDPluginFastCCDBgndSubtr, 0);
+    setIntegerParam(NDPluginFastCCDTest, 0);
+
+    pBackground = NULL;
 
     /* Try to connect to the array port */
     connectToArrayPort();

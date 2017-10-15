@@ -3,35 +3,29 @@
 
 #include "NDPluginDriver.h"
 
-/* ROI general parameters */
-#define NDPluginFastCCDNameString               "NAME"                /* (asynOctet,   r/w) Name of this ROI */
+#define FCCD_GAIN_1             0xC000
+#define FCCD_GAIN_1_M           8
+#define FCCD_GAIN_2             0x4000
+#define FCCD_GAIN_2_M           4
+#define FCCD_GAIN_8_M           1
 
-/* ROI definition */
-#define NDPluginFastCCDDim0MinString            "DIM0_MIN"          /* (asynInt32,   r/w) Starting element of ROI in each dimension */
-#define NDPluginFastCCDDim1MinString            "DIM1_MIN"          /* (asynInt32,   r/w) Starting element of ROI in each dimension */
-#define NDPluginFastCCDDim2MinString            "DIM2_MIN"          /* (asynInt32,   r/w) Starting element of ROI in each dimension */
-#define NDPluginFastCCDDim0SizeString           "DIM0_SIZE"         /* (asynInt32,   r/w) Size of ROI in each dimension */
-#define NDPluginFastCCDDim1SizeString           "DIM1_SIZE"         /* (asynInt32,   r/w) Size of ROI in each dimension */
-#define NDPluginFastCCDDim2SizeString           "DIM2_SIZE"         /* (asynInt32,   r/w) Size of ROI in each dimension */
-#define NDPluginFastCCDDim0MaxSizeString        "DIM0_MAX_SIZE"     /* (asynInt32,   r/o) Maximum size of ROI in each dimension */
-#define NDPluginFastCCDDim1MaxSizeString        "DIM1_MAX_SIZE"     /* (asynInt32,   r/o) Maximum size of ROI in each dimension */
-#define NDPluginFastCCDDim2MaxSizeString        "DIM2_MAX_SIZE"     /* (asynInt32,   r/o) Maximum size of ROI in each dimension */
-#define NDPluginFastCCDDim0BinString            "DIM0_BIN"          /* (asynInt32,   r/w) Binning of ROI in each dimension */
-#define NDPluginFastCCDDim1BinString            "DIM1_BIN"          /* (asynInt32,   r/w) Binning of ROI in each dimension */
-#define NDPluginFastCCDDim2BinString            "DIM2_BIN"          /* (asynInt32,   r/w) Binning of ROI in each dimension */
-#define NDPluginFastCCDDim0ReverseString        "DIM0_REVERSE"      /* (asynInt32,   r/w) Reversal of ROI in each dimension */
-#define NDPluginFastCCDDim1ReverseString        "DIM1_REVERSE"      /* (asynInt32,   r/w) Reversal of ROI in each dimension */
-#define NDPluginFastCCDDim2ReverseString        "DIM2_REVERSE"      /* (asynInt32,   r/w) Reversal of ROI in each dimension */
-#define NDPluginFastCCDDim0EnableString         "DIM0_ENABLE"       /* (asynInt32,   r/w) If set then do ROI in this dimension */
-#define NDPluginFastCCDDim1EnableString         "DIM1_ENABLE"       /* (asynInt32,   r/w) If set then do ROI in this dimension */
-#define NDPluginFastCCDDim2EnableString         "DIM2_ENABLE"       /* (asynInt32,   r/w) If set then do ROI in this dimension */
-#define NDPluginFastCCDDim0AutoSizeString       "DIM0_AUTO_SIZE"    /* (asynInt32,   r/w) Automatically set size to max */
-#define NDPluginFastCCDDim1AutoSizeString       "DIM1_AUTO_SIZE"    /* (asynInt32,   r/w) Automatically  set size to max */
-#define NDPluginFastCCDDim2AutoSizeString       "DIM2_AUTO_SIZE"    /* (asynInt32,   r/w) Automatically  set size to max */
-#define NDPluginFastCCDDataTypeString           "ROI_DATA_TYPE"     /* (asynInt32,   r/w) Data type for ROI.  -1 means automatic. */
-#define NDPluginFastCCDEnableScaleString        "ENABLE_SCALE"      /* (asynInt32,   r/w) Disable/Enable scaling */
-#define NDPluginFastCCDScaleString              "SCALE_VALUE"       /* (asynFloat64, r/w) Scaling value, used as divisor */
-#define NDPluginFastCCDCollapseDimsString       "COLLAPSE_DIMS"     /* (asynInt32,   r/w) Collapse dimensions of size 1 */
+#define FCCD_SCOL_N             10
+
+/* ROI general parameters */
+
+#define NDPluginFastCCDNameString               "NAME"
+#define NDPluginFastCCDRowOffsetString          "ROW_OFFSET"
+#define NDPluginFastCCDRowsString               "ROWS"
+#define NDPluginFastCCDOverscanColsString       "OVERSCAN_COLS"
+#define NDPluginFastCCDEnableGainString        "ENABLE_GAIN"
+#define NDPluginFastCCDEnableSizeString        "ENABLE_SIZE"
+#define NDPluginFastCCDAttrOverString           "ATTR_OVER"
+#define NDPluginFastCCDCaptureBgndString        "CAPTURE_BGND"
+#define NDPluginFastCCDEnableBgndString         "ENABLE_BGND"
+#define NDPluginFastCCDValidBgndString          "VALID_BGND"
+#define NDPluginFastCCDValidImageString         "VALID_IMAGE"
+#define NDPluginFastCCDBgndSubtrString          "BGND_SUBTR"
+#define NDPluginFastCCDTestString               "TEST"
 
 /** Extract Regions-Of-Interest (ROI) from NDArray data; the plugin can be a source of NDArray callbacks for
   * other plugins, passing these sub-arrays. 
@@ -52,35 +46,29 @@ protected:
     #define FIRST_NDPLUGIN_ROI_PARAM NDPluginFastCCDName
 
     /* ROI definition */
-    int NDPluginFastCCDDim0Min;
-    int NDPluginFastCCDDim1Min;
-    int NDPluginFastCCDDim2Min;
-    int NDPluginFastCCDDim0Size;
-    int NDPluginFastCCDDim1Size;
-    int NDPluginFastCCDDim2Size;
-    int NDPluginFastCCDDim0MaxSize;
-    int NDPluginFastCCDDim1MaxSize;
-    int NDPluginFastCCDDim2MaxSize;
-    int NDPluginFastCCDDim0Bin;
-    int NDPluginFastCCDDim1Bin;
-    int NDPluginFastCCDDim2Bin;
-    int NDPluginFastCCDDim0Reverse;
-    int NDPluginFastCCDDim1Reverse;
-    int NDPluginFastCCDDim2Reverse;
-    int NDPluginFastCCDDim0Enable;
-    int NDPluginFastCCDDim1Enable;    
-    int NDPluginFastCCDDim2Enable;    
-    int NDPluginFastCCDDim0AutoSize;    
-    int NDPluginFastCCDDim1AutoSize;    
-    int NDPluginFastCCDDim2AutoSize;    
-    int NDPluginFastCCDDataType;
-    int NDPluginFastCCDEnableScale;
-    int NDPluginFastCCDScale;
-    int NDPluginFastCCDCollapseDims;
+    int NDPluginFastCCDRowOffset;
+    int NDPluginFastCCDRows;
+    int NDPluginFastCCDOverscanCols;
+    int NDPluginFastCCDEnableGain;
+    int NDPluginFastCCDEnableSize;
+    int NDPluginFastCCDEnableBgnd;
+    int NDPliginFastCCDCaptureBgnd;
+    int NDPluginFastCCDAttrOver;
+    int NDPluginFastCCDCaptureBgnd;
+    int NDPluginFastCCDValidBgnd;
+    int NDPluginFastCCDValidImage;
+    int NDPluginFastCCDBgndSubtr;
+    int NDPluginFastCCDTest;
 
 private:
-    int requestedSize_[3];
-    int requestedOffset_[3];
+
+    asynStatus processImage(NDArray *pIn, NDArray *pOut, int rowOffset, int overscanCols, int correctGain,
+                            int bgndSubtract);
+    template <typename epicsType> asynStatus processImageT(NDArray *pIn, NDArray *pOut, 
+                                                           int rowOffset, int overscanCols, int correctGain,
+                                                           int bgndSubtract);
+    template <typename epicsType> epicsType correctPixel(epicsType inp, int correctGain);
+    NDArray *pBackground;
 };
     
 #endif
