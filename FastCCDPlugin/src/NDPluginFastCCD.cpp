@@ -95,8 +95,8 @@ void NDPluginFastCCD::processCallbacks(NDArray *pArray)
       }
     }
   }
-  setIntegerParam(NDPluginFastCCDValidBgnd,      validBgnd);
 
+  setIntegerParam(NDPluginFastCCDValidBgnd,      validBgnd);
 
   if(correctSize)
   {
@@ -369,7 +369,7 @@ NDPluginFastCCD::NDPluginFastCCD(const char *portName, int queueSize, int blocki
     /* Set the plugin type string */
     setStringParam(NDPluginDriverPluginType, "NDPluginFastCCD");
     setIntegerParam(NDPluginFastCCDRows, 480);
-    setIntegerParam(NDPluginFastCCDRowOffset, 6);
+    setIntegerParam(NDPluginFastCCDRowOffset, 0);
     setIntegerParam(NDPluginFastCCDOverscanCols, 0);
     setIntegerParam(NDPluginFastCCDEnableGain, 0);
     setIntegerParam(NDPluginFastCCDEnableSize, 0);
