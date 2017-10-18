@@ -91,7 +91,7 @@ extern const char *cin_build_version;
 #define CIN_CTL_STREAM_CHUNK               512
 #define CIN_CTL_STREAM_SLEEP               5
 #define CIN_CTL_PACKET_WAIT                1000 // usecs
-#define CIN_CTL_PACKET_LOOPS               250
+#define CIN_CTL_PACKET_LOOPS               100
 
 #define CIN_CTL_POWER_ENABLE               0x001F
 #define CIN_CTL_POWER_DISABLE              0x0000
@@ -341,6 +341,8 @@ typedef struct cin_config_timing {
   char name[CIN_CONFIG_MAX_TIMING_NAME];    /**< String for config name */
   int rows;                                 /**< Rows for this timing setup */
   int cols;                                 /**< Cols for this timing setup */
+  int sensor_rows;                          /**< Physical Sensor Rows for this timing setup */
+  int sensor_row_offset;                    /**< Physical Sensor Row Offset for this timing setup */
   int overscan;                             /**< Number of overscan cols for this setup */
   int fclk_freq;                            /**< FCLK Frequency to use */
   int framestore;                           /**< Flag (not zero means framestore */
@@ -1069,6 +1071,7 @@ void cin_data_get_descramble_params(cin_data_t *cin, int *rows, int *overscan, i
 
 int cin_com_boot(cin_ctl_t *cin_ctl, cin_data_t *cin_data, int mode);
 int cin_com_set_timing(cin_ctl_t *cin_ctl, cin_data_t *cin_data,  int mode);
+int cin_com_get_timing(cin_ctl_t *cin_ctl, cin_data_t *cin_data, int *mode);
 int cin_config_find_timing(cin_ctl_t *cin, const char *name);
 int cin_ctl_upload_bias(cin_ctl_t *cin);
 #ifdef __cplusplus
