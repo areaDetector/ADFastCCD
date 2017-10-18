@@ -1312,7 +1312,7 @@ void FastCCD::getCameraStatus(int first_run){
       setIntegerParam(FastCCDFabBoardID, id.fabric_board_id);
       setIntegerParam(FastCCDFabSerialNum, id.fabric_serial_no);
       setIntegerParam(FastCCDFabFPGAVersion, id.fabric_fpga_ver);
-      char buffer [50];
+      char buffer[50];
       sprintf(buffer, "0x%04X", id.fabric_fpga_ver);
       setStringParam(ADFirmwareVersion, (char *)buffer);
 
@@ -1529,9 +1529,14 @@ void FastCCD::getCameraStatus(int first_run){
       setParamStatus(FastCCDFclk, asynDisconnected);
     }
 
+    // Can we get the timing settings
     // Are we triggering ?
 
     if(first_run){
+
+      int mode;
+      cin_status = cin_com_get_timing(&cin_ctl, &cin_data, &mode);
+      fprintf(stderr, "status = %d, mode = %d\n", cin_status, mode);
 
       int trig;
       cin_status = cin_ctl_get_triggering(&cin_ctl, &trig);
