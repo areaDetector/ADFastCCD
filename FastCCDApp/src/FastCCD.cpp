@@ -1536,7 +1536,26 @@ void FastCCD::getCameraStatus(int first_run){
 
       int mode;
       cin_status = cin_com_get_timing(&cin_ctl, &cin_data, &mode);
-      fprintf(stderr, "status = %d, mode = %d\n", cin_status, mode);
+      if(cin_status == CIN_OK)
+      {
+        fprintf(stderr, "status = %d, mode = %d\n", cin_status, mode);
+
+        int _val1, _val2, _x, _y;
+        cin_data_get_descramble_params(&cin_data, &_val1, &_val2, &_x, &_y);
+        setIntegerParam(ADSizeX, _x);
+        setIntegerParam(ADSizeY, _y);
+        setIntegerParam(FastCCDOverscanCols, _val2);
+        setParamStatus(ADSizeX, asynSuccess);
+        setParamStatus(ADSizeY, asynSuccess);
+        setParamStatus(FastCCDOverscanCols, asynSuccess);
+        setIntegerParam(FastCCDTimingMode, mode);
+        setParamStatus(FastCCDTimingMode, asynSuccess);
+      } else {
+        setParamStatus(FastCCDTimingMode, asynDisconnected);
+        setParamStatus(ADSizeX, asynDisconnected);
+        setParamStatus(ADSizeY, asynDisconnected);
+        setParamStatus(FastCCDOverscanCols, asynDisconnected);
+      }
 
       int trig;
       cin_status = cin_ctl_get_triggering(&cin_ctl, &trig);
