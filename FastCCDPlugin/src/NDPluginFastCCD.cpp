@@ -215,7 +215,7 @@ asynStatus NDPluginFastCCD::processImageT(NDArray *pIn, NDArray *pOut,
     int newCol = 0;
     for(int col=0;col<oldCols;col++)
     {
-      if(col % (FCCD_SCOL_N + overscanCols) < FCCD_SCOL_N)
+      if(col % (FCCD_SCOL_N + overscanCols) >= overscanCols)
       {
         int nOut = newCol + (newCols * row);
         int nIn = col + (oldCols * (row + rowOffset));
@@ -235,7 +235,7 @@ asynStatus NDPluginFastCCD::processImageT(NDArray *pIn, NDArray *pOut,
     int newCol = 0;
     for(int col=0;col<oldCols;col++)
     {
-      if(col % (FCCD_SCOL_N + overscanCols) >= overscanCols)
+      if(col % (FCCD_SCOL_N + overscanCols) < FCCD_SCOL_N)
       {
         int nOut = newCol + (newCols * (newRows - 1 - row));
         int nIn = col + (oldCols * (oldRows - 1 - row - rowOffset));
