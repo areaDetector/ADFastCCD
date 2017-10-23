@@ -507,8 +507,8 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   status |= setIntegerParam(ADNumExposures, 1);
   status |= setIntegerParam(NDArraySizeX, sizeX);
   status |= setIntegerParam(NDArraySizeY, sizeY);
-  status |= setIntegerParam(NDDataType, NDUInt16);
-  status |= setIntegerParam(NDArraySize, sizeX*sizeY*sizeof(epicsUInt16)); 
+  status |= setIntegerParam(NDDataType, NDInt16);
+  status |= setIntegerParam(NDArraySize, sizeX*sizeY*sizeof(epicsInt16)); 
   status |= setDoubleParam(ADShutterOpenDelay, 0.);
   status |= setDoubleParam(ADShutterCloseDelay, 0.);
 
