@@ -132,11 +132,7 @@ void FastCCD::processImage(cin_data_frame_t *frame)
 
   if (arrayCallbacks) {
     /* Call the NDArray callback */
-    /* Must release the lock here, or we can get into a deadlock, because we can
-     * block on the plugin lock, and the plugin can be calling us */
-    this->unlock();
     doCallbacksGenericPointer(pImage, NDArrayData, 0);
-    this->lock();
   }
 
   if (this->framesRemaining > 0) this->framesRemaining--;

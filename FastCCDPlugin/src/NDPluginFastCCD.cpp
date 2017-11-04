@@ -142,9 +142,7 @@ doCallbacks:
             this->numImages++;
             if((this->numImages <= numImages) || (numImages == 0)){
               setIntegerParam(NDPluginFastCCDNumImagesP, this->numImages);
-              this->unlock();
               doCallbacksGenericPointer( pArrayOut, NDArrayData, 0);
-              this->lock();
             } else {
               this->enableOutput = 0;
               this->numImages = 0;
