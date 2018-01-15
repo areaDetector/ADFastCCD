@@ -1,6 +1,7 @@
 /* vim: set ts=2 sw=2 tw=0 noet : */
 
 
+
 /**
  * @file 
  * @author Stuart B. Wilkins <swilkins@bnl.gov> 
@@ -1074,6 +1075,8 @@ int cin_com_set_timing(cin_ctl_t *cin_ctl, cin_data_t *cin_data,  int mode);
 int cin_com_get_timing(cin_ctl_t *cin_ctl, cin_data_t *cin_data, int *mode);
 int cin_config_find_timing(cin_ctl_t *cin, const char *name);
 int cin_ctl_upload_bias(cin_ctl_t *cin);
+
+struct timespec timespec_diff(struct timespec start, struct timespec end);
 #ifdef __cplusplus
 }
 #endif

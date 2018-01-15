@@ -225,6 +225,7 @@ void FastCCD::processImage(cin_data_frame_t *frame)
   pImage->epicsTS.secPastEpoch = frame->timestamp.tv_sec;
   pImage->epicsTS.nsec = frame->timestamp.tv_nsec;
   updateTimeStamp(&pImage->epicsTS);
+  lastFrameTimestamp = frame->timestamp;
 
   // Get any attributes for the driver
   this->getAttributes(pImage->pAttributeList);
@@ -335,6 +336,10 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
 
   // Set the first frame flag
   firstFrameFlag = 0;
+
+  // Set last frame timestamp to zero.
+  struct timespec _zero = {0, 0};
+  lastFrameTimestamp = _zero;
   
   /* Create an EPICS exit handler */
   epicsAtExit(exitHandler, this);
@@ -959,6 +964,26 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
          if(!cin_ctl_ext_trigger_stop(&cin_ctl)){
            setIntegerParam(ADStatus, ADStatusIdle);
            setIntegerParam(ADAcquire, 0);
+         }
+
+         // Now lets sit in a busy loop waiting for images to finish.
+      
+         double _p;
+         getDoubleParam(ADAcquirePeriod, &_p);
+         _p = _p * 2.5;
+         for(;;)
+         {
+           struct timespec now;
+           clock_gettime(CLOCK_REALTIME, &now); 
+           now = timespec_diff(lastFrameTimestamp, now);
+           double _d = now.tv_sec + ((double)(now.tv_nsec) / 1000000000);
+
+           usleep(1000);
+
+          if((_d > _p) || (_d > 300))
+          {
+            break;
+          }
          }
       }
 
