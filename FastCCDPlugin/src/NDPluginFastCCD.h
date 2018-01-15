@@ -25,6 +25,9 @@
 #define NDPluginFastCCDValidImageString         "VALID_IMAGE"
 #define NDPluginFastCCDBgndSubtrString          "BGND_SUBTR"
 #define NDPluginFastCCDTestString               "TEST"
+#define NDPluginFastCCDGain8String              "GAIN_8"
+#define NDPluginFastCCDGain2String              "GAIN_2"
+#define NDPluginFastCCDGain1String              "GAIN_1"
 
 class epicsShareClass NDPluginFastCCD : public NDPluginDriver {
 public:
@@ -54,6 +57,9 @@ protected:
     int NDPluginFastCCDValidBgnd;
     int NDPluginFastCCDValidImage;
     int NDPluginFastCCDBgndSubtr;
+    int NDPluginFastCCDGain8;
+    int NDPluginFastCCDGain2;
+    int NDPluginFastCCDGain1;
     int NDPluginFastCCDTest;
 
 private:
@@ -63,7 +69,7 @@ private:
     template <typename epicsType> asynStatus processImageT(NDArray *pIn, NDArray *pOut, 
                                                            int rowOffset, int overscanCols, int correctGain,
                                                            int bgndSubtract);
-    template <typename epicsType> epicsType correctPixel(epicsType inp, int correctGain);
+    template <typename epicsType> epicsFloat32 correctPixel(epicsType inp, epicsInt16 bgnd, int correctGain);
     NDArray *pBackground;
 };
     

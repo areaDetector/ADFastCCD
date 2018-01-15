@@ -140,7 +140,7 @@ void NDPluginFastCCD::processCallbacks(NDArray *pArray)
     rows = dims[1];
   }
 
-  pOutput = this->pNDArrayPool->alloc(nDims, dims, pArray->dataType, 0, NULL);
+  pOutput = this->pNDArrayPool->alloc(nDims, dims, NDFloat32, 0, NULL);
 
   bgndSubtract = validBgnd && correctBgnd;
   setIntegerParam(NDPluginFastCCDBgndSubtr, bgndSubtract);
@@ -197,7 +197,7 @@ asynStatus NDPluginFastCCD::processImageT(NDArray *pIn, NDArray *pOut,
                                           int bgndSubtract)
 {
   epicsType *pInData = (epicsType *)pIn->pData;
-  epicsType *pOutData = (epicsType *)pOut->pData;
+  epicsFloat32 *pOutData = (epicsFloat32 *)pOut->pData;
   epicsInt16 *pBackData = NULL;
 
   if(bgndSubtract)
@@ -221,9 +221,9 @@ asynStatus NDPluginFastCCD::processImageT(NDArray *pIn, NDArray *pOut,
         int nIn = col + (oldCols * (row + rowOffset));
         if(bgndSubtract)
         {
-          pOutData[nOut] = correctPixel<epicsType>(pInData[nIn] - pBackData[nIn], correctGain);
+          pOutData[nOut] = correctPixel<epicsType>(pInData[nIn], pBackData[nIn], correctGain);
         } else {
-          pOutData[nOut] = correctPixel<epicsType>(pInData[nIn], correctGain);
+          pOutData[nOut] = correctPixel<epicsType>(pInData[nIn], 0, correctGain);
         }
         newCol++;
       }
@@ -241,9 +241,9 @@ asynStatus NDPluginFastCCD::processImageT(NDArray *pIn, NDArray *pOut,
         int nIn = col + (oldCols * (oldRows - 1 - row - rowOffset));
         if(bgndSubtract)
         {
-          pOutData[nOut] = correctPixel<epicsType>(pInData[nIn] - pBackData[nIn], correctGain);
+          pOutData[nOut] = correctPixel<epicsType>(pInData[nIn], pBackData[nIn], correctGain);
         } else {
-          pOutData[nOut] = correctPixel<epicsType>(pInData[nIn], correctGain);
+          pOutData[nOut] = correctPixel<epicsType>(pInData[nIn], 0, correctGain);
         }
         newCol++;
       }
@@ -254,21 +254,27 @@ asynStatus NDPluginFastCCD::processImageT(NDArray *pIn, NDArray *pOut,
 }
 
 template <typename epicsType>
-epicsType NDPluginFastCCD::correctPixel(epicsType inp, int correctGain)
+epicsFloat32 NDPluginFastCCD::correctPixel(epicsType inp, epicsInt16 bgnd, int correctGain)
 {
-  epicsType outp; 
+  epicsFloat32 outp; 
+  double gain8, gain2, gain1;
+
+  getDoubleParam(NDPluginFastCCDGain8, &gain8);
+  getDoubleParam(NDPluginFastCCDGain2, &gain2);
+  getDoubleParam(NDPluginFastCCDGain1, &gain1);
+
   if(correctGain){
     if((inp & FCCD_GAIN_1) == FCCD_GAIN_1)
     {
-      outp = (inp & FCCD_MASK) * FCCD_GAIN_1_M;  
+      outp = ((inp & FCCD_MASK) - bgnd) * gain1;
     } else if ((inp & FCCD_GAIN_2) == FCCD_GAIN_2) {
-      outp = (inp & FCCD_MASK) * FCCD_GAIN_2_M;
+      outp = ((inp & FCCD_MASK) - bgnd) * gain2;
     } else {
       // Gain 8
-      outp = (inp & FCCD_MASK) * FCCD_GAIN_8_M;
+      outp = ((inp & FCCD_MASK) - bgnd) * gain8;
     }
   } else {
-    outp = inp;
+    outp = inp - bgnd;
   }
   return outp;
 }
@@ -352,19 +358,22 @@ NDPluginFastCCD::NDPluginFastCCD(const char *portName, int queueSize, int blocki
 {
     //static const char *functionName = "NDPluginFastCCD";
 
-    createParam(NDPluginFastCCDNameString,              asynParamOctet, &NDPluginFastCCDName);
-    createParam(NDPluginFastCCDRowsString,              asynParamInt32, &NDPluginFastCCDRows);
-    createParam(NDPluginFastCCDRowOffsetString,         asynParamInt32, &NDPluginFastCCDRowOffset);
-    createParam(NDPluginFastCCDOverscanColsString,      asynParamInt32, &NDPluginFastCCDOverscanCols);
-    createParam(NDPluginFastCCDEnableGainString,        asynParamInt32, &NDPluginFastCCDEnableGain);
-    createParam(NDPluginFastCCDEnableSizeString,        asynParamInt32, &NDPluginFastCCDEnableSize);
-    createParam(NDPluginFastCCDEnableBgndString,        asynParamInt32, &NDPluginFastCCDEnableBgnd);
-    createParam(NDPluginFastCCDAttrOverString,          asynParamInt32, &NDPluginFastCCDAttrOver);
-    createParam(NDPluginFastCCDValidBgndString,         asynParamInt32, &NDPluginFastCCDValidBgnd);
-    createParam(NDPluginFastCCDValidImageString,        asynParamInt32, &NDPluginFastCCDValidImage);
-    createParam(NDPluginFastCCDCaptureBgndString,       asynParamInt32, &NDPluginFastCCDCaptureBgnd);
-    createParam(NDPluginFastCCDBgndSubtrString,         asynParamInt32, &NDPluginFastCCDBgndSubtr);
-    createParam(NDPluginFastCCDTestString,              asynParamInt32, &NDPluginFastCCDTest);
+    createParam(NDPluginFastCCDNameString,              asynParamOctet,   &NDPluginFastCCDName);
+    createParam(NDPluginFastCCDRowsString,              asynParamInt32,   &NDPluginFastCCDRows);
+    createParam(NDPluginFastCCDRowOffsetString,         asynParamInt32,   &NDPluginFastCCDRowOffset);
+    createParam(NDPluginFastCCDOverscanColsString,      asynParamInt32,   &NDPluginFastCCDOverscanCols);
+    createParam(NDPluginFastCCDEnableGainString,        asynParamInt32,   &NDPluginFastCCDEnableGain);
+    createParam(NDPluginFastCCDEnableSizeString,        asynParamInt32,   &NDPluginFastCCDEnableSize);
+    createParam(NDPluginFastCCDEnableBgndString,        asynParamInt32,   &NDPluginFastCCDEnableBgnd);
+    createParam(NDPluginFastCCDAttrOverString,          asynParamInt32,   &NDPluginFastCCDAttrOver);
+    createParam(NDPluginFastCCDValidBgndString,         asynParamInt32,   &NDPluginFastCCDValidBgnd);
+    createParam(NDPluginFastCCDValidImageString,        asynParamInt32,   &NDPluginFastCCDValidImage);
+    createParam(NDPluginFastCCDCaptureBgndString,       asynParamInt32,   &NDPluginFastCCDCaptureBgnd);
+    createParam(NDPluginFastCCDBgndSubtrString,         asynParamInt32,   &NDPluginFastCCDBgndSubtr);
+    createParam(NDPluginFastCCDTestString,              asynParamInt32,   &NDPluginFastCCDTest);
+    createParam(NDPluginFastCCDGain8String,             asynParamFloat64, &NDPluginFastCCDGain8);
+    createParam(NDPluginFastCCDGain2String,             asynParamFloat64, &NDPluginFastCCDGain2);
+    createParam(NDPluginFastCCDGain1String,             asynParamFloat64, &NDPluginFastCCDGain1);
 
     /* Set the plugin type string */
     setStringParam(NDPluginDriverPluginType, "NDPluginFastCCD");
@@ -380,6 +389,9 @@ NDPluginFastCCD::NDPluginFastCCD(const char *portName, int queueSize, int blocki
     setIntegerParam(NDPluginFastCCDValidImage, 0);
     setIntegerParam(NDPluginFastCCDBgndSubtr, 0);
     setIntegerParam(NDPluginFastCCDTest, 0);
+    setDoubleParam(NDPluginFastCCDGain8, 1.0);
+    setDoubleParam(NDPluginFastCCDGain2, 4.0);
+    setDoubleParam(NDPluginFastCCDGain1, 8.0);
 
     pBackground = NULL;
 
