@@ -489,6 +489,14 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   }
 
 
+  this->detectorWaitEvent = epicsEventMustCreate(epicsEventEmpty);
+  if (!this->detectorWaitEvent) {
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+              "%s:%s: Failed to create event for detector wait task.\n",
+              driverName, functionName);
+    return;
+  }
+
   sizeX = CIN_DATA_MAX_FRAME_X;
   sizeY = CIN_DATA_MAX_FRAME_Y;
 
@@ -659,6 +667,18 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
     return;
   }
 
+  /* Create the thread that waits for camera completion */
+  status = (epicsThreadCreate("FastCCDDetectorWaitTask",
+                              epicsThreadPriorityMedium,
+                              stackSize,
+                              (EPICSTHREADFUNC)FastCCDDetectorWaitTaskC,
+                              this) == NULL);
+  if(status) {
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+      "%s:%s: Failed to create data stats task.\n",
+      driverName, functionName);
+    return;
+  }
 }
 
 /**
@@ -961,34 +981,14 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
       } else {
          // Send the hardware a stop trigger command
-         if(!cin_ctl_int_trigger_stop(&cin_ctl)){
-           setIntegerParam(ADStatus, ADStatusIdle);
-           setIntegerParam(ADAcquire, 0);
-         }
-         if(!cin_ctl_ext_trigger_stop(&cin_ctl)){
-           setIntegerParam(ADStatus, ADStatusIdle);
-           setIntegerParam(ADAcquire, 0);
-         }
+         _status |= cin_ctl_int_trigger_stop(&cin_ctl);
+         _status |= cin_ctl_ext_trigger_stop(&cin_ctl);
 
-         // Now lets sit in a busy loop waiting for images to finish.
-      
-         double _p;
-         getDoubleParam(ADAcquirePeriod, &_p);
-         _p = _p * 2.5;
-         for(;;)
+         if(!_status)
          {
-           struct timespec now;
-           clock_gettime(CLOCK_REALTIME, &now); 
-           now = timespec_diff(lastFrameTimestamp, now);
-           double _d = now.tv_sec + ((double)(now.tv_nsec) / 1000000000);
-
-           usleep(1000);
-
-          if((_d > _p) || (_d > 300))
-          {
-            break;
-          }
+           epicsEventSignal(detectorWaitEvent);
          }
+      
       }
 
     } else if (function == FastCCDFirmwareUpload) {
@@ -1738,6 +1738,46 @@ void FastCCD::statusTask(void)
 
 }
 
+void FastCCD::detectorWaitTask(void)
+{
+  unsigned int status = 0;
+  static const char *functionName = "detectorWaitTask";
+    
+  while(1)
+  {
+    status = epicsEventWait(detectorWaitEvent);
+    if (status == epicsEventWaitOK) {
+      asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
+                "%s:%s: Got status event\n",
+                driverName, functionName);
+    }
+
+    double _p;
+    getDoubleParam(ADAcquirePeriod, &_p);
+    _p = _p * 2.5;
+    for(;;)
+    {
+      struct timespec now;
+      clock_gettime(CLOCK_REALTIME, &now); 
+      now = timespec_diff(lastFrameTimestamp, now);
+      double _d = now.tv_sec + ((double)(now.tv_nsec) / 1000000000);
+   
+      usleep(1000);
+   
+     if((_d > _p) || (_d > 300))
+     {
+       break;
+     }
+    }
+    
+    this->lock();
+    setIntegerParam(ADStatus, ADStatusIdle);
+    setIntegerParam(ADAcquire, 0);
+    callParamCallbacks();
+    this->unlock();
+  }
+}
+
 //C utility functions to tie in with EPICS
 
 static void FastCCDStatusTaskC(void *drvPvt)
@@ -1753,6 +1793,13 @@ static void FastCCDDataStatsTaskC(void *drvPvt)
   FastCCD *pPvt = (FastCCD *)drvPvt;
 
   pPvt->dataStatsTask();
+}
+
+static void FastCCDDetectorWaitTaskC(void *drvPvt)
+{
+  FastCCD *pPvt = (FastCCD *)drvPvt;
+
+  pPvt->detectorWaitTask();
 }
 
 /** IOC shell configuration command for Andor driver

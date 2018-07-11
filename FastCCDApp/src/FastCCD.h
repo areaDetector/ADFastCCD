@@ -138,6 +138,7 @@
 //C Function prototypes to tie in with EPICS
 static void FastCCDStatusTaskC(void *drvPvt);
 static void FastCCDDataStatsTaskC(void *drvPvt);
+static void FastCCDDetectorWaitTaskC(void *drvPvt);
 static void exitHandler(void *drvPvt);
 static void messageCallbackC(const char *message, int severity, void *ptr);
 static void allocateImageC(cin_data_frame_t *frame, void *ptr);
@@ -171,6 +172,7 @@ class FastCCD : public ADDriver {
   // Should be private, but are called from C so must be public
   void statusTask(void);
   void dataStatsTask(void);
+  void detectorWaitTask(void);
   
   void messageCallback(const char *message, int severity);
   void allocateImage(cin_data_frame_t *frame);
@@ -330,6 +332,7 @@ class FastCCD : public ADDriver {
   epicsEventId statusEvent;
   epicsEventId dataStatsEvent;
   epicsEventId dataEvent;
+  epicsEventId detectorWaitEvent;
 
   double statusPollingPeriod;
   double dataStatsPollingPeriod;
