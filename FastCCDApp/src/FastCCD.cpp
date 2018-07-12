@@ -49,6 +49,7 @@ asynStatus FastCCD::connectCamera(){
   _status |= cin_ctl_set_fabric_address(&cin_ctl, (char *)cinFabricIP);
   _status |= cin_data_send_magic(&cin_data);
 
+
   if(_status)
   {
     return asynError;
@@ -1339,6 +1340,7 @@ void FastCCD::getCameraStatus(int first_run){
       setIntegerParam(FastCCDFabFPGAVersion, id.fabric_fpga_ver);
       char buffer[50];
       sprintf(buffer, "0x%04X", id.fabric_fpga_ver);
+      fprintf(stderr, "Status Firmware = %s\n", buffer);
       setStringParam(ADFirmwareVersion, (char *)buffer);
 
       setParamStatus(FastCCDBaseBoardID, asynSuccess);
@@ -1588,16 +1590,28 @@ void FastCCD::getCameraStatus(int first_run){
         if(trig){
           setIntegerParam(ADAcquire, 1);
           setIntegerParam(ADStatus, ADStatusAcquire);
+          float _exp, _cycle;
+          cin_status = cin_ctl_get_exposure_time(&cin_ctl, &_exp);
+          cin_status |= cin_ctl_get_cycle_time(&cin_ctl, &_cycle);
+          fprintf(stderr, "%f, %f\n", _exp, _cycle);
+          if(!cin_status)
+          {
+            setDoubleParam(ADAcquirePeriod, _cycle);
+            setDoubleParam(ADAcquireTime, _exp);
+            setParamStatus(ADAcquirePeriod, asynSuccess);
+            setParamStatus(ADAcquireTime, asynSuccess);
+          } else {
+            setParamStatus(ADAcquirePeriod, asynDisconnected);
+            setParamStatus(ADAcquireTime, asynDisconnected);
+          }
         } else {
           setIntegerParam(ADAcquire, 0);
           setIntegerParam(ADStatus, ADStatusIdle);
         }
         setParamStatus(ADStatus, asynSuccess);
-
       } else {
         setParamStatus(ADStatus, asynDisconnected);
       }
-
     }
     
     // Poll for the BIAS Settings

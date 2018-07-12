@@ -80,8 +80,8 @@ extern const char *cin_build_version;
 #define CIN_CTL_FRMW_BIND_PORT             50202
 #define CIN_CTL_RCVBUF                     10  // Mb 
 
-#define CIN_CTL_MAX_READ_TRIES             5
-#define CIN_CTL_MAX_WRITE_TRIES            5
+#define CIN_CTL_MAX_READ_TRIES             10
+#define CIN_CTL_MAX_WRITE_TRIES            10
 #define CIN_CTL_WRITE_SLEEP                100 // microsecs
 #define CIN_CTL_READ_SLEEP                 100 // microsecs
 #define CIN_CTL_BIAS_SLEEP                 100000 // microseconds
@@ -91,7 +91,7 @@ extern const char *cin_build_version;
 #define CIN_CTL_FCLK_SLEEP                 200000 // microseconds
 #define CIN_CTL_STREAM_CHUNK               512
 #define CIN_CTL_STREAM_SLEEP               5
-#define CIN_CTL_PACKET_WAIT                1000 // usecs
+#define CIN_CTL_PACKET_WAIT                100 // usecs
 #define CIN_CTL_PACKET_LOOPS               100
 
 #define CIN_CTL_POWER_ENABLE               0x001F
@@ -890,8 +890,10 @@ int cin_ctl_int_trigger_stop(cin_ctl_t *cin);
 int cin_ctl_ext_trigger_start(cin_ctl_t *cin, int trigger_mode);
 int cin_ctl_ext_trigger_stop(cin_ctl_t *cin);
 int cin_ctl_set_exposure_time(cin_ctl_t *cin,float e_time);
+int cin_ctl_get_exposure_time(cin_ctl_t *cin,float *ftime);
 int cin_ctl_set_trigger_delay(cin_ctl_t *cin,float t_time);
 int cin_ctl_set_cycle_time(cin_ctl_t *cin,float ftime);
+int cin_ctl_get_cycle_time(cin_ctl_t *cin,float *ftime);
 int cin_ctl_frame_count_reset(cin_ctl_t *cin);
 int cin_ctl_set_mux(cin_ctl_t *cin, int setting);
 int cin_ctl_get_mux(cin_ctl_t *cin, int *setting);

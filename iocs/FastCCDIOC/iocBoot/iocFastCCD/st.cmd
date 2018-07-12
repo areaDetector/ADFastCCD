@@ -25,7 +25,7 @@ epicsEnvSet("EPICS_DB_INCLUDE_PATH", "$(ADCORE)/db")
 #               int priority, int stackSize, int packetBuffer, int imageBuffer,
 #				const char *baseIP, const char *fabricIP, const char *fabricMAC))
 
-FastCCDConfig("$(PORT)", 0, 0, 0, 100000, 2000, 200, "", "10.0.5.127", "")
+FastCCDConfig("$(PORT)", 0, 0, 0, 100000, 2000, 200, "", "10.23.4.127", "")
 
 # Load Records
 
