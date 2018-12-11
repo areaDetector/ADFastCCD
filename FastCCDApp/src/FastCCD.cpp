@@ -448,6 +448,27 @@ FastCCD::FastCCD(const char *portName, int maxBuffers, size_t maxMemory,
   createParam(FastCCDBiasSpare1String,          asynParamFloat64,  &FastCCDBiasSpare1);
   createParam(FastCCDBiasSpare2String,          asynParamFloat64,  &FastCCDBiasSpare2);
   
+  createParam(FastCCDBiasPosHWString,           asynParamFloat64,  &FastCCDBiasPosHW);
+  createParam(FastCCDBiasNegHWString,           asynParamFloat64,  &FastCCDBiasNegHW);
+  createParam(FastCCDBiasPosRGWString,          asynParamFloat64,  &FastCCDBiasPosRGW);
+  createParam(FastCCDBiasNegRGWString,          asynParamFloat64,  &FastCCDBiasNegRGW);
+  createParam(FastCCDBiasPosSWWString,          asynParamFloat64,  &FastCCDBiasPosSWW);
+  createParam(FastCCDBiasNegSWWString,          asynParamFloat64,  &FastCCDBiasNegSWW);
+  createParam(FastCCDBiasPosVWString,           asynParamFloat64,  &FastCCDBiasPosVW);
+  createParam(FastCCDBiasNegVWString,           asynParamFloat64,  &FastCCDBiasNegVW);
+  createParam(FastCCDBiasPosTGWString,          asynParamFloat64,  &FastCCDBiasPosTGW);
+  createParam(FastCCDBiasNegTGWString,          asynParamFloat64,  &FastCCDBiasNegTGW);
+  createParam(FastCCDBiasPosVFWString,          asynParamFloat64,  &FastCCDBiasPosVFW);
+  createParam(FastCCDBiasNegVFWString,          asynParamFloat64,  &FastCCDBiasNegVFW);
+  createParam(FastCCDBiasNEDGEWString,          asynParamFloat64,  &FastCCDBiasNEDGEW);
+  createParam(FastCCDBiasOTGWString,            asynParamFloat64,  &FastCCDBiasOTGW);
+  createParam(FastCCDBiasVDDRWString,           asynParamFloat64,  &FastCCDBiasVDDRW);
+  createParam(FastCCDBiasVDDOutWString,         asynParamFloat64,  &FastCCDBiasVDDOutW);
+  createParam(FastCCDBiasBufBaseWString,        asynParamFloat64,  &FastCCDBiasBufBaseW);
+  createParam(FastCCDBiasBufDeltaWString,       asynParamFloat64,  &FastCCDBiasBufDeltaW);
+  createParam(FastCCDBiasSpare1WString,         asynParamFloat64,  &FastCCDBiasSpare1W);
+  createParam(FastCCDBiasSpare2WString,         asynParamFloat64,  &FastCCDBiasSpare2W);
+
   createParam(FastCCDBiasWriteVString,          asynParamInt32,    &FastCCDBiasWriteV);
 
   createParam(FastCCDFOTestString,              asynParamInt32,    &FastCCDFOTest);
@@ -1144,30 +1165,72 @@ asynStatus FastCCD::writeInt32(asynUser *pasynUser, epicsInt32 value)
       _status |= cin_ctl_set_fcric_clamp(&cin_ctl, value);
 
     } else if (function == FastCCDBiasWriteV){
-      double bias_voltage[CIN_CTL_NUM_BIAS];
+      float bias_voltage[CIN_CTL_NUM_BIAS];
+      double _v;
 
-      getDoubleParam(FastCCDBiasPosH, &bias_voltage[CIN_CTL_BIAS_POSH]);
-      getDoubleParam(FastCCDBiasNegH, &bias_voltage[CIN_CTL_BIAS_NEGH]);
-      getDoubleParam(FastCCDBiasPosRG, &bias_voltage[CIN_CTL_BIAS_POSRG]);
-      getDoubleParam(FastCCDBiasNegRG, &bias_voltage[CIN_CTL_BIAS_NEGRG]);
-      getDoubleParam(FastCCDBiasPosSW, &bias_voltage[CIN_CTL_BIAS_POSSW]);
-      getDoubleParam(FastCCDBiasNegSW, &bias_voltage[CIN_CTL_BIAS_NEGSW]);
-      getDoubleParam(FastCCDBiasPosV, &bias_voltage[CIN_CTL_BIAS_POSV]);
-      getDoubleParam(FastCCDBiasNegV, &bias_voltage[CIN_CTL_BIAS_NEGV]);
-      getDoubleParam(FastCCDBiasPosTG, &bias_voltage[CIN_CTL_BIAS_POSTG]);
-      getDoubleParam(FastCCDBiasNegTG, &bias_voltage[CIN_CTL_BIAS_NEGTG]);
-      getDoubleParam(FastCCDBiasPosVF, &bias_voltage[CIN_CTL_BIAS_POSVF]);
-      getDoubleParam(FastCCDBiasNegVF, &bias_voltage[CIN_CTL_BIAS_NEGVF]);
-      getDoubleParam(FastCCDBiasNEDGE, &bias_voltage[CIN_CTL_BIAS_NEDGE]);
-      getDoubleParam(FastCCDBiasOTG, &bias_voltage[CIN_CTL_BIAS_OTG]);
-      getDoubleParam(FastCCDBiasVDDR, &bias_voltage[CIN_CTL_BIAS_VDDR]);
-      getDoubleParam(FastCCDBiasVDDOut, &bias_voltage[CIN_CTL_BIAS_VDD_OUT]);
-      getDoubleParam(FastCCDBiasBufBase, &bias_voltage[CIN_CTL_BIAS_BUF_BASE]);
-      getDoubleParam(FastCCDBiasBufDelta, &bias_voltage[CIN_CTL_BIAS_BUF_DELTA]);
-      getDoubleParam(FastCCDBiasSpare1, &bias_voltage[CIN_CTL_BIAS_SPARE1]);
-      getDoubleParam(FastCCDBiasSpare2, &bias_voltage[CIN_CTL_BIAS_SPARE2]);
+      getDoubleParam(FastCCDBiasPosHW, &_v);
+      bias_voltage[CIN_CTL_BIAS_POSH] = _v;
+      
+      getDoubleParam(FastCCDBiasNegHW, &_v);
+      bias_voltage[CIN_CTL_BIAS_NEGH] = _v;
 
-      _status |= cin_ctl_set_bias_voltages(&cin_ctl, (float *)bias_voltage, 0);
+      getDoubleParam(FastCCDBiasPosRGW, &_v);
+      bias_voltage[CIN_CTL_BIAS_POSRG] = _v;
+
+      getDoubleParam(FastCCDBiasNegRGW, &_v);
+      bias_voltage[CIN_CTL_BIAS_NEGRG] = _v;
+
+      getDoubleParam(FastCCDBiasPosSWW, &_v);
+      bias_voltage[CIN_CTL_BIAS_POSSW] = _v;
+
+      getDoubleParam(FastCCDBiasNegSWW, &_v);
+      bias_voltage[CIN_CTL_BIAS_NEGSW] = _v;
+
+      getDoubleParam(FastCCDBiasPosVW, &_v);
+      bias_voltage[CIN_CTL_BIAS_POSV] = _v;
+
+      getDoubleParam(FastCCDBiasNegVW, &_v);
+      bias_voltage[CIN_CTL_BIAS_NEGV] = _v;
+
+      getDoubleParam(FastCCDBiasPosTGW, &_v);
+      bias_voltage[CIN_CTL_BIAS_POSTG] = _v;
+
+      getDoubleParam(FastCCDBiasNegTGW, &_v);
+      bias_voltage[CIN_CTL_BIAS_NEGTG] = _v;
+
+      getDoubleParam(FastCCDBiasPosVFW, &_v);
+      bias_voltage[CIN_CTL_BIAS_POSVF] = _v;
+
+      getDoubleParam(FastCCDBiasNegVFW, &_v);
+      bias_voltage[CIN_CTL_BIAS_NEGVF] = _v;
+
+      getDoubleParam(FastCCDBiasNEDGEW, &_v);
+      bias_voltage[CIN_CTL_BIAS_NEDGE] = _v;
+
+      getDoubleParam(FastCCDBiasOTGW, &_v);
+      bias_voltage[CIN_CTL_BIAS_OTG] = _v;
+
+      getDoubleParam(FastCCDBiasVDDRW, &_v);
+      bias_voltage[CIN_CTL_BIAS_VDDR] = _v;
+
+      getDoubleParam(FastCCDBiasVDDOutW, &_v);
+      bias_voltage[CIN_CTL_BIAS_VDD_OUT] = _v;
+
+      getDoubleParam(FastCCDBiasBufBaseW, &_v);
+      bias_voltage[CIN_CTL_BIAS_BUF_BASE] = _v;
+
+      getDoubleParam(FastCCDBiasBufDeltaW, &_v);
+      bias_voltage[CIN_CTL_BIAS_BUF_DELTA] = _v;
+
+      getDoubleParam(FastCCDBiasSpare1W, &_v);
+      bias_voltage[CIN_CTL_BIAS_SPARE1] = _v;
+
+      getDoubleParam(FastCCDBiasSpare2W, &_v);
+      bias_voltage[CIN_CTL_BIAS_SPARE2] = _v;
+
+      _status |= cin_ctl_set_bias_voltages(&cin_ctl, bias_voltage, 1);
+
+      epicsEventSignal(statusEvent);
       
     } else if(function == FastCCDFOTest) {
 
@@ -1752,6 +1815,20 @@ void FastCCD::statusTask(void)
 
 }
 
+void timespec_diff(struct timespec *start, struct timespec *stop,
+                   struct timespec *result)
+{
+    if ((stop->tv_nsec - start->tv_nsec) < 0) {
+        result->tv_sec = stop->tv_sec - start->tv_sec - 1;
+        result->tv_nsec = stop->tv_nsec - start->tv_nsec + 1000000000;
+    } else {
+        result->tv_sec = stop->tv_sec - start->tv_sec;
+        result->tv_nsec = stop->tv_nsec - start->tv_nsec;
+    }
+
+    return;
+}
+
 void FastCCD::detectorWaitTask(void)
 {
   unsigned int status = 0;
@@ -1771,10 +1848,10 @@ void FastCCD::detectorWaitTask(void)
     _p = _p * 2.5;
     for(;;)
     {
-      struct timespec now;
+      struct timespec now, diff;
       clock_gettime(CLOCK_REALTIME, &now); 
-      now = timespec_diff(lastFrameTimestamp, now);
-      double _d = now.tv_sec + ((double)(now.tv_nsec) / 1000000000);
+      timespec_diff(&lastFrameTimestamp, &now, &diff);
+      double _d = diff.tv_sec + ((double)(diff.tv_nsec) / 1000000000);
    
       usleep(1000);
    
