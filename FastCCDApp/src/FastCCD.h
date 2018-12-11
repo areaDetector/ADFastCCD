@@ -113,6 +113,27 @@
 #define FastCCDBiasSpare1String                 "BIAS_SPARE1"
 #define FastCCDBiasSpare2String                 "BIAS_SPARE2"
 
+#define FastCCDBiasPosHWString                  "BIAS_POSH_W"
+#define FastCCDBiasNegHWString                  "BIAS_NEGH_W"
+#define FastCCDBiasPosRGWString                 "BIAS_POSRG_W"
+#define FastCCDBiasNegRGWString                 "BIAS_NEGRG_W"
+#define FastCCDBiasPosSWWString                 "BIAS_POSSW_W"
+#define FastCCDBiasNegSWWString                 "BIAS_NEGSW_W"
+#define FastCCDBiasPosVWString                  "BIAS_POSV_W"
+#define FastCCDBiasNegVWString                  "BIAS_NEGV_W"
+#define FastCCDBiasPosTGWString                 "BIAS_POSTG_W"
+#define FastCCDBiasNegTGWString                 "BIAS_NEGTG_W"
+#define FastCCDBiasPosVFWString                 "BIAS_POSVF_W"
+#define FastCCDBiasNegVFWString                 "BIAS_NEGVF_W"
+#define FastCCDBiasNEDGEWString                 "BIAS_NEDGE_W"
+#define FastCCDBiasOTGWString                   "BIAS_OTG_W"
+#define FastCCDBiasVDDRWString                  "BIAS_VDDR_W"
+#define FastCCDBiasVDDOutWString                "BIAS_VDDOUT_W"
+#define FastCCDBiasBufBaseWString               "BIAS_BUFBASE_W"
+#define FastCCDBiasBufDeltaWString              "BIAS_BUFDELTA_W"
+#define FastCCDBiasSpare1WString                "BIAS_SPARE1_W"
+#define FastCCDBiasSpare2WString                "BIAS_SPARE2_W"
+
 #define FastCCDBiasWriteVString                 "BIAS_WRITEV"
 
 #define FastCCDFOTestString                     "FO_TEST"
@@ -281,6 +302,27 @@ class FastCCD : public ADDriver {
   int FastCCDBiasSpare1;     
   int FastCCDBiasSpare2;     
   int FastCCDBiasWriteV;
+  int FastCCDBiasPosHW;       
+  int FastCCDBiasNegHW;       
+  int FastCCDBiasPosRGW;      
+  int FastCCDBiasNegRGW;      
+  int FastCCDBiasPosSWW;      
+  int FastCCDBiasNegSWW;      
+  int FastCCDBiasPosVW;       
+  int FastCCDBiasNegVW;       
+  int FastCCDBiasPosTGW;      
+  int FastCCDBiasNegTGW;      
+  int FastCCDBiasPosVFW;      
+  int FastCCDBiasNegVFW;      
+  int FastCCDBiasNEDGEW;      
+  int FastCCDBiasOTGW;        
+  int FastCCDBiasVDDRW;       
+  int FastCCDBiasVDDOutW;     
+  int FastCCDBiasBufBaseW;    
+  int FastCCDBiasBufDeltaW;
+  int FastCCDBiasSpare1W;     
+  int FastCCDBiasSpare2W;     
+  int FastCCDBiasWriteVW;
 
   // Power monitor Variables
   int FastCCDPwrBus12V;
