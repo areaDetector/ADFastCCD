@@ -888,6 +888,8 @@ asynStatus FastCCD::writeFloat64(asynUser *pasynUser, epicsFloat64 value){
     if(_status){
       setParamStatus(function, asynError);
       status = asynError;
+    } else {
+      setParamStatus(function, asynSuccess);
     }
 
     if(status){
@@ -1399,7 +1401,6 @@ void FastCCD::getCameraStatus(int first_run){
       setIntegerParam(FastCCDFabFPGAVersion, id.fabric_fpga_ver);
       char buffer[50];
       sprintf(buffer, "0x%04X", id.fabric_fpga_ver);
-      fprintf(stderr, "Status Firmware = %s\n", buffer);
       setStringParam(ADFirmwareVersion, (char *)buffer);
 
       setParamStatus(FastCCDBaseBoardID, asynSuccess);
@@ -1624,8 +1625,6 @@ void FastCCD::getCameraStatus(int first_run){
       cin_status = cin_com_get_timing(&cin_ctl, &cin_data, &mode);
       if(cin_status == CIN_OK)
       {
-        fprintf(stderr, "status = %d, mode = %d\n", cin_status, mode);
-
         int _val1, _val2, _x, _y;
         cin_data_get_descramble_params(&cin_data, &_val1, &_val2, &_x, &_y);
         setIntegerParam(ADSizeX, _x);
@@ -1645,31 +1644,30 @@ void FastCCD::getCameraStatus(int first_run){
 
       int trig;
       cin_status = cin_ctl_get_triggering(&cin_ctl, &trig);
-      if(!cin_status){
-        if(trig){
+      if(!cin_status)
+      {
+        if(trig)
+        {
           setIntegerParam(ADAcquire, 1);
           setIntegerParam(ADStatus, ADStatusAcquire);
           float _exp, _cycle;
           cin_status = cin_ctl_get_exposure_time(&cin_ctl, &_exp);
           cin_status |= cin_ctl_get_cycle_time(&cin_ctl, &_cycle);
-          fprintf(stderr, "%f, %f\n", _exp, _cycle);
-          if(!cin_status)
-          {
-            setDoubleParam(ADAcquirePeriod, _cycle);
-            setDoubleParam(ADAcquireTime, _exp);
-            setParamStatus(ADAcquirePeriod, asynSuccess);
-            setParamStatus(ADAcquireTime, asynSuccess);
-          } else {
-            setParamStatus(ADAcquirePeriod, asynDisconnected);
-            setParamStatus(ADAcquireTime, asynDisconnected);
-          }
+          setDoubleParam(ADAcquirePeriod, _cycle);
+          setDoubleParam(ADAcquireTime, _exp);
+          setParamStatus(ADAcquirePeriod, asynSuccess);
+          setParamStatus(ADAcquireTime, asynSuccess);
         } else {
           setIntegerParam(ADAcquire, 0);
           setIntegerParam(ADStatus, ADStatusIdle);
         }
         setParamStatus(ADStatus, asynSuccess);
+        setParamStatus(ADAcquire, asynSuccess);
       } else {
         setParamStatus(ADStatus, asynDisconnected);
+        setParamStatus(ADAcquire, asynDisconnected);
+        setParamStatus(ADAcquirePeriod, asynDisconnected);
+        setParamStatus(ADAcquireTime, asynDisconnected);
       }
     }
     
