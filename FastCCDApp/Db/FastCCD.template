@@ -309,10 +309,19 @@ record(bo, "$(P)$(R)Cmd:WBias-Cmd"){
   field(ONAM, "WRITE")
 }
 
-record(ai, "$(P)$(R)E:BiasPosH-RB")
+record(ai, "$(P)$(R)E:BiasPosH-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSH")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasPosH-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSH_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -327,10 +336,19 @@ record(ao, "$(P)$(R)E:BiasPosH-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasNegH-RB")
+record(ai, "$(P)$(R)E:BiasNegH-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGH")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasNegH-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGH_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -345,10 +363,19 @@ record(ao, "$(P)$(R)E:BiasNegH-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasPosRG-RB")
+record(ai, "$(P)$(R)E:BiasPosRG-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSRG")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasPosRG-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSRG_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -363,10 +390,19 @@ record(ao, "$(P)$(R)E:BiasPosRG-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasNegRG-RB")
+record(ai, "$(P)$(R)E:BiasNegRG-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGRG")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasNegRG-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGRG_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -381,10 +417,19 @@ record(ao, "$(P)$(R)E:BiasNegRG-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasPosSW-RB")
+record(ai, "$(P)$(R)E:BiasPosSW-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSSW")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasPosSW-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSSW_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -399,10 +444,19 @@ record(ao, "$(P)$(R)E:BiasPosSW-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasNegSW-RB")
+record(ai, "$(P)$(R)E:BiasNegSW-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGSW")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasNegSW-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGSW_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -417,10 +471,19 @@ record(ao, "$(P)$(R)E:BiasNegSW-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasPosV-RB")
+record(ai, "$(P)$(R)E:BiasPosV-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSV")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasPosV-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSV_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -435,10 +498,19 @@ record(ao, "$(P)$(R)E:BiasPosV-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasNegV-RB")
+record(ai, "$(P)$(R)E:BiasNegV-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGV")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasNegV-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGV_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -453,10 +525,19 @@ record(ao, "$(P)$(R)E:BiasNegV-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasPosTG-RB")
+record(ai, "$(P)$(R)E:BiasPosTG-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSTG")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasPosTG-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSTG_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -471,10 +552,19 @@ record(ao, "$(P)$(R)E:BiasPosTG-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasNegTG-RB")
+record(ai, "$(P)$(R)E:BiasNegTG-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGTG")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasNegTG-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGTG_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -489,10 +579,19 @@ record(ao, "$(P)$(R)E:BiasNegTG-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasPosVF-RB")
+record(ai, "$(P)$(R)E:BiasPosVF-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSVF")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasPosVF-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_POSVF_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -507,10 +606,19 @@ record(ao, "$(P)$(R)E:BiasPosVF-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasNegVF-RB")
+record(ai, "$(P)$(R)E:BiasNegVF-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGVF")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasNegVF-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEGVF_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -525,10 +633,19 @@ record(ao, "$(P)$(R)E:BiasNegVF-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasNEdge-RB")
+record(ai, "$(P)$(R)E:BiasNEdge-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEDGE")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasNEdge-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_NEDGE_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -543,10 +660,19 @@ record(ao, "$(P)$(R)E:BiasNEdge-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasOTG-RB")
+record(ai, "$(P)$(R)E:BiasOTG-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_OTG")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasOTG-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_OTG_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -561,10 +687,19 @@ record(ao, "$(P)$(R)E:BiasOTG-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasVDDR-RB")
+record(ai, "$(P)$(R)E:BiasVDDR-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_VDDR")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasVDDR-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_VDDR_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -579,10 +714,19 @@ record(ao, "$(P)$(R)E:BiasVDDR-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasVDDOut-RB")
+record(ai, "$(P)$(R)E:BiasVDDOut-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_VDDOUT")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasVDDOut-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_VDDOUT_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -597,10 +741,19 @@ record(ao, "$(P)$(R)E:BiasVDDOut-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasBase-RB")
+record(ai, "$(P)$(R)E:BiasBase-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_BUFBASE")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasBase-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_BUFBASE_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -615,10 +768,19 @@ record(ao, "$(P)$(R)E:BiasBase-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasDelta-RB")
+record(ai, "$(P)$(R)E:BiasDelta-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_BUFDELTA")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasDelta-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_BUFDELTA_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -633,10 +795,19 @@ record(ao, "$(P)$(R)E:BiasDelta-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasSpare1-RB")
+record(ai, "$(P)$(R)E:BiasSpare1-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_SPARE1")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
+record(ai, "$(P)$(R)E:BiasSpare1-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_SPARE1_W")
   field(EGU,  "V")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
@@ -651,7 +822,7 @@ record(ao, "$(P)$(R)E:BiasSpare1-SP")
   field(PINI, "1")
 }
 
-record(ai, "$(P)$(R)E:BiasSpare2-RB")
+record(ai, "$(P)$(R)E:BiasSpare2-I")
 {
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_SPARE2")
@@ -659,6 +830,16 @@ record(ai, "$(P)$(R)E:BiasSpare2-RB")
   field(SCAN, "I/O Intr")
   field(PREC, "4")
 }
+
+record(ai, "$(P)$(R)E:BiasSpare2-RB")
+{
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BIAS_SPARE2_W")
+  field(EGU,  "V")
+  field(SCAN, "I/O Intr")
+  field(PREC, "4")
+}
+
 
 record(ao, "$(P)$(R)E:BiasSpare2-SP")
 {
@@ -668,6 +849,10 @@ record(ao, "$(P)$(R)E:BiasSpare2-SP")
   field(PREC, "4")
   field(PINI, "1")
 }
+
+#
+# FastCCD Overscan setup
+#
 
 record(longout, "$(P)$(R)OverscanRows"){
 	field(DTYP, "asynInt32")
