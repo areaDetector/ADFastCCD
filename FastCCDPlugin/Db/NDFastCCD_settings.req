@@ -1,12 +1,8 @@
-$(P)$(R)EnableBackground
-$(P)$(R)Gain0
-$(P)$(R)Gain1
-$(P)$(R)Gain2
-$(P)$(R)DPValue
-$(P)$(R)DataTypeOut
-$(P)$(R)BgFilePath0
-$(P)$(R)BgFilePath1
-$(P)$(R)BgFilePath2
-$(P)$(R)EnableOutput
-$(P)$(R)NumImages
-file "NDPluginBase_settings.req", P=$(P), R=$(R)
+$(P)$(R)RowOffset
+$(P)$(R)OverscanCols
+$(P)$(R)Rows
+$(P)$(R)EnableGain
+$(P)$(R)EnableSize
+$(P)$(R)EnableBgnd
+$(P)$(R)AttrOver
+file "NDPluginBase_settings.req" P=$(P), R=$(R)

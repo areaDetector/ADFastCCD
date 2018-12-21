@@ -7,7 +7,7 @@ INC += FastCCD.h
 
 LIBRARY_IOC_Linux += FastCCD
 LIB_SRCS += FastCCD.cpp
-LIB_LIBS += cin
+LIB_LIBS += cin 
 
 include $(ADCORE)/ADApp/commonLibraryMakefile
 

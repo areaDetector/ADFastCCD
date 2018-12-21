@@ -3,75 +3,74 @@
 
 #include "NDPluginDriver.h"
 
-#define NDPluginFastCCDGain0String                   "GAIN_0"
-#define NDPluginFastCCDGain1String                   "GAIN_1"
-#define NDPluginFastCCDGain2String                   "GAIN_2"
-#define NDPluginFastCCDDPValString                   "DP_VAL"
-#define NDPluginFastCCDEnableBackgroundString        "ENABLE_BACKGROUND"
-#define NDPluginFastCCDDataTypeString                "PROCESS_DATA_TYPE"
-#define NDPluginFastCCDValidBackgroundString         "VALID_BACKGROUND"
-#define NDPluginFastCCDValidBackground0String        "VALID_BACKGROUND_0"
-#define NDPluginFastCCDValidBackground1String        "VALID_BACKGROUND_1"
-#define NDPluginFastCCDValidBackground2String        "VALID_BACKGROUND_2"
-#define NDPluginFastCCDSaveBackground0String         "SAVE_BACKGROUND_0"
-#define NDPluginFastCCDSaveBackground1String         "SAVE_BACKGROUND_1"
-#define NDPluginFastCCDSaveBackground2String         "SAVE_BACKGROUND_2"
-#define NDPluginFastCCDEnableOutputString            "ENABLE_OUTPUT"
-#define NDPluginFastCCDNumImagesString               "NUM_IMAGES"
-#define NDPluginFastCCDNumImagesPString              "NUM_IMAGES_P"
+#define FCCD_GAIN_1                             0xC000
+#define FCCD_GAIN_1_M                           8
+#define FCCD_GAIN_2                             0x4000
+#define FCCD_GAIN_2_M                           4
+#define FCCD_GAIN_8_M                           1
+#define FCCD_MASK                               0x1FFF
+
+#define FCCD_SCOL_N                             10
+
+#define NDPluginFastCCDNameString               "NAME"
+#define NDPluginFastCCDRowOffsetString          "ROW_OFFSET"
+#define NDPluginFastCCDRowsString               "ROWS"
+#define NDPluginFastCCDOverscanColsString       "OVERSCAN_COLS"
+#define NDPluginFastCCDEnableGainString         "ENABLE_GAIN"
+#define NDPluginFastCCDEnableSizeString         "ENABLE_SIZE"
+#define NDPluginFastCCDAttrOverString           "ATTR_OVER"
+#define NDPluginFastCCDCaptureBgndString        "CAPTURE_BGND"
+#define NDPluginFastCCDEnableBgndString         "ENABLE_BGND"
+#define NDPluginFastCCDValidBgndString          "VALID_BGND"
+#define NDPluginFastCCDValidImageString         "VALID_IMAGE"
+#define NDPluginFastCCDBgndSubtrString          "BGND_SUBTR"
+#define NDPluginFastCCDTestString               "TEST"
+#define NDPluginFastCCDGain8String              "GAIN_8"
+#define NDPluginFastCCDGain2String              "GAIN_2"
+#define NDPluginFastCCDGain1String              "GAIN_1"
 
 class epicsShareClass NDPluginFastCCD : public NDPluginDriver {
 public:
-  NDPluginFastCCD(const char *portName, int queueSize, int blockingCallbacks, 
-               const char *NDArrayPort, int NDArrayAddr, 
-               int maxBuffers, size_t maxMemory,
-               int priority, int stackSize);
-
-  asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
-  asynStatus writeOctet(asynUser *pasynUser, const char *value, size_t nc, size_t *na);
-
-  void processCallbacks(NDArray *pArray);
+    NDPluginFastCCD(const char *portName, int queueSize, int blockingCallbacks, 
+                 const char *NDArrayPort, int NDArrayAddr,
+                 int maxBuffers, size_t maxMemory,
+                 int priority, int stackSize, int maxThreads);
+    /* These methods override the virtual methods in the base class */
+    void processCallbacks(NDArray *pArray);
+    asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
 
 protected:
-  #define FIRST_NDPLUGIN_FASTCCD_PARAM NDPluginFastCCDGain0
-  int NDPluginFastCCDGain0;
-  int NDPluginFastCCDGain1;
-  int NDPluginFastCCDGain2;
+    /* ROI general parameters */
+    int NDPluginFastCCDName;
+    #define FIRST_NDPLUGIN_ROI_PARAM NDPluginFastCCDName
 
-  int NDPluginFastCCDEnableBackground;
-  int NDPluginFastCCDDataType;
-
-  int NDPluginFastCCDValidBackground;
-  int NDPluginFastCCDValidBackground0;
-  int NDPluginFastCCDValidBackground1;
-  int NDPluginFastCCDValidBackground2;
-
-  int NDPluginFastCCDSaveBackground0;
-  int NDPluginFastCCDSaveBackground1;
-  int NDPluginFastCCDSaveBackground2;
-
-  int NDPluginFastCCDNumImages;
-  int NDPluginFastCCDNumImagesP;
-  int NDPluginFastCCDEnableOutput;
-
-  int NDPluginFastCCDDPVal;
+    /* ROI definition */
+    int NDPluginFastCCDRowOffset;
+    int NDPluginFastCCDRows;
+    int NDPluginFastCCDOverscanCols;
+    int NDPluginFastCCDEnableGain;
+    int NDPluginFastCCDEnableSize;
+    int NDPluginFastCCDEnableBgnd;
+    int NDPliginFastCCDCaptureBgnd;
+    int NDPluginFastCCDAttrOver;
+    int NDPluginFastCCDCaptureBgnd;
+    int NDPluginFastCCDValidBgnd;
+    int NDPluginFastCCDValidImage;
+    int NDPluginFastCCDBgndSubtr;
+    int NDPluginFastCCDGain8;
+    int NDPluginFastCCDGain2;
+    int NDPluginFastCCDGain1;
+    int NDPluginFastCCDTest;
 
 private:
-  int writeTiffBackground(char* filename, NDArray* array);
 
-  NDArrayInfo arrayInfo;
-  NDArray *pBackground0;
-  size_t nBackground0Elements;
-  NDArray *pBackground1;
-  size_t nBackground1Elements;
-  NDArray *pBackground2;
-  size_t nBackground2Elements;
-
-  epicsTimeStamp enableOutputTimestamp;
-
-  int numImages;
-  int enableOutput;
-
+    asynStatus processImage(NDArray *pIn, NDArray *pOut, int rowOffset, int overscanCols, int correctGain,
+                            int bgndSubtract);
+    template <typename epicsType> asynStatus processImageT(NDArray *pIn, NDArray *pOut, 
+                                                           int rowOffset, int overscanCols, int correctGain,
+                                                           int bgndSubtract);
+    template <typename epicsType> epicsFloat32 correctPixel(epicsType inp, epicsInt16 bgnd, int correctGain);
+    NDArray *pBackground;
 };
     
 #endif

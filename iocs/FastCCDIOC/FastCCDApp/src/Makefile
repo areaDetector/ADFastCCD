@@ -20,6 +20,7 @@ PROD_SRCS += $(PROD_NAME)_registerRecordDeviceDriver.cpp $(PROD_NAME)Main.cpp
 PROD_LIBS += FastCCD
 PROD_LIBS += NDPluginFastCCD
 PROD_LIBS += cin
+PROD_SYS_LIBS += config
 
 include $(ADCORE)/ADApp/commonDriverMakefile
 

@@ -1,4 +1,4 @@
-file "ADBase_settings.req, P=$(P), R=(R)
+#file "ADBase_settings.req, P=$(P), R=$(R)
 $(P)$(R)Mux1
 $(P)$(R)Mux2
 $(P)$(R)FirmwarePath
@@ -9,6 +9,9 @@ $(P)$(R)PollPeriod
 $(P)$(R)FrameStr
 $(P)$(R)FCRICGain
 $(P)$(R)FCRICClamp
+$(P)$(R)OverscanRows
+$(P)$(R)OverscanCols
+$(P)$(R)TimingMode
 $(P)$(R)E:BiasBase-SP
 $(P)$(R)E:BiasDelta-SP
 $(P)$(R)E:BiasNEdge-SP
