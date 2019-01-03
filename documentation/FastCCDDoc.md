@@ -1,5 +1,6 @@
+<h1 align="center">
 areaDetector FastCCD driver
-===========================
+</h1>
 
 December 20th, 2018
 -------------------
@@ -39,8 +40,8 @@ It also implements a number of parameters that are specific to the
 FastCCD camera and can controll the boot-up sequence of the camera amd
 all settings such as bias voltages and timing.
 
-Implementation of standard driver parameters {#StandardNotes style="text-align: left"}
---------------------------------------------------------------------------------------
+Implementation of standard driver parameters
+--------------------------------------------
 
 The driver redefines the choices for several of the parameters defined
 in ADDriver.h. The ADTriggerMode choices for the FastCCD are:
@@ -58,11 +59,13 @@ The NDColorMode choices for the Prosilica are:
 
 -   NDColorModeMono (monochromatic data)
 
-FastCCD specific parameters {#Driver_parameters style="text-align: left"}
--------------------------------------------------------------------------
+FastCCD specific parameters
+---------------------------
 
-The Prosilica driver implements the following parameters in addition to
+The FastCCD driver implements the following parameters in addition to
 those in asynNDArrayDriver.h and ADDriver.h:
+
+
 
 
 Configuration {#Configuration}
