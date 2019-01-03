@@ -43,11 +43,11 @@ in ADDriver.h. The ADTriggerMode choices for the FastCCD are:
 -   External 2 (external trigger on input 2)
 -   External 1+2 (external trigger on input 1 OR input 2)
 
-The NDDataType choices for the Prosilica are:
+The NDDataType choices for the FastCCD are:
 
 -   NDUInt16 (16 bit data)
 
-The NDColorMode choices for the Prosilica are:
+The NDColorMode choices for the FastCCD are:
 
 -   NDColorModeMono (monochromatic data)
 
@@ -81,7 +81,7 @@ Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.tem
 Configuration
 -------------
 
-The Prosilica driver is created with the prosilicaConfig command, either
+The FastCCD driver is created with the FastCCDConfig command, either
 from C/C++ or from the EPICS IOC shell.
 
     int FastCCDConfig(char *portName, 
@@ -104,7 +104,7 @@ address of the CIN on initialization. This can be used to broadcast the
 image data by using the `FF:FF:FF:FF:FF` mac address. 
 
 For details on the meaning of the other parameters to this function
-refer to the detailed documentation on the prosilicaConfig function in
+refer to the detailed documentation on the FastCCDConfig function in
 the 
 [FastCCD.cpp documentation](areaDetectorDoxygenHTML/_fast_c_c_d_8cpp.html)
  and in the documentation for the constructor for the 
