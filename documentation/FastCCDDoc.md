@@ -91,8 +91,7 @@ FastCCD Image Size and Overscan Settings
 <td>r/w</td>
 <td>Specify the number of overscan rows to use when descrambling</td>
 <td>OVERSCAN_ROWS</td>
-<td>$(P)$(R)OverscanRows<br />
-    $(P)$(R)OverscanRows_RBV</td>
+<td>$(P)$(R)OverscanRows<br />$(P)$(R)OverscanRows_RBV</td>
 <td><longout</td>
 <tr>
 </table>
