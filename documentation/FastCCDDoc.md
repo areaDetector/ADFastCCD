@@ -59,7 +59,7 @@ those in asynNDArrayDriver.h and ADDriver.h:
 
 |Parameter index variable|asyn interface|Access|Description|drvInfo string|EPICS record name|EPICS record type|
 |------------------------|--------------|------|-----------|--------------|-----------------|-----------------|
-|<td colspan=7>Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.template</td>|
+|<td colspan=7>Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.template
 | A | B | C | D | E | F | G | 
 
 
