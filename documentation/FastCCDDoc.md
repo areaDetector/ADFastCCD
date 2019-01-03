@@ -157,6 +157,10 @@ parameter is the number of overscan cols to include and specified by the
 is ignored by the driver.  The number of rows defines how many rows per column
 to process and is set by the `$(P)$(R)ADSizeY` PV. 
 
+The actual image size is therefore given by:
+
+* _X_ Direction (row wise) `$(P)$(R)ADSizeY` [usually set to 2000 to have some overscan]
+* _Y_ Direction (column wise) (10 + `$(P)$(R)OverscanCols`) * 96 [for no overscan 960]
 
 MEDM screens
 ------------
