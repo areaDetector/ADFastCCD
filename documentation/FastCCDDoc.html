@@ -24,6 +24,7 @@ NSLS-II, Brookhaven National Laboratory
 <li><a href="#implementation-of-standard-driver-parameters">Implementation of standard driver parameters</a></li>
 <li><a href="#fastccd-specific-parameters">FastCCD specific parameters</a></li>
 <li><a href="#configuration">Configuration</a></li>
+<li><a href="#setting-the-image-size">Setting the image size</a></li>
 <li><a href="#medm-screens">MEDM screens</a></li>
 <li><a href="#connection-management">Connection management</a></li>
 </ul>
@@ -102,7 +103,30 @@ OVERSCAN_ROWS
 <span class="math inline">(<em>P</em>)</span>(R)OverscanRows<br /><span class="math inline">(<em>P</em>)</span>(R)OverscanRows_RBV
 </td>
 <td>
-longout
+longout<br />longin
+</td>
+<tr>
+<tr>
+<td>
+FastCCDOverscanCols
+</td>
+<td>
+asynParamInt32
+</td>
+<td>
+r/w
+</td>
+<td>
+Specify the number of overscan columns to use when descrambling
+</td>
+<td>
+OVERSCAN_COLS
+</td>
+<td>
+<span class="math inline">(<em>P</em>)</span>(R)OverscanCols<br /><span class="math inline">(<em>P</em>)</span>(R)OverscanCols_RBV
+</td>
+<td>
+longout<br />longin
 </td>
 <tr>
 </table>
@@ -118,6 +142,14 @@ longout
 <p>The <strong>baseIP</strong> and <strong>fabricIP</strong> are the ip addresses of the base and fabric interfaces on the camera interface node (CIN). A null &quot;&quot; string sets the default as defined in the <code>libcin</code> driver.</p>
 <p>The <strong>fabricMAC</strong> parameter causes the <code>libcin</code> driver to set the MAC address of the CIN on initialization. This can be used to broadcast the image data by using the <code>FF:FF:FF:FF:FF</code> mac address.</p>
 <p>For details on the meaning of the other parameters to this function refer to the detailed documentation on the FastCCDConfig function in the <a href="areaDetectorDoxygenHTML/_fast_c_c_d_8cpp.html">FastCCD.cpp documentation</a> and in the documentation for the constructor for the <a href="areaDetectorDoxygenHTML/class_fast_c_c_d.html">FastCCD class</a>.</p>
+<h2 id="setting-the-image-size">Setting the image size</h2>
+<p>Due to the multicolum nature of the FastCCD, setting the image size is not trivial. This is due to the nature of the image descrambling and if overscan is used on each supercolumn. For this reason the image size is governed by two paramaters, <code>$(P)$(R)OverscanCols</code> and <code>$(P)$(R)ADSizeY</code>.</p>
+<p>The definition used for the image orientation in this driver is that columns are along the <em>X</em> direction and rows are along the <em>Y</em> direction. As the number of columns per <em>supercolumn</em> is fixed in timing to 10 columns, the only free parameter is the number of overscan cols to include and specified by the <code>$(P)$(R)OverscanCols</code> PV. For this reason setting of the <code>$(P)$(R)ADSizeX</code> PV is ignored by the driver. The number of rows defines how many rows per column to process and is set by the <code>$(P)$(R)ADSizeY</code> PV.</p>
+<p>The actual image size is therefore given by:</p>
+<ul>
+<li><em>X</em> Direction (row wise) <code>$(P)$(R)ADSizeY</code> [usually set to 2000 to have some overscan]</li>
+<li><em>Y</em> Direction (column wise) (10 + <code>$(P)$(R)OverscanCols</code>) * 96 [for no overscan 960]</li>
+</ul>
 <h2 id="medm-screens">MEDM screens</h2>
 <p>MEDM screens are not used at NSLS-II as CSS-BOY is the default display manager</p>
 <h2 id="connection-management">Connection management</h2>
