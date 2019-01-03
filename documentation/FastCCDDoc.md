@@ -165,6 +165,32 @@ HWTRIG</td>
 <td>$(P)$(R)Mux2<br />$(P)$(R)Mux2_RBV</td>
 <td>mbbo<br />mbbi</td>
 <tr>
+
+<tr>
+<td>FastCCDFCRICGain</td>
+<td>asynParamInt32</td>
+<td>r/w</td>
+<td>Sets the fCRIC gain. Allowed values are:<br />
+Auto<br />
+x2<br />
+x1</td>
+<td>FCRIC_GAIN</td>
+<td>$(P)$(R)FCRICGain<br />$(P)$(R)FCRICGain_RBV</td>
+<td>mbbo<br />mbbi</td>
+<tr>
+
+<tr>
+<td>FastCCDFCRICClamp</td>
+<td>asynParamInt32</td>
+<td>r/w</td>
+<td>Sets the fCRIC clamp mode. Allowed values are:<br />
+CLAMP OFF<br />
+CLAMP ON</td>
+<td>FCRIC_CLAMP</td>
+<td>$(P)$(R)FCRICClamp<br />$(P)$(R)FCRICClamp_RBV</td>
+<td>bo<br />bi</td>
+<tr>
+
 </table>
 
 Configuration
