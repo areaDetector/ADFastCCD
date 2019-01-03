@@ -6,12 +6,12 @@
 Contents
 --------
 
--   [Overview](#Overview)
+-   [Overview](#overview)
 -   [Implementation of standard driver parameters](#implementation-of-standard-driver-parameters)
--   [Prosilica specific parameters](#Driver_parameters)
--   [Configuration](#Configuration)
--   [MEDM screens](#MEDM_screens)
--   [Connection management](#ConnectionManagement)
+-   [FastCCD specific parameters](#fastccd-specific-parameters)
+-   [Configuration](#configuration)
+-   [MEDM screens](#medm-screens)
+-   [Connection management](#connection-management)
 
 Overview
 --------
