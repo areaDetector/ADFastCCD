@@ -1,15 +1,7 @@
-<h1 align="center">
-areaDetector FastCCD driver
-</h1>
-
-December 20th, 2018
--------------------
-
-Stuart B. Wilkins
------------------
-
-NSLS-II, Brookhaven National Laboratory
----------------------------------------
+<h1 align="center"> areaDetector FastCCD driver </h1>
+<h2 align="center"> December 20th, 2018 </h2> 
+<h2 align="center"> Stuart B. Wilkins </h2>
+<h2 align="center"> NSLS-II, Brookhaven National Laboratory </h2>
 
 Contents
 --------
