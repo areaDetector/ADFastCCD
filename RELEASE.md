@@ -2,7 +2,7 @@
 ADFastCCD Releases
 ==================
 
-The latest untagged master branch can be obtained at
+The latest untagged master branch can be obtained from at
 https://github.com/areaDetector/ADFastCCD
 
 The low-level camera control driver libcin can be obtained at 
@@ -17,3 +17,6 @@ files respectively, in the configure/ directory of the appropriate release of th
 Release Notes
 =============
 
+R0-1 (July 1, 2018)
+===================
+* First release of the FastcCCD areaDetector driver. 
