@@ -60,14 +60,15 @@ those in asynNDArrayDriver.h and ADDriver.h:
 <table border="1" cellpadding="2" cellspacing="2" style="text-align: left">
 
 <tr>
-<b><td colspan=8 align="center">
+<td colspan=7 align="center">
+<b>
 Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.template
-</td></b>
+</b>
+</td>
 </tr>
 
 <tr>
-<td>Parameter index</td>
-<td>variable</td>
+<td>Parameter index variable</td>
 <td>asyn interface</td>
 <td>Access</td>
 <td>Description</td>
@@ -76,6 +77,24 @@ Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.tem
 <td>EPICS record type</td>
 <tr>
 
+<tr>
+<td colspan=7 align="center">
+<b>
+FastCCD Image Size and Overscan Settings
+</b>
+</td>
+</tr>
+
+<tr>
+<td>FastCCDOverscanRows</td>
+<td>asynParamInt32</td>
+<td>r/w</td>
+<td>Specify the number of overscan rows to use when descrambling</td>
+<td>OVERSCAN_ROWS</td>
+<td>$(P)$(R)OverscanRows<br />
+    $(P)$(R)OverscanRows_RBV</td>
+<td><longout</td>
+<tr>
 </table>
 
 Configuration
