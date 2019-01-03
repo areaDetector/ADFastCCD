@@ -138,7 +138,7 @@ TRIGMON</td>
 <td>FCCD_MUX1</td>
 <td>$(P)$(R)Mux1<br />$(P)$(R)Mux1_RBV</td>
 <td>mbbo<br />mbbi</td>
-<tr>
+</tr>
 
 <tr>
 <td>FastCCDMux2</td>
@@ -164,7 +164,7 @@ HWTRIG</td>
 <td>FCCD_MUX2</td>
 <td>$(P)$(R)Mux2<br />$(P)$(R)Mux2_RBV</td>
 <td>mbbo<br />mbbi</td>
-<tr>
+</tr>
 
 <tr>
 <td>FastCCDFCRICGain</td>
@@ -177,7 +177,7 @@ x1</td>
 <td>FCRIC_GAIN</td>
 <td>$(P)$(R)FCRICGain<br />$(P)$(R)FCRICGain_RBV</td>
 <td>mbbo<br />mbbi</td>
-<tr>
+</tr>
 
 <tr>
 <td>FastCCDFCRICClamp</td>
@@ -189,7 +189,143 @@ CLAMP ON</td>
 <td>FCRIC_CLAMP</td>
 <td>$(P)$(R)FCRICClamp<br />$(P)$(R)FCRICClamp_RBV</td>
 <td>bo<br />bi</td>
+</tr>
+
 <tr>
+<td>FastCCDFOTest</td>
+<td>asynParamInt32</td>
+<td>r/w</td>
+<td>Sets the fiberoptic module test mode. Allowed values are:<br />
+Off<br />
+On</td>
+<td>FO_TEST</td>
+<td>$(P)$(R)FOTest<br />$(P)$(R)FOTest_RBV</td>
+<td>bo<br />bi</td>
+</tr>
+
+<tr>
+<td colspan=7 align="center">
+<b>
+FastCCD CIN Setting Upload
+</b>
+</td>
+</tr>
+
+<tr>
+<td>FastCCDFirmwarePath</td>
+<td>asynParamOctet</td>
+<td>r/w</td>
+<td>Sets the path for the CIN firmware file to upload</td>
+<td>FIRMWARE_PATH</td>
+<td>$(P)$(R)FirmwarePath<br />$(P)$(R)FirmwarePath_RBV</td>
+<td>waveform</td>
+</tr>
+
+<tr>
+<td>FastCCDFirmwareUpload</td>
+<td>asynParamInt32</td>
+<td>r/w</td>
+<td>Uploads the firmware to the CIN specified in the _FastCCDFirmwarePath_</td>
+<td>FIRMWARE_UPLOAD</td>
+<td>$(P)$(R)FwUpload<br />$(P)$(R)FwUpload_RBV</td>
+<td>busy<br />bi</td>
+</tr>
+
+<tr>
+<td>FastCCDClockPath</td>
+<td>asynParamOctet</td>
+<td>r/w</td>
+<td>Sets the path for the clocking (timing) file to upload</td>
+<td>CLOCK_PATH</td>
+<td>$(P)$(R)ClockPath<br />$(P)$(R)ClockPath_RBV</td>
+<td>waveform</td>
+</tr>
+
+<tr>
+<td>FastCCDClockUpload</td>
+<td>asynParamInt32</td>
+<td>r/w</td>
+<td>Uploads the clock (timing) to the CIN specified in the _FastCCDClockPath_</td>
+<td>CLOCK_UPLOAD</td>
+<td>$(P)$(R)ClockUpload<br />$(P)$(R)ClockUpload_RBV</td>
+<td>busy<br />bi</td>
+</tr>
+
+<tr>
+<td>FastCCDFCRICPath</td>
+<td>asynParamOctet</td>
+<td>r/w</td>
+<td>Sets the path for the fCRIC configuration file to upload</td>
+<td>FCRIC_PATH</td>
+<td>$(P)$(R)FCRICPath<br />$(P)$(R)FCRICPath_RBV</td>
+<td>waveform</td>
+</tr>
+
+<tr>
+<td>FastCCDFCRICUpload</td>
+<td>asynParamInt32</td>
+<td>r/w</td>
+<td>Uploads the fCRIC configuration to the CIN specified in the _FastCCDFCRICPath_</td>
+<td>FCRIC_UPLOAD</td>
+<td>$(P)$(R)FCRICUpload<br />$(P)$(R)FCRICUpload_RBV</td>
+<td>busy<br />bi</td>
+</tr>
+
+<tr>
+<td>FastCCDBiasPath</td>
+<td>asynParamOctet</td>
+<td>r/w</td>
+<td>Sets the path for the sensor bias configuration file to upload</td>
+<td>BIAS_PATH</td>
+<td>$(P)$(R)BiasPath<br />$(P)$(R)BiasPath_RBV</td>
+<td>waveform</td>
+</tr>
+
+<tr>
+<td>FastCCDBiasUpload</td>
+<td>asynParamInt32</td>
+<td>r/w</td>
+<td>Uploads the bias configuration to the CIN specified in the _FastCCDBiasPath_</td>
+<td>BIAS_UPLOAD</td>
+<td>$(P)$(R)BiasUpload<br />$(P)$(R)BiasUpload_RBV</td>
+<td>busy<br />bi</td>
+</tr>
+
+<tr>
+<td colspan=7 align="center">
+<b>
+FastCCD Auto Setting Parameters
+</b>
+</td>
+</tr>
+
+<tr>
+<td colspan=7 align="center">
+<b>
+FastCCD CIN Power Settings
+</b>
+</td>
+</tr>
+
+<tr>
+<td>FastCCDPower</td>
+<td>asynParamInt32</td>
+<td>r/w</td>
+<td>Powers on and off the CIN (0 = off, 1 = on)</td>
+CIN_POWER<td></td>
+<td>$(P)$(R)Power<br />$(P)$(R)Power_RBV</td>
+<td>bo<br />bi</td>
+</tr>
+
+<tr>
+<td>FastCCDFPPower</td>
+<td>asynParamInt32</td>
+<td>r/w</td>
+<td>Powers on and off the CIN front panel (0 = off, 1 = on)</td>
+CIN_POWER<td></td>
+<td>$(P)$(R)FPPower<br />$(P)$(R)FPPower_RBV</td>
+<td>bo<br />bi</td>
+</tr>
 
 </table>
 
