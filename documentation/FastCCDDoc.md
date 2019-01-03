@@ -27,8 +27,10 @@ github here](https://github.com/NSLS-II/libcin).
 
 This driver inherits from [ADDriver](areaDetectorDoc.html#ADDriver). It
 implements nearly all of the parameters in
-[asynNDArrayDriver.h](areaDetectorDoxygenHTML/asyn_n_d_array_driver_8h.html)
-and in [ADArrayDriver.h](areaDetectorDoxygenHTML/_a_d_driver_8h.html).
+[asynNDArrayDriver.h](
+http://cars9.uchicago.edu/software/epics/areaDetectorDoxygenHTML/asyn_n_d_array_driver_8h.html)
+and in [ADArrayDriver.h](
+http://cars9.uchicago.edu/software/epics/areaDetectorDoxygenHTML/_a_d_driver_8h.html).
 It also implements a number of parameters that are specific to the
 FastCCD camera and can controll the boot-up sequence of the camera amd
 all settings such as bias voltages and timing.
@@ -357,9 +359,11 @@ image data by using the `FF:FF:FF:FF:FF` mac address.
 For details on the meaning of the other parameters to this function
 refer to the detailed documentation on the FastCCDConfig function in
 the 
-[FastCCD.cpp documentation](areaDetectorDoxygenHTML/_fast_c_c_d_8cpp.html)
+[FastCCD.cpp documentation](
+http://cars9.uchicago.edu/software/epics/areaDetectorDoxygenHTML/_fast_c_c_d_8cpp.html)
  and in the documentation for the constructor for the 
-[FastCCD class](areaDetectorDoxygenHTML/class_fast_c_c_d.html).  
+[FastCCD class](
+http://cars9.uchicago.edu/software/epics/areaDetectorDoxygenHTML/class_fast_c_c_d.html).  
 
 Setting the image size
 ----------------------
