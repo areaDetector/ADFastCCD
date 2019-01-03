@@ -106,7 +106,65 @@ FastCCD Image Size and Overscan Settings
 <td>longout<br />longin</td>
 <tr>
 
+<tr>
+<td colspan=7 align="center">
+<b>
+FastCCD fCRIC and CIN Settings 
+</b>
+</td>
+</tr>
 
+<tr>
+<td>FastCCDMux1</td>
+<td>asynParamInt32</td>
+<td>r/w</td>
+<td>Set the output muxer on the CIN to monitor timing signals. Allowed values are:<br />
+EXPOSE<br />
+VCLK1<br />
+VCLK2<br />
+VCLK3<br />
+ATG<br />
+VFSCLK1<br />
+VFSCLK2<br />
+VFSCLK3<br />
+HCLK1<br />
+HCLK2<br />
+OSW<br />
+RST<br />
+CONVERT<br />
+SHUTTER<br />
+SWTRIGGER<br />
+TRIGMON</td>
+<td>FCCD_MUX1</td>
+<td>$(P)$(R)Mux1<br />$(P)$(R)Mux1_RBV</td>
+<td>mbbo<br />mbbi</td>
+<tr>
+
+<tr>
+<td>FastCCDMux2</td>
+<td>asynParamInt32</td>
+<td>r/w</td>
+<td>Set the output muxer on the CIN to monitor timing signals. Allowed values are:<br />
+EXPOSE<br />
+VCLK1<br />
+VCLK2<br />
+VCLK3<br />
+ATG<br />
+VFSCLK1<br />
+VFSCLK2<br />
+VFSCLK3<br />
+HCLK1<br />
+HCLK2<br />
+HCLK3<br />
+OSW<br />
+RST<br />
+CONVERT<br />
+SAVE<br />
+HWTRIG</td>
+<td>FCCD_MUX2</td>
+<td>$(P)$(R)Mux2<br />$(P)$(R)Mux2_RBV</td>
+<td>mbbo<br />mbbi</td>
+<tr>
 </table>
 
 Configuration
