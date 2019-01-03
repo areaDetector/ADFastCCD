@@ -60,8 +60,8 @@ those in asynNDArrayDriver.h and ADDriver.h:
 
 
 
-Configuration {#Configuration}
-------------------------------
+Configuration
+-------------
 
 The Prosilica driver is created with the prosilicaConfig command, either
 from C/C++ or from the EPICS IOC shell.
@@ -111,13 +111,13 @@ There an example IOC boot directory and startup script
 ([iocBoot/iocProsilica/st.cmd)](prosilica_st_cmd.html) provided with
 areaDetector.
 
-MEDM screens {#MEDM_screens style="text-align: left"}
------------------------------------------------------
+MEDM screens
+------------
 
 MEDM screens are not used at NSLS-II as CSS-BOY is the default display manager
 
-Connection management {#ConnectionManagement}
----------------------------------------------
+Connection management
+---------------------
 
 As the FastCCD _CIN_ only uses UDP sockets, there is no permanent connection,
 the driver relies on being able to read such parameters as the serial nnumber
