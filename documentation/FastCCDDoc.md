@@ -1,4 +1,3 @@
-::: {style="text-align: center"}
 areaDetector FastCCD driver
 ===========================
 
@@ -21,8 +20,8 @@ Contents
 -   [MEDM screens](#MEDM_screens)
 -   [Connection management](#ConnectionManagement)
 
-Overview {#Overview}
---------------------
+Overview
+--------
 
 This is an [EPICS](http://www.aps.anl.gov/epics/)
 [areaDetector](areaDetector.html) driver for the FastCCD detector
