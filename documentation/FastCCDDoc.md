@@ -10,6 +10,7 @@ Contents
 -   [Implementation of standard driver parameters](#implementation-of-standard-driver-parameters)
 -   [FastCCD specific parameters](#fastccd-specific-parameters)
 -   [Configuration](#configuration)
+-   [Setting the image size](#setting-the-image-size)
 -   [MEDM screens](#medm-screens)
 -   [Connection management](#connection-management)
 
@@ -92,8 +93,20 @@ FastCCD Image Size and Overscan Settings
 <td>Specify the number of overscan rows to use when descrambling</td>
 <td>OVERSCAN_ROWS</td>
 <td>$(P)$(R)OverscanRows<br />$(P)$(R)OverscanRows_RBV</td>
-<td>longout</td>
+<td>longout<br />longin</td>
 <tr>
+
+<tr>
+<td>FastCCDOverscanCols</td>
+<td>asynParamInt32</td>
+<td>r/w</td>
+<td>Specify the number of overscan columns to use when descrambling</td>
+<td>OVERSCAN_COLS</td>
+<td>$(P)$(R)OverscanCols<br />$(P)$(R)OverscanCols_RBV</td>
+<td>longout<br />longin</td>
+<tr>
+
+
 </table>
 
 Configuration
@@ -127,6 +140,23 @@ the
 [FastCCD.cpp documentation](areaDetectorDoxygenHTML/_fast_c_c_d_8cpp.html)
  and in the documentation for the constructor for the 
 [FastCCD class](areaDetectorDoxygenHTML/class_fast_c_c_d.html).  
+
+Setting the image size
+----------------------
+
+Due to the multicolum nature of the FastCCD, setting the image size is not
+trivial. This is due to the nature of the image descrambling and if overscan is
+used on each supercolumn. For this reason the image size is governed by two
+paramaters, `$(P)$(R)OverscanCols` and `$(P)$(R)ADSizeY`.
+
+The definition used for the image orientation in this driver is that columns
+are along the _X_ direction and rows are along the _Y_ direction. As the number
+of columns per _supercolumn_ is fixed in timing to 10 columns, the only free
+parameter is the number of overscan cols to include and specified by the
+`$(P)$(R)OverscanCols` PV. For this reason setting of the `$(P)$(R)ADSizeX` PV
+is ignored by the driver.  The number of rows defines how many rows per column
+to process and is set by the `$(P)$(R)ADSizeY` PV. 
+
 
 MEDM screens
 ------------
