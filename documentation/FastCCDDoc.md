@@ -57,7 +57,8 @@ FastCCD specific parameters
 The FastCCD driver implements the following parameters in addition to
 those in asynNDArrayDriver.h and ADDriver.h:
 
-
+| Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.template |
+| Parameter index variable | asyn interface | Access | Description | drvInfo string | EPICS record name | EPICS record type |
 
 
 Configuration
@@ -66,50 +67,31 @@ Configuration
 The Prosilica driver is created with the prosilicaConfig command, either
 from C/C++ or from the EPICS IOC shell.
 
-    int prosilicaConfig(char *portName,
-                        const char* cameraId,
-                        int maxBuffers, size_t maxMemory,
-                        int priority, int stackSize, int maxPvAPIFrames)
-      
+    int FastCCDConfig(char *portName, 
+					  int maxBuffers, size_t maxMemory,
+                      int priority, int stackSize,
+				      int packetBuffer, int imageBuffer,
+                      const char *baseIP, const char *fabricIP, 
+                      const char *fabricMAC)
 
-The **cameraId** string can be any of the following:
+The **packetBuffer** and **imageBuffer** parameters specify how many 
+packet frames and images to buffer in the `libcin` driver. These are 
+directly passed to `libcin` on initialization. 
 
--   The camera\'s UniqueId, which is a number assigned by the vendor to
-    each Prosilica camera, e.g. 50110.
--   The camera\'s IP address, e.g. 164.54.160.48.
--   The camera\'s IP DNS name, e.g. gse-prosilica1.cars.aps.anl.gov.
+The **baseIP** and **fabricIP** are the ip addresses of the base and fabric
+interfaces on the camera interface node (CIN). A null \"\" string sets the 
+default as defined in the `libcin` driver.
 
-Using the UniqueId has the advantage that the cameras can be configured
-to use DHCP, and hence have non-predictable TCP/IP addresses. However,
-if the UniqueId is used then the areaDetector IOC must be on the same
-subnet as the camera, since cameras cannot be found by UniqueID through
-routers. The simplest way to determine the uniqueId of a camera is to
-run the Prosilica GigEViewer application, select the camera, and press
-the \"i\" icon on the bottom of the main window to show the camera
-information for this camera. The Unique ID will be displayed on the
-first line in the information window.
-
-The IP address or IP DNS name can be used for cameras with fixed IP
-addresses, and **must** be used for cameras that are not on the local
-subnet.
-
-The maxPvAPIFrames parameter controls how many frame buffers will be
-used by the PvAPI library. This is the last parameter in the
-prosilicaConfig command, and if it is absent the default value of 2 is
-used, which is sufficient in most circumstances. However, with very high
-frame rates or busy IOCs increasing this value can reduce dropped
-frames.
+The **fabricMAC** parameter causes the `libcin` driver to set the MAC 
+address of the CIN on initialization. This can be used to broadcast the
+image data by using the `FF:FF:FF:FF:FF` mac address. 
 
 For details on the meaning of the other parameters to this function
 refer to the detailed documentation on the prosilicaConfig function in
-the [prosilica.cpp
-documentation](areaDetectorDoxygenHTML/prosilica_8cpp.html) and in the
-documentation for the constructor for the [prosilica
-class](areaDetectorDoxygenHTML/classprosilica.html).
-
-There an example IOC boot directory and startup script
-([iocBoot/iocProsilica/st.cmd)](prosilica_st_cmd.html) provided with
-areaDetector.
+the 
+[FastCCD.cpp documentation](areaDetectorDoxygenHTML/_fast_c_c_d_8cpp.html)
+ and in the documentation for the constructor for the 
+[FastCCD class](areaDetectorDoxygenHTML/class_fast_c_c_d.html).  
 
 MEDM screens
 ------------
