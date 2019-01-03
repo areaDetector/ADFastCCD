@@ -56,10 +56,13 @@ FastCCD specific parameters
 
 The FastCCD driver implements the following parameters in addition to
 those in asynNDArrayDriver.h and ADDriver.h:
-<table>
+
+<table border="1" cellpadding="2" cellspacing="2" style="text-align: left">
 
 <tr>
-<b><td colspan=8>Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.template</td></b>
+<b><td colspan=8 align="center">
+Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.template
+</td></b>
 </tr>
 
 <tr>
