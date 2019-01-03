@@ -57,9 +57,9 @@ FastCCD specific parameters
 The FastCCD driver implements the following parameters in addition to
 those in asynNDArrayDriver.h and ADDriver.h:
 
-<td colspan=7>Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.template</td>
 |Parameter index variable|asyn interface|Access|Description|drvInfo string|EPICS record name|EPICS record type|
 |------------------------|--------------|------|-----------|--------------|-----------------|-----------------|
+<td colspan=7>Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.template</td>
 | A | B | C | D | E | F | G | 
 
 
