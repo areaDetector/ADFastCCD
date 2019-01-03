@@ -17,5 +17,5 @@ see the `libcin`
 information on the required network setup. 
 
 Additional information:
-* [Documentation](http://cars.uchicago.edu/software/epics/prosilicaDoc.html).
+* [Documentation](http://cars.uchicago.edu/software/epics/FastCCDDoc.html).
 * [Release notes and links to source and binary releases](RELEASE.md).

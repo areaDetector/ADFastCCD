@@ -29,47 +29,40 @@
   <h2 id="Overview">
     Overview</h2>
   <p>
-    This is an <a href="http://www.aps.anl.gov/epics/">EPICS</a> <a href="areaDetector.html">
-      areaDetector</a> driver for the FastCCD detector produced by teh detector group
-        at Lawrence Berkely National Laboratory.
-        The driver is supported under Linux. The driver acts as a high level driver over
-        a lower level c-driver which communicates with the camera via UDP sockets. The 
-		<i>libcin</i> driver can be found <a href="https://github.com/NSLS-II/libcin">
-			on github here</a>. 
+  This is an <a href="http://www.aps.anl.gov/epics/">EPICS</a> <a href="areaDetector.html">
+  areaDetector</a> driver for the FastCCD detector produced by the detector group
+  at Lawrence Berkely National Laboratory.
+  The driver is supported under Linux. The driver acts as a high level driver over
+  a lower level c-driver which communicates with the camera via UDP sockets. The 
+  lower level c driver, <i>libcin</i> can be found <a href="https://github.com/NSLS-II/libcin">
+  on github here</a>. 
   </p>
   <p>
-    This driver inherits from <a href="areaDetectorDoc.html#ADDriver">ADDriver</a>.
-    It implements nearly all of the parameters in <a href="areaDetectorDoxygenHTML/asyn_n_d_array_driver_8h.html">
-      asynNDArrayDriver.h</a> and in <a href="areaDetectorDoxygenHTML/_a_d_driver_8h.html">
-        ADArrayDriver.h</a>. It also implements a number of parameters that are specific
-    to the FastCCD camera and can controll the boot-up sequence of the camera amd all 
-	settings such as bias voltages and timing. 
+  This driver inherits from <a href="areaDetectorDoc.html#ADDriver">ADDriver</a>.
+  It implements nearly all of the parameters in <a href="areaDetectorDoxygenHTML/asyn_n_d_array_driver_8h.html">
+	  asynNDArrayDriver.h</a> and in <a href="areaDetectorDoxygenHTML/_a_d_driver_8h.html">
+	  ADArrayDriver.h</a>. It also implements a number of parameters that are specific
+  to the FastCCD camera and can controll the boot-up sequence of the camera amd all 
+  settings such as bias voltages and timing. 
+
   <h2 id="StandardNotes" style="text-align: left">
-    Implementation of standard driver parameters</h2>
+	  Implementation of standard driver parameters</h2>
   <p>
-    The driver redefines the choices for several of the parameters defined in ADDriver.h.
-    The ADTriggerMode choices for the Prosilica are:
+  The driver redefines the choices for several of the parameters defined in ADDriver.h.
+  The ADTriggerMode choices for the FastCCD are:
   </p>
   <ul>
-    <li>Free Run (collects images as fast as allowed by the camera readout and the exposure
-      time)</li>
-    <li>Sync In 1 (external trigger on line 1)</li>
-    <li>Sync In 2 (external trigger on line 2)</li>
-    <li>Sync In 3 (external trigger on line 3)</li>
-    <li>Sync In 4 (external trigger on line 4)</li>
-    <li>Fixed Rate (collects images at a fixed rate)</li>
-    <li>Software (single software trigger)</li>
+	  <li>Internal (Software trigger)</li>
+	  <li>External 1 (external trigger on input 1)</li>
+	  <li>External 2 (external trigger on input 2)</li>
+	  <li>External 1+2 (external trigger on input 1 OR input 2)</li>
   </ul>
-  <p>
-    The Prosilica supports hardware timing input and output signals that are supported
-    in the driver.
   </p>
   <p>
-    The NDDataType choices for the Prosilica are:
+  The NDDataType choices for the Prosilica are:
   </p>
   <ul>
-    <li>NDUInt8 (8-bit data)</li>
-    <li>NDUInt16 (12 or 16 bit data)</li>
+	  <li>NDUInt16 (16 bit data)</li>
   </ul>
   <p>
     The NDColorMode choices for the Prosilica are:
