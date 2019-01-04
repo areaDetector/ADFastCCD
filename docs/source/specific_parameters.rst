@@ -10,7 +10,7 @@ Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.tem
 
 .. raw:: html
 
-    <table class="table table-bordered">
+    <table class="table table-striped">
     <thead>
     <tr>
     <td>
