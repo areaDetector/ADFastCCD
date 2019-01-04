@@ -11,7 +11,10 @@ areaDetector FastCCD driver
    :caption: Contents:
 
    introduction
+   standard_parameters
    specific_parameters
+   configuration
+   medm
 
 Indices and tables
 ==================
