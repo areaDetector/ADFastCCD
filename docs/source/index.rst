@@ -10,7 +10,8 @@ areaDetector FastCCD driver
    :maxdepth: 1
    :caption: Contents:
 
-    introduction
+   introduction
+   specific_parameters
 
 Indices and tables
 ==================

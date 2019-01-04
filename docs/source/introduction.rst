@@ -1,3 +1,8 @@
+============
+Introduction
+============
+
+
 This is an `EPICS <http://www.aps.anl.gov/epics/>`__
 `areaDetector <areaDetector.html>`__ driver for the FastCCD detector
 produced by the detector group at Lawrence Berkeley National Laboratory.
