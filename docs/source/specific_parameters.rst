@@ -13,27 +13,27 @@ Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.tem
     <table class="table table-striped">
     <thead>
     <tr>
-    <td>
+    <th>
     Parameter index variable
-    </td>
-    <td>
+    </th>
+    <th>
     asyn interface
-    </td>
-    <td>
+    </th>
+    <th>
     Access
-    </td>
-    <td>
+    </th>
+    <th>
     Description
-    </td>
-    <td>
+    </th>
+    <th>
     drvInfo string
-    </td>
-    <td>
+    </th>
+    <th>
     EPICS record name
-    </td>
-    <td>
+    </th>
+    <th>
     EPICS record type
-    </td>
+    </th>
     </tr>
     </thead>
     <tbody>
