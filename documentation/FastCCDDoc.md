@@ -95,7 +95,7 @@ FastCCD Image Size and Overscan Settings
 <td>r/w</td>
 <td>Specify the number of overscan rows to use when descrambling</td>
 <td>OVERSCAN_ROWS</td>
-<td>\$(P)\$(R)OverscanRows<br />\$(P)\$(R)OverscanRows_RBV</td>
+<td>$(P)$(R)OverscanRows<br />$(P)$(R)OverscanRows_RBV</td>
 <td>longout<br />longin</td>
 <tr>
 
@@ -105,7 +105,7 @@ FastCCD Image Size and Overscan Settings
 <td>r/w</td>
 <td>Specify the number of overscan columns to use when descrambling</td>
 <td>OVERSCAN_COLS</td>
-<td>\$(P)\$(R)OverscanCols<br />\$(P)\$(R)OverscanCols_RBV</td>
+<td>$(P)$(R)OverscanCols<br />$(P)$(R)OverscanCols_RBV</td>
 <td>longout<br />longin</td>
 <tr>
 
@@ -139,7 +139,7 @@ SHUTTER<br />
 SWTRIGGER<br />
 TRIGMON</td>
 <td>FCCD_MUX1</td>
-<td>\$(P)\$(R)Mux1<br />\$(P)\$(R)Mux1_RBV</td>
+<td>$(P)$(R)Mux1<br />$(P)$(R)Mux1_RBV</td>
 <td>mbbo<br />mbbi</td>
 </tr>
 
@@ -165,7 +165,7 @@ CONVERT<br />
 SAVE<br />
 HWTRIG</td>
 <td>FCCD_MUX2</td>
-<td>\$(P)\$(R)Mux2<br />\$(P)\$(R)Mux2_RBV</td>
+<td>$(P)$(R)Mux2<br />$(P)$(R)Mux2_RBV</td>
 <td>mbbo<br />mbbi</td>
 </tr>
 
@@ -178,7 +178,7 @@ Auto<br />
 x2<br />
 x1</td>
 <td>FCRIC_GAIN</td>
-<td>\$(P)\$(R)FCRICGain<br />\$(P)\$(R)FCRICGain_RBV</td>
+<td>$(P)$(R)FCRICGain<br />$(P)$(R)FCRICGain_RBV</td>
 <td>mbbo<br />mbbi</td>
 </tr>
 
@@ -190,7 +190,7 @@ x1</td>
 CLAMP OFF<br />
 CLAMP ON</td>
 <td>FCRIC_CLAMP</td>
-<td>\$(P)\$(R)FCRICClamp<br />\$(P)\$(R)FCRICClamp_RBV</td>
+<td>$(P)$(R)FCRICClamp<br />$(P)$(R)FCRICClamp_RBV</td>
 <td>bo<br />bi</td>
 </tr>
 
@@ -202,7 +202,7 @@ CLAMP ON</td>
 Off<br />
 On</td>
 <td>FO_TEST</td>
-<td>\$(P)\$(R)FOTest<br />\$(P)\$(R)FOTest_RBV</td>
+<td>$(P)$(R)FOTest<br />$(P)$(R)FOTest_RBV</td>
 <td>bo<br />bi</td>
 </tr>
 
@@ -220,7 +220,7 @@ FastCCD CIN Setting Upload
 <td>r/w</td>
 <td>Sets the path for the CIN firmware file to upload</td>
 <td>FIRMWARE_PATH</td>
-<td>\$(P)\$(R)FirmwarePath<br />\$(P)\$(R)FirmwarePath_RBV</td>
+<td>$(P)$(R)FirmwarePath<br />$(P)$(R)FirmwarePath_RBV</td>
 <td>waveform</td>
 </tr>
 
@@ -230,7 +230,7 @@ FastCCD CIN Setting Upload
 <td>r/w</td>
 <td>Uploads the firmware to the CIN specified in the _FastCCDFirmwarePath_</td>
 <td>FIRMWARE_UPLOAD</td>
-<td>\$(P)\$(R)FwUpload<br />\$(P)\$(R)FwUpload_RBV</td>
+<td>$(P)$(R)FwUpload<br />$(P)$(R)FwUpload_RBV</td>
 <td>busy<br />bi</td>
 </tr>
 
@@ -240,7 +240,7 @@ FastCCD CIN Setting Upload
 <td>r/w</td>
 <td>Sets the path for the clocking (timing) file to upload</td>
 <td>CLOCK_PATH</td>
-<td>\$(P)\$(R)ClockPath<br />\$(P)\$(R)ClockPath_RBV</td>
+<td>$(P)$(R)ClockPath<br />$(P)$(R)ClockPath_RBV</td>
 <td>waveform</td>
 </tr>
 
@@ -250,7 +250,7 @@ FastCCD CIN Setting Upload
 <td>r/w</td>
 <td>Uploads the clock (timing) to the CIN specified in the _FastCCDClockPath_</td>
 <td>CLOCK_UPLOAD</td>
-<td>\$(P)\$(R)ClockUpload<br />\$(P)\$(R)ClockUpload_RBV</td>
+<td>$(P)$(R)ClockUpload<br />$(P)$(R)ClockUpload_RBV</td>
 <td>busy<br />bi</td>
 </tr>
 
@@ -260,7 +260,7 @@ FastCCD CIN Setting Upload
 <td>r/w</td>
 <td>Sets the path for the fCRIC configuration file to upload</td>
 <td>FCRIC_PATH</td>
-<td>\$(P)\$(R)FCRICPath<br />\$(P)\$(R)FCRICPath_RBV</td>
+<td>$(P)$(R)FCRICPath<br />$(P)$(R)FCRICPath_RBV</td>
 <td>waveform</td>
 </tr>
 
@@ -270,7 +270,7 @@ FastCCD CIN Setting Upload
 <td>r/w</td>
 <td>Uploads the fCRIC configuration to the CIN specified in the _FastCCDFCRICPath_</td>
 <td>FCRIC_UPLOAD</td>
-<td>\$(P)\$(R)FCRICUpload<br />\$(P)\$(R)FCRICUpload_RBV</td>
+<td>$(P)$(R)FCRICUpload<br />$(P)$(R)FCRICUpload_RBV</td>
 <td>busy<br />bi</td>
 </tr>
 
@@ -280,7 +280,7 @@ FastCCD CIN Setting Upload
 <td>r/w</td>
 <td>Sets the path for the sensor bias configuration file to upload</td>
 <td>BIAS_PATH</td>
-<td>\$(P)\$(R)BiasPath<br />\$(P)\$(R)BiasPath_RBV</td>
+<td>$(P)$(R)BiasPath<br />$(P)$(R)BiasPath_RBV</td>
 <td>waveform</td>
 </tr>
 
@@ -290,7 +290,7 @@ FastCCD CIN Setting Upload
 <td>r/w</td>
 <td>Uploads the bias configuration to the CIN specified in the _FastCCDBiasPath_</td>
 <td>BIAS_UPLOAD</td>
-<td>\$(P)\$(R)BiasUpload<br />\$(P)\$(R)BiasUpload_RBV</td>
+<td>$(P)$(R)BiasUpload<br />$(P)$(R)BiasUpload_RBV</td>
 <td>busy<br />bi</td>
 </tr>
 
@@ -308,7 +308,7 @@ FastCCD Auto Setting Parameters
 <td>r/w</td>
 <td>Set the timing mode to use for auto booting the FastCCD</td>
 <td>TIMING_MODE</td>
-<td>\$(P)\$(R)TimingMode<br />\$(P)\$(R)TimingMode_RBV</td>
+<td>$(P)$(R)TimingMode<br />$(P)$(R)TimingMode_RBV</td>
 <td>mbbo<br />mbbi</td>
 </tr>
 
@@ -318,7 +318,7 @@ FastCCD Auto Setting Parameters
 <td>ro</td>
 <td>The name of the timing mode last set by the FastCCD auto boot sequence.</td>
 <td>TIMING_NAME</td>
-<td>\$(P)\$(R)TimingName_RBV</td>
+<td>$(P)$(R)TimingName_RBV</td>
 <td>stringin</td>
 </tr>
 
@@ -328,7 +328,7 @@ FastCCD Auto Setting Parameters
 <td>ro</td>
 <td>The name of the timing mode assigned to mode number 1</td>
 <td>TIMING_NAME_0</td>
-<td>\$(P)\$(R)TimingName1_RBV</td>
+<td>$(P)$(R)TimingName1_RBV</td>
 <td>stringin</td>
 </tr>
 
@@ -338,7 +338,7 @@ FastCCD Auto Setting Parameters
 <td>ro</td>
 <td>The name of the timing mode assigned to mode number 2</td>
 <td>TIMING_NAME_1</td>
-<td>\$(P)\$(R)TimingName1_RBV</td>
+<td>$(P)$(R)TimingName1_RBV</td>
 <td>stringin</td>
 </tr>
 
@@ -348,7 +348,7 @@ FastCCD Auto Setting Parameters
 <td>ro</td>
 <td>The name of the timing mode assigned to mode number 3</td>
 <td>TIMING_NAME_2</td>
-<td>\$(P)\$(R)TimingName1_RBV</td>
+<td>$(P)$(R)TimingName1_RBV</td>
 <td>stringin</td>
 </tr>
 
@@ -358,7 +358,7 @@ FastCCD Auto Setting Parameters
 <td>ro</td>
 <td>The name of the timing mode assigned to mode number 4</td>
 <td>TIMING_NAME_3</td>
-<td>\$(P)\$(R)TimingName3_RBV</td>
+<td>$(P)$(R)TimingName3_RBV</td>
 <td>stringin</td>
 </tr>
 
@@ -368,7 +368,7 @@ FastCCD Auto Setting Parameters
 <td>ro</td>
 <td>The name of the timing mode assigned to mode number 5</td>
 <td>TIMING_NAME_4</td>
-<td>\$(P)\$(R)TimingName4_RBV</td>
+<td>$(P)$(R)TimingName4_RBV</td>
 <td>stringin</td>
 </tr>
 
@@ -378,7 +378,7 @@ FastCCD Auto Setting Parameters
 <td>ro</td>
 <td>The name of the timing mode assigned to mode number 6</td>
 <td>TIMING_NAME_5</td>
-<td>\$(P)\$(R)TimingName5_RBV</td>
+<td>$(P)$(R)TimingName5_RBV</td>
 <td>stringin</td>
 </tr>
 
@@ -388,7 +388,7 @@ FastCCD Auto Setting Parameters
 <td>ro</td>
 <td>The name of the timing mode assigned to mode number 7</td>
 <td>TIMING_NAME_6</td>
-<td>\$(P)\$(R)TimingName6_RBV</td>
+<td>$(P)$(R)TimingName6_RBV</td>
 <td>stringin</td>
 </tr>
 
@@ -398,7 +398,7 @@ FastCCD Auto Setting Parameters
 <td>ro</td>
 <td>The name of the timing mode assigned to mode number 8</td>
 <td>TIMING_NAME_7</td>
-<td>\$(P)\$(R)TimingName7_RBV</td>
+<td>$(P)$(R)TimingName7_RBV</td>
 <td>stringin</td>
 </tr>
 
@@ -408,7 +408,7 @@ FastCCD Auto Setting Parameters
 <td>ro</td>
 <td>The name of the timing mode assigned to mode number 9</td>
 <td>TIMING_NAME_8</td>
-<td>\$(P)\$(R)TimingName8_RBV</td>
+<td>$(P)$(R)TimingName8_RBV</td>
 <td>stringin</td>
 </tr>
 
@@ -418,7 +418,7 @@ FastCCD Auto Setting Parameters
 <td>ro</td>
 <td>The name of the timing mode assigned to mode number 10</td>
 <td>TIMING_NAME_9</td>
-<td>\$(P)\$(R)TimingName9_RBV</td>
+<td>$(P)$(R)TimingName9_RBV</td>
 <td>stringin</td>
 </tr>
 
@@ -438,7 +438,7 @@ FastCCD Auto Setting Commands
 _FastCCDTimingMode_. This causes the CIN to be reset (power cycled), the
 firmware to be uploaded and the timing to be uploaeded to the CIN.</td>
 <td>BOOT</td>
-<td>\$(P)\$(R)Boot<br />\$(P)\$(R)Boot_RBV</td>
+<td>$(P)$(R)Boot<br />$(P)$(R)Boot_RBV</td>
 <td>busy<br />bi</td>
 </tr>
 
@@ -449,7 +449,7 @@ firmware to be uploaded and the timing to be uploaeded to the CIN.</td>
 <td>Send the timing information to the CIN as set by 
 _FastCCDTimingMode_. This causes the CIN timing to change.</td>
 <td>SEND_TIMING</td>
-<td>\$(P)\$(R)SendTiming<br />\$(P)\$(R)SendTiming_RBV</td>
+<td>$(P)$(R)SendTiming<br />$(P)$(R)SendTiming_RBV</td>
 <td>busy<br />bi</td>
 </tr>
 
@@ -460,7 +460,7 @@ _FastCCDTimingMode_. This causes the CIN timing to change.</td>
 <td>Send the fCRIC configuration information to the CIN as set by 
 _FastCCDTimingMode_.</td>
 <td>SEND_FCRIC</td>
-<td>\$(P)\$(R)SendFCRIC<br />\$(P)\$(R)SendFCRIC_RBV</td>
+<td>$(P)$(R)SendFCRIC<br />$(P)$(R)SendFCRIC_RBV</td>
 <td>busy<br />bi</td>
 </tr>
 
@@ -471,7 +471,7 @@ _FastCCDTimingMode_.</td>
 <td>Send the bias voltage configuration information to the CIN as set by 
 _FastCCDTimingMode_.</td>
 <td>SEND_BIAS</td>
-<td>\$(P)\$(R)SendBias<br />\$(P)\$(R)SendBias_RBV</td>
+<td>$(P)$(R)SendBias<br />$(P)$(R)SendBias_RBV</td>
 <td>busy<br />bi</td>
 </tr>
 
@@ -489,7 +489,7 @@ FastCCD CIN Power Settings
 <td>r/w</td>
 <td>Powers on and off the CIN (0 = off, 1 = on)</td>
 <td>CIN_POWER</td>
-<td>\$(P)\$(R)Power<br />\$(P)\$(R)Power_RBV</td>
+<td>$(P)$(R)Power<br />$(P)$(R)Power_RBV</td>
 <td>bo<br />bi</td>
 </tr>
 
@@ -499,7 +499,7 @@ FastCCD CIN Power Settings
 <td>r/w</td>
 <td>Powers on and off the CIN front panel (0 = off, 1 = on)</td>
 <td>CIN_POWER</td>
-<td>\$(P)\$(R)FPPower<br />\$(P)\$(R)FPPower_RBV</td>
+<td>$(P)$(R)FPPower<br />$(P)$(R)FPPower_RBV</td>
 <td>bo<br />bi</td>
 </tr>
 
