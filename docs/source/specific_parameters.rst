@@ -7,7 +7,7 @@ those in asynNDArrayDriver.h and ADDriver.h:
 
 .. raw:: html
 
-    <table border="1" cellpadding="2" cellspacing="2" style="text-align: left">
+    <table class="table table-striped">
     <tr>
     <td colspan="7" align="center">
     <b> Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.template </b>
