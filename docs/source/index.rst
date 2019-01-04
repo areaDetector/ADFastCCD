@@ -1,16 +1,16 @@
-.. ADFastCCD documentation master file, created by
-   sphinx-quickstart on Thu Jan  3 20:34:43 2019.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+===========================
+areaDetector FastCCD driver
+===========================
 
-Welcome to ADFastCCD's documentation!
-=====================================
+.. centered:: December 20th, 2018
+.. centered:: Stuart B. Wilkins
+.. centered:: NSLS-II, Brookhaven National Laboratory 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
-
+    introduction
 
 Indices and tables
 ==================
