@@ -63,7 +63,7 @@ those in asynNDArrayDriver.h and ADDriver.h:
     <td>
     longout<br />longin
     </td>
-    <tr>
+    </tr>
     <tr>
     <td>
     FastCCDOverscanCols
