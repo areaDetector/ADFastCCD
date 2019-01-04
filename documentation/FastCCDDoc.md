@@ -503,6 +503,24 @@ FastCCD CIN Power Settings
 <td>bo<br />bi</td>
 </tr>
 
+<tr>
+<td colspan=7 align="center">
+<b>
+FastCCD Power settings (Bias and Clocking)
+</b>
+</td>
+</tr>
+
+<tr>
+<td>FastCCDFPPower</td>
+<td>asynParamInt32</td>
+<td>r/w</td>
+<td>Powers on and off the CIN front panel (0 = off, 1 = on)</td>
+<td>CIN_POWER</td>
+<td>$(P)$(R)FPPower<br />$(P)$(R)FPPower_RBV</td>
+<td>bo<br />bi</td>
+
+</tr>
 </table>
 
 Configuration
