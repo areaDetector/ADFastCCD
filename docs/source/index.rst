@@ -7,7 +7,7 @@ areaDetector FastCCD driver
 .. centered:: NSLS-II, Brookhaven National Laboratory 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents:
 
    introduction
