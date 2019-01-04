@@ -6,9 +6,11 @@ areaDetector FastCCD driver
 .. centered:: Stuart B. Wilkins
 .. centered:: NSLS-II, Brookhaven National Laboratory 
 
+Table of Contents
+-----------------
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
    introduction
    standard_parameters
@@ -16,9 +18,7 @@ areaDetector FastCCD driver
    configuration
    medm
 
-Indices and tables
-==================
+Search
+------
 
-* :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
