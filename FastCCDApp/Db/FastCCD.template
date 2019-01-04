@@ -56,23 +56,6 @@ record(mbbo, "$(P)$(R)TimingMode")
 	field(NIVL, "9")
 }
 
-record(bi, "$(P)$(R)SendTiming_RBV")
-{
-	field(DTYP, "asynInt32")
-	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_TIMING")
-	field(SCAN, "I/O Intr")
-	field(ZNAM, "Idle")
-	field(ONAM, "Uploading")
-}
-
-record(bo, "$(P)$(R)SendTiming")
-{
-	field(DTYP, "asynInt32")
-	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_TIMING")
-	field(ZNAM, "Idle")
-	field(ONAM, "Uploading")
-}
-
 record(stringin, "$(P)$(R)TimingName_RBV")
 {
 	field(DTYP, "asynOctetRead")
@@ -151,9 +134,9 @@ record(stringin, "$(P)$(R)TimingName10_RBV")
 }
 
 #
-# Fiber Optic Test Pattern
+# Auto configuration commands
 #
-#
+
 record(bo, "$(P)$(R)Boot"){
 	field(DTYP, "asynInt32")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BOOT")
@@ -165,6 +148,23 @@ record(bi, "$(P)$(R)Boot_RBV"){
 	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))BOOT")
 	field(SCAN, "I/O Intr")
+	field(ZNAM, "Idle")
+	field(ONAM, "Uploading")
+}
+
+record(bi, "$(P)$(R)SendTiming_RBV")
+{
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_TIMING")
+	field(SCAN, "I/O Intr")
+	field(ZNAM, "Idle")
+	field(ONAM, "Uploading")
+}
+
+record(bo, "$(P)$(R)SendTiming")
+{
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SEND_TIMING")
 	field(ZNAM, "Idle")
 	field(ONAM, "Uploading")
 }
@@ -217,7 +217,6 @@ record(bi, "$(P)$(R)FOTest_RBV"){
 	field(ZNAM, "Off")
 	field(ONAM, "On")
 }
-
 
 #
 # Polling Period for the camera
@@ -297,7 +296,7 @@ record(bi, "$(P)$(R)FCRICClamp_RBV"){
 	field(ONAM, "CLAMP ON")
 	field(SCAN, "I/O Intr")
 }
-#
+
 #
 # Bias Voltages
 #
@@ -878,6 +877,10 @@ record(longin, "$(P)$(R)OverscanCols_RBV"){
 	field(SCAN, "I/O Intr")
 }
 
+#
+# FastCCD FClk (CIN Master Clock) Settings
+#
+
 record(mbbo, "$(P)$(R)FClk"){
 	field(DTYP, "asynInt32")
 	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FCLK")
@@ -912,6 +915,10 @@ record(mbbi, "$(P)$(R)FClk_RBV"){
 	field(FRVL, "4")
 	field(FVVL, "5")
 }
+
+#
+# FastCCD Status Information
+#
 
 record(ai, "$(P)$(R)StatusHB_RBV"){
   field(DTYP, "asynInt32")
@@ -996,7 +1003,7 @@ record(mbbo, "$(P)$(R)Mux1")
   field(ONVL, "1")
   field(TWST, "VCLK2")
   field(TWVL, "2")
-  field(THST, "VCLK2")
+  field(THST, "VCLK3")
   field(THVL, "3")
   field(FRST, "ATG")
   field(FRVL, "4")
@@ -1034,7 +1041,7 @@ record(mbbi, "$(P)$(R)Mux1_RBV")
   field(ONVL, "1")
   field(TWST, "VCLK2")
   field(TWVL, "2")
-  field(THST, "VCLK2")
+  field(THST, "VCLK3")
   field(THVL, "3")
   field(FRST, "ATG")
   field(FRVL, "4")
@@ -1074,7 +1081,7 @@ record(mbbo, "$(P)$(R)Mux2")
   field(ONVL, "1")
   field(TWST, "VCLK2")
   field(TWVL, "2")
-  field(THST, "VCLK2")
+  field(THST, "VCLK3")
   field(THVL, "3")
   field(FRST, "ATG")
   field(FRVL, "4")
@@ -1113,7 +1120,7 @@ record(mbbi, "$(P)$(R)Mux2_RBV")
   field(ONVL, "1")
   field(TWST, "VCLK2")
   field(TWVL, "2")
-  field(THST, "VCLK2")
+  field(THST, "VCLK3")
   field(THVL, "3")
   field(FRST, "ATG")
   field(FRVL, "4")
@@ -1142,7 +1149,7 @@ record(mbbi, "$(P)$(R)Mux2_RBV")
 }
 
 #
-# Bias / Clock Controls (Camera Power)
+# Power / Bias / Clock Controls
 #
 
 record(bo, "$(P)$(R)CameraPwr") {
@@ -1214,6 +1221,7 @@ record(bi, "$(P)$(R)Clocks_RBV") {
    field(ZSV,  "MINOR")
    field(SCAN, "I/O Intr")
 }
+
 #
 # Power monitoring records
 #
