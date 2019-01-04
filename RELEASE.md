@@ -2,10 +2,10 @@
 ADFastCCD Releases
 ==================
 
-The latest untagged master branch can be obtained from at
+The latest untagged master branch can be obtained from
 https://github.com/areaDetector/ADFastCCD
 
-The low-level camera control driver libcin can be obtained at 
+The low-level camera control driver libcin can be obtained from
 https://github.com/NSLS-II/libcin
 
 The versions of EPICS base, asyn, and other synApps modules used for each release can be obtained from 

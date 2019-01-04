@@ -30,7 +30,7 @@ NSLS-II, Brookhaven National Laboratory
 <li><a href="#connection-management">Connection management</a></li>
 </ul>
 <h2 id="overview">Overview</h2>
-<p>This is an <a href="http://www.aps.anl.gov/epics/">EPICS</a> <a href="areaDetector.html">areaDetector</a> driver for the FastCCD detector produced by the detector group at Lawrence Berkely National Laboratory. The driver is supported under Linux. The driver acts as a high level driver over a lower level c-driver which communicates with the camera via UDP sockets. The lower level c driver, <em>libcin</em> can be found <a href="https://github.com/NSLS-II/libcin">on github here</a>.</p>
+<p>This is an <a href="http://www.aps.anl.gov/epics/">EPICS</a> <a href="areaDetector.html">areaDetector</a> driver for the FastCCD detector produced by the detector group at Lawrence Berkeley National Laboratory. The driver is supported under Linux. The driver acts as a high level driver over a lower level c-driver which communicates with the camera via UDP sockets. The lower level c driver, <em>libcin</em> can be found <a href="https://github.com/NSLS-II/libcin">on github here</a>.</p>
 <p>This driver inherits from <a href="areaDetectorDoc.html#ADDriver">ADDriver</a>. It implements nearly all of the parameters in <a href="http://cars9.uchicago.edu/software/epics/areaDetectorDoxygenHTML/asyn_n_d_array_driver_8h.html">asynNDArrayDriver.h</a> and in <a href="http://cars9.uchicago.edu/software/epics/areaDetectorDoxygenHTML/_a_d_driver_8h.html">ADArrayDriver.h</a>. It also implements a number of parameters that are specific to the FastCCD camera and can controll the boot-up sequence of the camera amd all settings such as bias voltages and timing.</p>
 <h2 id="implementation-of-standard-driver-parameters">Implementation of standard driver parameters</h2>
 <p>The driver redefines the choices for several of the parameters defined in ADDriver.h. The ADTriggerMode choices for the FastCCD are:</p>
@@ -101,7 +101,7 @@ Specify the number of overscan rows to use when descrambling
 OVERSCAN_ROWS
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)OverscanRows<br /><span class="math inline">(<em>P</em>)</span>(R)OverscanRows_RBV
+$(P)$(R)OverscanRows<br />$(P)$(R)OverscanRows_RBV
 </td>
 <td>
 longout<br />longin
@@ -124,7 +124,7 @@ Specify the number of overscan columns to use when descrambling
 OVERSCAN_COLS
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)OverscanCols<br /><span class="math inline">(<em>P</em>)</span>(R)OverscanCols_RBV
+$(P)$(R)OverscanCols<br />$(P)$(R)OverscanCols_RBV
 </td>
 <td>
 longout<br />longin
@@ -152,7 +152,7 @@ Set the output muxer on the CIN to monitor timing signals. Allowed values are:<b
 FCCD_MUX1
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)Mux1<br /><span class="math inline">(<em>P</em>)</span>(R)Mux1_RBV
+$(P)$(R)Mux1<br />$(P)$(R)Mux1_RBV
 </td>
 <td>
 mbbo<br />mbbi
@@ -175,7 +175,7 @@ Set the output muxer on the CIN to monitor timing signals. Allowed values are:<b
 FCCD_MUX2
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)Mux2<br /><span class="math inline">(<em>P</em>)</span>(R)Mux2_RBV
+$(P)$(R)Mux2<br />$(P)$(R)Mux2_RBV
 </td>
 <td>
 mbbo<br />mbbi
@@ -198,7 +198,7 @@ Sets the fCRIC gain. Allowed values are:<br /> Auto<br /> x2<br /> x1
 FCRIC_GAIN
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)FCRICGain<br /><span class="math inline">(<em>P</em>)</span>(R)FCRICGain_RBV
+$(P)$(R)FCRICGain<br />$(P)$(R)FCRICGain_RBV
 </td>
 <td>
 mbbo<br />mbbi
@@ -221,7 +221,7 @@ Sets the fCRIC clamp mode. Allowed values are:<br /> CLAMP OFF<br /> CLAMP ON
 FCRIC_CLAMP
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)FCRICClamp<br /><span class="math inline">(<em>P</em>)</span>(R)FCRICClamp_RBV
+$(P)$(R)FCRICClamp<br />$(P)$(R)FCRICClamp_RBV
 </td>
 <td>
 bo<br />bi
@@ -244,7 +244,7 @@ Sets the fiberoptic module test mode. Allowed values are:<br /> Off<br /> On
 FO_TEST
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)FOTest<br /><span class="math inline">(<em>P</em>)</span>(R)FOTest_RBV
+$(P)$(R)FOTest<br />$(P)$(R)FOTest_RBV
 </td>
 <td>
 bo<br />bi
@@ -272,7 +272,7 @@ Sets the path for the CIN firmware file to upload
 FIRMWARE_PATH
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)FirmwarePath<br /><span class="math inline">(<em>P</em>)</span>(R)FirmwarePath_RBV
+$(P)$(R)FirmwarePath<br />$(P)$(R)FirmwarePath_RBV
 </td>
 <td>
 waveform
@@ -295,7 +295,7 @@ Uploads the firmware to the CIN specified in the <em>FastCCDFirmwarePath</em>
 FIRMWARE_UPLOAD
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)FwUpload<br /><span class="math inline">(<em>P</em>)</span>(R)FwUpload_RBV
+$(P)$(R)FwUpload<br />$(P)$(R)FwUpload_RBV
 </td>
 <td>
 busy<br />bi
@@ -318,7 +318,7 @@ Sets the path for the clocking (timing) file to upload
 CLOCK_PATH
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)ClockPath<br /><span class="math inline">(<em>P</em>)</span>(R)ClockPath_RBV
+$(P)$(R)ClockPath<br />$(P)$(R)ClockPath_RBV
 </td>
 <td>
 waveform
@@ -341,7 +341,7 @@ Uploads the clock (timing) to the CIN specified in the <em>FastCCDClockPath</em>
 CLOCK_UPLOAD
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)ClockUpload<br /><span class="math inline">(<em>P</em>)</span>(R)ClockUpload_RBV
+$(P)$(R)ClockUpload<br />$(P)$(R)ClockUpload_RBV
 </td>
 <td>
 busy<br />bi
@@ -364,7 +364,7 @@ Sets the path for the fCRIC configuration file to upload
 FCRIC_PATH
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)FCRICPath<br /><span class="math inline">(<em>P</em>)</span>(R)FCRICPath_RBV
+$(P)$(R)FCRICPath<br />$(P)$(R)FCRICPath_RBV
 </td>
 <td>
 waveform
@@ -387,7 +387,7 @@ Uploads the fCRIC configuration to the CIN specified in the <em>FastCCDFCRICPath
 FCRIC_UPLOAD
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)FCRICUpload<br /><span class="math inline">(<em>P</em>)</span>(R)FCRICUpload_RBV
+$(P)$(R)FCRICUpload<br />$(P)$(R)FCRICUpload_RBV
 </td>
 <td>
 busy<br />bi
@@ -410,7 +410,7 @@ Sets the path for the sensor bias configuration file to upload
 BIAS_PATH
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)BiasPath<br /><span class="math inline">(<em>P</em>)</span>(R)BiasPath_RBV
+$(P)$(R)BiasPath<br />$(P)$(R)BiasPath_RBV
 </td>
 <td>
 waveform
@@ -433,7 +433,7 @@ Uploads the bias configuration to the CIN specified in the <em>FastCCDBiasPath</
 BIAS_UPLOAD
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)BiasUpload<br /><span class="math inline">(<em>P</em>)</span>(R)BiasUpload_RBV
+$(P)$(R)BiasUpload<br />$(P)$(R)BiasUpload_RBV
 </td>
 <td>
 busy<br />bi
@@ -461,7 +461,7 @@ Set the timing mode to use for auto booting the FastCCD
 TIMING_MODE
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)TimingMode<br /><span class="math inline">(<em>P</em>)</span>(R)TimingMode_RBV
+$(P)$(R)TimingMode<br />$(P)$(R)TimingMode_RBV
 </td>
 <td>
 mbbo<br />mbbi
@@ -484,7 +484,7 @@ The name of the timing mode last set by the FastCCD auto boot sequence.
 TIMING_NAME
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)TimingName_RBV
+$(P)$(R)TimingName_RBV
 </td>
 <td>
 stringin
@@ -507,7 +507,7 @@ The name of the timing mode assigned to mode number 1
 TIMING_NAME_0
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)TimingName1_RBV
+$(P)$(R)TimingName1_RBV
 </td>
 <td>
 stringin
@@ -530,7 +530,7 @@ The name of the timing mode assigned to mode number 2
 TIMING_NAME_1
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)TimingName1_RBV
+$(P)$(R)TimingName1_RBV
 </td>
 <td>
 stringin
@@ -553,7 +553,7 @@ The name of the timing mode assigned to mode number 3
 TIMING_NAME_2
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)TimingName1_RBV
+$(P)$(R)TimingName1_RBV
 </td>
 <td>
 stringin
@@ -576,7 +576,7 @@ The name of the timing mode assigned to mode number 4
 TIMING_NAME_3
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)TimingName3_RBV
+$(P)$(R)TimingName3_RBV
 </td>
 <td>
 stringin
@@ -599,7 +599,7 @@ The name of the timing mode assigned to mode number 5
 TIMING_NAME_4
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)TimingName4_RBV
+$(P)$(R)TimingName4_RBV
 </td>
 <td>
 stringin
@@ -622,7 +622,7 @@ The name of the timing mode assigned to mode number 6
 TIMING_NAME_5
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)TimingName5_RBV
+$(P)$(R)TimingName5_RBV
 </td>
 <td>
 stringin
@@ -645,7 +645,7 @@ The name of the timing mode assigned to mode number 7
 TIMING_NAME_6
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)TimingName6_RBV
+$(P)$(R)TimingName6_RBV
 </td>
 <td>
 stringin
@@ -668,7 +668,7 @@ The name of the timing mode assigned to mode number 8
 TIMING_NAME_7
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)TimingName7_RBV
+$(P)$(R)TimingName7_RBV
 </td>
 <td>
 stringin
@@ -691,7 +691,7 @@ The name of the timing mode assigned to mode number 9
 TIMING_NAME_8
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)TimingName8_RBV
+$(P)$(R)TimingName8_RBV
 </td>
 <td>
 stringin
@@ -714,7 +714,7 @@ The name of the timing mode assigned to mode number 10
 TIMING_NAME_9
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)TimingName9_RBV
+$(P)$(R)TimingName9_RBV
 </td>
 <td>
 stringin
@@ -742,7 +742,7 @@ Boot the CIN using the timing mode defined by <em>FastCCDTimingMode</em>. This c
 BOOT
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)Boot<br /><span class="math inline">(<em>P</em>)</span>(R)Boot_RBV
+$(P)$(R)Boot<br />$(P)$(R)Boot_RBV
 </td>
 <td>
 busy<br />bi
@@ -765,7 +765,7 @@ Send the timing information to the CIN as set by <em>FastCCDTimingMode</em>. Thi
 SEND_TIMING
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)SendTiming<br /><span class="math inline">(<em>P</em>)</span>(R)SendTiming_RBV
+$(P)$(R)SendTiming<br />$(P)$(R)SendTiming_RBV
 </td>
 <td>
 busy<br />bi
@@ -788,7 +788,7 @@ Send the fCRIC configuration information to the CIN as set by <em>FastCCDTimingM
 SEND_FCRIC
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)SendFCRIC<br /><span class="math inline">(<em>P</em>)</span>(R)SendFCRIC_RBV
+$(P)$(R)SendFCRIC<br />$(P)$(R)SendFCRIC_RBV
 </td>
 <td>
 busy<br />bi
@@ -811,7 +811,7 @@ Send the bias voltage configuration information to the CIN as set by <em>FastCCD
 SEND_BIAS
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)SendBias<br /><span class="math inline">(<em>P</em>)</span>(R)SendBias_RBV
+$(P)$(R)SendBias<br />$(P)$(R)SendBias_RBV
 </td>
 <td>
 busy<br />bi
@@ -839,7 +839,7 @@ Powers on and off the CIN (0 = off, 1 = on)
 CIN_POWER
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)Power<br /><span class="math inline">(<em>P</em>)</span>(R)Power_RBV
+$(P)$(R)Power<br />$(P)$(R)Power_RBV
 </td>
 <td>
 bo<br />bi
@@ -862,7 +862,7 @@ Powers on and off the CIN front panel (0 = off, 1 = on)
 CIN_POWER
 </td>
 <td>
-<span class="math inline">(<em>P</em>)</span>(R)FPPower<br /><span class="math inline">(<em>P</em>)</span>(R)FPPower_RBV
+$(P)$(R)FPPower<br />$(P)$(R)FPPower_RBV
 </td>
 <td>
 bo<br />bi
