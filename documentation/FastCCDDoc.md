@@ -11,6 +11,7 @@ Contents
 -   [FastCCD specific parameters](#fastccd-specific-parameters)
 -   [Configuration](#configuration)
 -   [Setting the image size](#setting-the-image-size)
+-   [Auto Configuration of the FastCCD](#auto-configuration-of-the-fastccd)
 -   [MEDM screens](#medm-screens)
 -   [Connection management](#connection-management)
 
@@ -561,6 +562,21 @@ The actual image size is therefore given by:
 
 Auto Configuration of the FastCCD
 ---------------------------------
+The FastCCD can be configured by using the built in _firmware_ and settings in
+the [libcin driver](https://github.com/NSLS-II/libcin). This is controled by the 
+PVs defined in the section *FastCCD Auto Setting Commands*. The PVs 
+`$(P)$(R)TimingName[0..9]_RBV` show strings with names defined in the `libcin` 
+driver corresponding to the modes 1 through 10. To boot into one of these modes, 
+the user should set the PV `$(P)$(R)TimingMode` to number of the mode required
+(0 through 9). The PV `$(P)$(R)TimingName_RBV` will indicate the mode selected. 
+
+To boot the FastCCD, the user should write 1 to the PV `$(P)$(R)Boot`. This will
+cause the FastCCD to reset the CIN (by power cycling it) and upload the firmware 
+and timing configuration. At this point the user should be able to see the test
+pattern from the CIN by triggering the detector. The user can then configure the
+_fCRICs_ by writing 1 to the PV `$(P)$(R)SendFCRIC`. The bias configuration can 
+be upload by writing 1 to the PV `$(P)$(R)SendBias`.  The latter two steps require
+the camera head to be powered. This is out of the scope of this driver. 
 
 MEDM screens
 ------------
