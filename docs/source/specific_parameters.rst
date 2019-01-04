@@ -5,8 +5,8 @@ FastCCD specific parameters
 The FastCCD driver implements the following parameters in addition to
 those in asynNDArrayDriver.h and ADDriver.h:
 
-Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.template
-
+FastCCD Image Size and Overscan Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. raw:: html
 
@@ -37,12 +37,6 @@ Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.tem
     </tr>
     </thead>
     <tbody>
-    <tr>
-    <td colspan="7" align="center">
-    <b> FastCCD Image Size and Overscan Settings </b>
-    </td>
-    </tr>
-    <tr>
     <td>
     FastCCDOverscanRows
     </td>
@@ -87,12 +81,43 @@ Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.tem
     <td>
     longout<br />longin
     </td>
-    <tr>
-    <tr>
-    <td colspan="7" align="center">
-    <b> FastCCD CIN Power Settings </b>
-    </td>
     </tr>
+    </tbody>
+    </table>
+
+
+FastCCD CIN Power Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+    <table class="table table-striped">
+    <thead>
+    <tr>
+    <th>
+    Parameter index variable
+    </th>
+    <th>
+    asyn interface
+    </th>
+    <th>
+    Access
+    </th>
+    <th>
+    Description
+    </th>
+    <th>
+    drvInfo string
+    </th>
+    <th>
+    EPICS record name
+    </th>
+    <th>
+    EPICS record type
+    </th>
+    </tr>
+    </thead>
+    <tbody>
     <tr>
     <td>
     FastCCDPower
@@ -139,11 +164,42 @@ Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.tem
     bo<br />bi
     </td>
     </tr>
+    </tbody>
+    </table>
+
+
+FastCCD Power settings (Bias and Clocking)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+    <table class="table table-striped">
+    <thead>
     <tr>
-    <td colspan="7" align="center">
-    <b> FastCCD Power settings (Bias and Clocking) </b>
-    </td>
+    <th>
+    Parameter index variable
+    </th>
+    <th>
+    asyn interface
+    </th>
+    <th>
+    Access
+    </th>
+    <th>
+    Description
+    </th>
+    <th>
+    drvInfo string
+    </th>
+    <th>
+    EPICS record name
+    </th>
+    <th>
+    EPICS record type
+    </th>
     </tr>
+    </thead>
+    <tbody>
     <tr>
     <td>
     FastCCDCameraPowerMode
