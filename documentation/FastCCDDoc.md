@@ -512,15 +512,49 @@ FastCCD Power settings (Bias and Clocking)
 </tr>
 
 <tr>
-<td>FastCCDFPPower</td>
+<td>FastCCDCameraPowerMode</td>
 <td>asynParamInt32</td>
 <td>r/w</td>
-<td>Powers on and off the CIN front panel (0 = off, 1 = on)</td>
-<td>CIN_POWER</td>
-<td>$(P)$(R)FPPower<br />$(P)$(R)FPPower_RBV</td>
-<td>bo<br />bi</td>
-
+<td>Set the power mode of the FastCCD cmaera head to be turned on and off by _FastCCDCameraPower_. Possible values are:
+NONE<br />
+CLOCKS<br />
+BIAS<br />
+BIAS AND CLOCKS</td>
+<td>CAMERA_POWER_MODE</td>
+<td>$(P)$(R)CameraPwrMode<br />$(P)$(R)CameraPwrMode_RBV</td>
+<td>mbbo<br />mbbi</td>
 </tr>
+
+<tr>
+<td>FastCCDCameraPower</td>
+<td>asynParamInt32</td>
+<td>r/w</td>
+<td>Powers on and off the FastCCD camera head (0 = off, 1 = on)</td>
+<td>CAMERA_POWER</td>
+<td>$(P)$(R)CameraPwr<br />$(P)$(R)CameraPwr_RBV</td>
+<td>bo<br />bi</td>
+</tr>
+
+<tr>
+<td>FastCCDBias</td>
+<td>asynParamInt32</td>
+<td>ro</td>
+<td>Indicates if the CIN is requesting the camera head to turn on or off the bias power (0 = off, 1 = on)</td>
+<td>BIAS</td>
+<td>$(P)$(R)Bias_RBV</td>
+<td>bo<br />bi</td>
+</tr>
+
+<tr>
+<td>FastCCDClocks</td>
+<td>asynParamInt32</td>
+<td>ro</td>
+<td>Indicates if the CIN is requesting the camera head to turn on or off the clocking power (0 = off, 1 = on)</td>
+<td>CLOCKS</td>
+<td>$(P)$(R)Clocks_RBV</td>
+<td>bo<br />bi</td>
+</tr>
+
 </table>
 
 Configuration
