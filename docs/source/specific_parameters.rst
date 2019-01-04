@@ -8,11 +8,7 @@ those in asynNDArrayDriver.h and ADDriver.h:
 .. raw:: html
 
     <table class="table table-striped">
-    <tr>
-    <td colspan="7" align="center">
-    <b> Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.template </b>
-    </td>
-    </tr>
+    <thead>
     <tr>
     <td>
     Parameter index variable
@@ -35,7 +31,14 @@ those in asynNDArrayDriver.h and ADDriver.h:
     <td>
     EPICS record type
     </td>
+    </tr>
+    </thead>
+    <tbody>
     <tr>
+    <td colspan="7" align="center">
+    <b> Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.template </b>
+    </td>
+    </tr>
     <tr>
     <td colspan="7" align="center">
     <b> FastCCD Image Size and Overscan Settings </b>
@@ -922,4 +925,5 @@ those in asynNDArrayDriver.h and ADDriver.h:
     busy<br />bi
     </td>
     </tr>
+    </tbody>
     </table>
