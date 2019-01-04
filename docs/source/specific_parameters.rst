@@ -5,6 +5,9 @@ FastCCD specific parameters
 The FastCCD driver implements the following parameters in addition to
 those in asynNDArrayDriver.h and ADDriver.h:
 
+Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.template
+
+
 .. raw:: html
 
     <table class="table table-striped">
@@ -34,11 +37,6 @@ those in asynNDArrayDriver.h and ADDriver.h:
     </tr>
     </thead>
     <tbody>
-    <tr>
-    <td colspan="7" align="center">
-    <b> Parameter Definitions in FastCCD.cpp and EPICS Record Definitions in FastCCD.template </b>
-    </td>
-    </tr>
     <tr>
     <td colspan="7" align="center">
     <b> FastCCD Image Size and Overscan Settings </b>
