@@ -292,11 +292,42 @@ FastCCD Power settings (Bias and Clocking)
     bo<br />bi
     </td>
     </tr>
+    </tbody>
+    </table>
+
+
+FastCCD fCRIC and CIN Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+    <table class="table table-striped">
+    <thead>
     <tr>
-    <td colspan="7" align="center">
-    <b> FastCCD fCRIC and CIN Settings </b>
-    </td>
+    <th>
+    Parameter index variable
+    </th>
+    <th>
+    asyn interface
+    </th>
+    <th>
+    Access
+    </th>
+    <th>
+    Description
+    </th>
+    <th>
+    drvInfo string
+    </th>
+    <th>
+    EPICS record name
+    </th>
+    <th>
+    EPICS record type
+    </th>
     </tr>
+    </thead>
+    <tbody>
     <tr>
     <td>
     FastCCDMux1
@@ -412,11 +443,42 @@ FastCCD Power settings (Bias and Clocking)
     bo<br />bi
     </td>
     </tr>
+    </tbody>
+    </table>
+    
+    
+FastCCD CIN Setting Upload
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+    <table class="table table-striped">
+    <thead>
     <tr>
-    <td colspan="7" align="center">
-    <b> FastCCD CIN Setting Upload </b>
-    </td>
+    <th>
+    Parameter index variable
+    </th>
+    <th>
+    asyn interface
+    </th>
+    <th>
+    Access
+    </th>
+    <th>
+    Description
+    </th>
+    <th>
+    drvInfo string
+    </th>
+    <th>
+    EPICS record name
+    </th>
+    <th>
+    EPICS record type
+    </th>
     </tr>
+    </thead>
+    <tbody>
     <tr>
     <td>
     FastCCDFirmwarePath
@@ -601,11 +663,41 @@ FastCCD Power settings (Bias and Clocking)
     busy<br />bi
     </td>
     </tr>
+    </tbody>
+    </table>
+
+FastCCD Auto Setting Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+    <table class="table table-striped">
+    <thead>
     <tr>
-    <td colspan="7" align="center">
-    <b> FastCCD Auto Setting Parameters </b>
-    </td>
+    <th>
+    Parameter index variable
+    </th>
+    <th>
+    asyn interface
+    </th>
+    <th>
+    Access
+    </th>
+    <th>
+    Description
+    </th>
+    <th>
+    drvInfo string
+    </th>
+    <th>
+    EPICS record name
+    </th>
+    <th>
+    EPICS record type
+    </th>
     </tr>
+    </thead>
+    <tbody>
     <tr>
     <td>
     FastCCDTimingMode
@@ -882,11 +974,42 @@ FastCCD Power settings (Bias and Clocking)
     stringin
     </td>
     </tr>
+    </tbody>
+    </table>
+
+
+FastCCD Auto Setting Commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+    <table class="table table-striped">
+    <thead>
     <tr>
-    <td colspan="7" align="center">
-    <b> FastCCD Auto Setting Commands </b>
-    </td>
+    <th>
+    Parameter index variable
+    </th>
+    <th>
+    asyn interface
+    </th>
+    <th>
+    Access
+    </th>
+    <th>
+    Description
+    </th>
+    <th>
+    drvInfo string
+    </th>
+    <th>
+    EPICS record name
+    </th>
+    <th>
+    EPICS record type
+    </th>
     </tr>
+    </thead>
+    <tbody>
     <tr>
     <td>
     FastCCDBoot
