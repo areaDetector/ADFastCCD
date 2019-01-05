@@ -1,6 +1,7 @@
-
 ADFastCCD Releases
 ==================
+
+## Information
 
 The latest untagged master branch can be obtained from
 https://github.com/areaDetector/ADFastCCD
@@ -14,9 +15,8 @@ files respectively, in the configure/ directory of the appropriate release of th
 [top-level areaDetector](https://github.com/areaDetector/areaDetector) repository.
 
 
-Release Notes
-=============
+## Release Notes
 
-R0-1 (July 1, 2018)
-===================
+### R0-1 (July 1, 2018)
+
 * First release of the FastcCCD areaDetector driver. 
