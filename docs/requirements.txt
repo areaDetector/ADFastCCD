@@ -1,2 +1,2 @@
 sphinx_bootstrap_theme
-m2s
+m2r
