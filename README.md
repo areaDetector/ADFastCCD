@@ -1,6 +1,8 @@
 areaDetector driver for FastCCD
 ===============================
 
+[![Documentation Status](https://readthedocs.org/projects/adfastccd/badge/?version=latest)](https://adfastccd.readthedocs.io/en/latest/?badge=latest)
+
 An 
 [EPICS](http://www.aps.anl.gov/epics/) 
 [areaDetector](http://cars.uchicago.edu/software/epics/areaDetector.html)
