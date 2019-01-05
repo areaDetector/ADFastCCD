@@ -12,8 +12,8 @@ Table of Contents
 .. toctree::
    :maxdepth: 2
 
-   release
    introduction
+   release
    standard_parameters
    specific_parameters
    configuration
