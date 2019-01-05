@@ -1,23 +1,21 @@
 ===========================
 areaDetector FastCCD driver
 ===========================
-
-.. centered:: December 20th, 2018
-.. centered:: Stuart B. Wilkins
-.. centered:: NSLS-II, Brookhaven National Laboratory 
-
-Table of Contents
------------------
+:Info: A areaDetector driver for the LBNL FastCCD
+:Author: Stuart B. Wilkins (http://github.com/stuwilkins)
 
 .. toctree::
    :maxdepth: 2
+   :numbered:
 
    introduction
-   release
-   standard_parameters
-   specific_parameters
+   Readme <readme>
+   Release Notes <release>
+   parameters
    configuration
    medm
+   plugin_introduction
+   
 
 Search
 ------

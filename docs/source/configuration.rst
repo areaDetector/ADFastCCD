@@ -7,7 +7,7 @@ IOC Shell
 The FastCCD driver is created with the FastCCDConfig command, either
 from C/C++ or from the EPICS IOC shell.
 
-::
+.. code-block:: c
 
    int FastCCDConfig(char *portName, 
                      int maxBuffers, size_t maxMemory,
@@ -16,15 +16,16 @@ from C/C++ or from the EPICS IOC shell.
                      const char *baseIP, const char *fabricIP, 
                      const char *fabricMAC)
 
-The **packetBuffer** and **imageBuffer** parameters specify how many
+
+The `packetBuffer` and ``imageBuffer`` parameters specify how many
 packet frames and images to buffer in the ``libcin`` driver. These are
 directly passed to ``libcin`` on initialization.
 
-The **baseIP** and **fabricIP** are the ip addresses of the base and
+The ``baseIP`` and ``fabricIP`` are the ip addresses of the base and
 fabric interfaces on the camera interface node (CIN). A null "" string
 sets the default as defined in the ``libcin`` driver.
 
-The **fabricMAC** parameter causes the ``libcin`` driver to set the MAC
+The ``fabricMAC`` parameter causes the ``libcin`` driver to set the MAC
 address of the CIN on initialization. This can be used to broadcast the
 image data by using the ``FF:FF:FF:FF:FF`` mac address.
 
