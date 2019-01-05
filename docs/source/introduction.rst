@@ -1,4 +1,3 @@
-============
 Introduction
 ============
 
@@ -19,3 +18,6 @@ and in
 It also implements a number of parameters that are specific to the
 FastCCD camera and can controll the boot-up sequence of the camera amd
 all settings such as bias voltages and timing.
+
+.. image:: picture.png
+
