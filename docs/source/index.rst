@@ -13,6 +13,7 @@ areaDetector FastCCD driver
    Release Notes <release>
    parameters
    configuration
+   st_cmd
    medm
    plugin_introduction
    
