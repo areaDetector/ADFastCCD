@@ -1,0 +1,4 @@
+Release
+-------
+
+.. mdinclude:: ../../RELEASE.md

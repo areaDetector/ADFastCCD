@@ -1,5 +1,23 @@
 areaDetector driver for FastCCD
-=======
-An EPICS areaDetector driver for the [LBNL FastCCD](https://sites.google.com/a/lbl.gov/fast-ccd-camera-systems)
+===============================
 
-This driver uses the `libcin` driver which can be found on [github](https://github.com/NSLS-II-CSX/libcin)
+[![Documentation Status](https://readthedocs.org/projects/adfastccd/badge/?version=latest)](https://adfastccd.readthedocs.io/en/latest/?badge=latest)
+
+An 
+[EPICS](http://www.aps.anl.gov/epics/) 
+[areaDetector](http://cars.uchicago.edu/software/epics/areaDetector.html)
+driver for the 
+[LBNL FastCCD](https://sites.google.com/a/lbl.gov/fast-ccd-camera-systems)
+
+This driver is supported under linux and uses the 
+[libcin](https://github.com/NSLS-II-CSX/libcin)
+driver developed by Stuart Wilkins at the 
+[NSLS-II](https://www.bnl.gov/ps). This library acts as the interface between
+the UDP controlled _Camera Interface Node_ and the areaDetector driver. Please
+see the `libcin`
+[readme](https://github.com/NSLS-II/libcin/blob/master/README.md) for
+information on the required network setup. 
+
+Additional information:
+* [Documentation](https://adfastccd.readthedocs.io).
+* [Release notes and links to source and binary releases](RELEASE.md).
