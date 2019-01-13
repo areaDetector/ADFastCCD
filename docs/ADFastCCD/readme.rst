@@ -1,1 +1,4 @@
-.. mdinclude:: ../../README.md 
+Readme
+------
+
+.. mdinclude:: ../../ADFastCCD/README.md 
