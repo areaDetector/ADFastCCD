@@ -1,8 +1,6 @@
 areaDetector driver for FastCCD
 ===============================
 
-[![Documentation Status](https://readthedocs.org/projects/adfastccd/badge/?version=latest)](https://adfastccd.readthedocs.io/en/latest/?badge=latest)
-
 An 
 [EPICS](http://www.aps.anl.gov/epics/) 
 [areaDetector](http://cars.uchicago.edu/software/epics/areaDetector.html)
@@ -19,5 +17,5 @@ see the `libcin`
 information on the required network setup. 
 
 Additional information:
-* [Documentation](https://adfastccd.readthedocs.io).
+* [Documentation](https://areaDetector.github.io/ADFastCCD/index.html)
 * [Release notes and links to source and binary releases](RELEASE.md).
