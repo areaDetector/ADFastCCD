@@ -1,7 +1,7 @@
 Introduction
 ============
 
-This is an :doc:`index` driver for the FastCCD detector
+This is an :doc:`../index` driver for the FastCCD detector
 produced by the detector group at Lawrence Berkeley National Laboratory.
 The driver is supported under Linux. The driver acts as a high level
 driver over a lower level c-driver which communicates with the camera
