@@ -6,7 +6,6 @@ areaDetector FastCCD driver
 
 .. toctree::
    :maxdepth: 2
-   :numbered:
 
    introduction
    Readme <readme>
