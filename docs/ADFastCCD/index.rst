@@ -4,6 +4,9 @@ areaDetector FastCCD driver
 :Info: A areaDetector driver for the LBNL FastCCD
 :Author: Stuart B. Wilkins (http://github.com/stuwilkins)
 
+FastCCD Detector Driver
+-----------------------
+
 .. toctree::
    :maxdepth: 2
 
@@ -16,6 +19,13 @@ areaDetector FastCCD driver
    medm
    plugin_introduction
    
+FastCCD Processing Plugin
+-------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   plugin_introduction
 
 Search
 ------
