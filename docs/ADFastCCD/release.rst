@@ -1,4 +1,1 @@
-Release
--------
-
-.. mdinclude:: ../../RELEASE.md
+.. mdinclude:: ../../../ADFastCCD/RELEASE.md
