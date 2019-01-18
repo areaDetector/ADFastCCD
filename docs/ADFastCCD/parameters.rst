@@ -1,5 +1,5 @@
 Implementation of standard driver parameters
---------------------------------------------
+============================================
 
 The driver redefines the choices for several of the parameters defined
 in ADDriver.h. The ADTriggerMode choices for the FastCCD are:
@@ -19,13 +19,13 @@ The NDColorMode choices for the FastCCD are:
 
 
 Implementation of FastCCD specific parameters
----------------------------------------------
+=============================================
 
 The FastCCD driver implements the following parameters in addition to
 those in asynNDArrayDriver.h and ADDriver.h:
 
 FastCCD Image Size and Overscan Settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------
 
 .. raw:: html
 
@@ -106,7 +106,7 @@ FastCCD Image Size and Overscan Settings
 
 
 FastCCD CIN Power Settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
 .. raw:: html
 
@@ -188,7 +188,7 @@ FastCCD CIN Power Settings
 
 
 FastCCD Power settings (Bias and Clocking)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------
 
 .. raw:: html
 
@@ -316,7 +316,7 @@ FastCCD Power settings (Bias and Clocking)
 
 
 FastCCD fCRIC and CIN Settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------
 
 .. raw:: html
 
@@ -467,7 +467,7 @@ FastCCD fCRIC and CIN Settings
     
     
 FastCCD CIN Setting Upload
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
 .. raw:: html
 
@@ -686,7 +686,7 @@ FastCCD CIN Setting Upload
     </table>
 
 FastCCD Auto Setting Parameters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------
 
 .. raw:: html
 
@@ -998,7 +998,7 @@ FastCCD Auto Setting Parameters
 
 
 FastCCD Auto Setting Commands
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------
 
 .. raw:: html
 
