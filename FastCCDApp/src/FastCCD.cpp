@@ -1888,7 +1888,19 @@ static void FastCCDDetectorWaitTaskC(void *drvPvt)
   pPvt->detectorWaitTask();
 }
 
-/** IOC shell configuration command for Andor driver
+extern "C" {
+
+/** IOC shell configuration command for debug output
+  * \param[in] error (0 = no error output, 1 = error output to stderr)
+  * \param[in] debug (0 = no debug output, 1 = debug output to stderr)
+  */
+void FastCCDDebug(int error, int debug)
+{
+  cin_set_debug_print(error);
+  cin_set_error_print(debug);
+}
+
+/** IOC shell configuration command for FastCCD driver
   * \param[in] portName The name of the asyn port driver to be created.
   * \param[in] maxBuffers The maximum number of NDArray buffers that the NDArrayPool for this driver is 
   *            allowed to allocate. Set this to -1 to allow an unlimited number of buffers.
@@ -1902,14 +1914,6 @@ static void FastCCDDetectorWaitTaskC(void *drvPvt)
   * \param[in] fabricIP The fabric IP address
   * \param[in] fabricMAC The fabric MAC address
   */
-extern "C" {
-
-void FastCCDDebug(int error, int debug)
-{
-  cin_set_debug_print(error);
-  cin_set_error_print(debug);
-}
-
 int FastCCDConfig(const char *portName, int maxBuffers, size_t maxMemory, 
                   int priority, int stackSize, int packetBuffer, int imageBuffer,
 				  const char *baseIP, const char *fabricIP, const char *fabricMAC)
