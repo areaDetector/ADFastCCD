@@ -12,7 +12,7 @@ PROD_IOC_Linux  += $(PROD_NAME)
 # <name>.dbd will be created from <name>Include.dbd
 DBD += $(PROD_NAME).dbd
 $(PROD_NAME)_DBD += FastCCDSupport.dbd
-$(PROD_NAME)_DBD += NDPluginFastCCDSupport.dbd
+$(PROD_NAME)_DBD += NDPluginFastCCD.dbd
 
 PROD_SRCS += $(PROD_NAME)_registerRecordDeviceDriver.cpp $(PROD_NAME)Main.cpp
 
@@ -20,7 +20,7 @@ PROD_SRCS += $(PROD_NAME)_registerRecordDeviceDriver.cpp $(PROD_NAME)Main.cpp
 PROD_LIBS += FastCCD
 PROD_LIBS += NDPluginFastCCD
 PROD_LIBS += cin
-PROD_SYS_LIBS += config
+#PROD_SYS_LIBS += config
 
 include $(ADCORE)/ADApp/commonDriverMakefile
 
