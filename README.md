@@ -3,7 +3,7 @@ areaDetector driver for FastCCD
 
 An 
 [EPICS](http://www.aps.anl.gov/epics/) 
-[areaDetector](http://cars.uchicago.edu/software/epics/areaDetector.html)
+[areaDetector](https://cars.uchicago.edu/software/epics/areaDetector.html)
 driver for the 
 [LBNL FastCCD](https://sites.google.com/a/lbl.gov/fast-ccd-camera-systems)
 
