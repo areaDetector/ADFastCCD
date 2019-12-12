@@ -1,6 +1,6 @@
-===========================
-areaDetector FastCCD driver
-===========================
+=========
+ADFastCCD
+=========
 :Info: A areaDetector driver for the LBNL FastCCD
 :Author: Stuart B. Wilkins (http://github.com/stuwilkins)
 
