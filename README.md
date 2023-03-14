@@ -17,5 +17,5 @@ see the `libcin`
 information on the required network setup. 
 
 Additional information:
-* [Documentation](https://areadetector.github.io/master/ADFastCCD/index.html)
+* [Documentation](https://areadetector.github.io/areaDetector/ADFastCCD/index.html)
 * [Release notes and links to source and binary releases](RELEASE.md).
